@@ -1,38 +1,59 @@
 exploratory\_analysis
 ================
 emmamendelsohn
-Mon Jan 28 14:47:07 2019
+Mon Feb 4 07:12:19 2019
 
 —————–Visualize—————–
 
-    ## # A tibble: 61 x 6
-    ##     date country       SP.POP.TOTL     n continent NY.GDP.MKTP.CD.Billion
-    ##    <dbl> <chr>               <dbl> <dbl> <chr>                      <dbl>
-    ##  1  2015 china          1371220000   184 Asia                      11065.
-    ##  2  2015 united states   321039839   167 Americas                  18121.
-    ##  3  2015 india          1309053980   137 Asia                       2102.
-    ##  4  2015 spain            46444832   108 Europe                     1198.
-    ##  5  2015 canada           35832513   101 Americas                   1560.
-    ##  6  2015 japan           127141000    88 Asia                       4395.
-    ##  7  2015 france           66593366    83 Europe                     2438.
-    ##  8  2015 brazil          205962108    60 Americas                   1802.
-    ##  9  2015 south korea      51014947    54 Asia                       1383.
-    ## 10  2015 italy            60730582    51 Europe                     1833.
-    ## # … with 51 more rows
+![](01-country-analysis_files/figure-gfm/r%20plots-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20plots-2.png)<!-- -->
 
-![](01-country-analysis_files/figure-gfm/r%20plots-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20plots-2.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20plots-3.png)<!-- -->
+—————–Fit GAM—————–
 
-—————–Fit quasipoisson—————–
+    ## 
+    ## Family: gaussian 
+    ## Link function: identity 
+    ## 
+    ## Formula:
+    ## n ~ +s(log(NY.GDP.MKTP.CD.Billion)) + continent + s(log(SP.POP.TOTL))
+    ## 
+    ## Parametric coefficients:
+    ##                   Estimate Std. Error t value Pr(>|t|)   
+    ## (Intercept)         32.749      9.650   3.394  0.00138 **
+    ## continentAmericas    2.931     12.783   0.229  0.81959   
+    ## continentAsia       -5.087     10.722  -0.474  0.63729   
+    ## continentEurope     -1.691     12.343  -0.137  0.89157   
+    ## continentOceania   -17.274     17.309  -0.998  0.32321   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Approximate significance of smooth terms:
+    ##                                  edf Ref.df     F  p-value    
+    ## s(log(NY.GDP.MKTP.CD.Billion)) 3.514  4.356 6.928 0.000103 ***
+    ## s(log(SP.POP.TOTL))            3.759  4.641 3.144 0.014343 *  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## R-sq.(adj) =  0.667   Deviance explained =   73%
+    ## -REML = 260.08  Scale est. = 516.98    n = 61
 
-    ## # A tibble: 4 x 5
-    ##   term                                estimate std.error statistic  p.value
-    ##   <chr>                                  <dbl>     <dbl>     <dbl>    <dbl>
-    ## 1 (Intercept)                         2.97e+ 0  1.46e- 1     20.3  9.00e-28
-    ## 2 NY.GDP.MKTP.CD.Billion              1.28e- 4  2.95e- 5      4.35 5.75e- 5
-    ## 3 SP.POP.TOTL                         1.48e- 9  4.13e-10      3.59 6.84e- 4
-    ## 4 NY.GDP.MKTP.CD.Billion:SP.POP.TOTL -8.34e-14  5.73e-14     -1.46 1.50e- 1
+    ##               para s(log(NY.GDP.MKTP.CD.Billion)) s(log(SP.POP.TOTL))
+    ## worst    0.9184685                      0.7531111           0.7515322
+    ## observed 0.9184685                      0.6147109           0.4280242
+    ## estimate 0.9184685                      0.5503579           0.5959985
 
-    ## # A tibble: 1 x 7
-    ##   null.deviance df.null logLik   AIC   BIC deviance df.residual
-    ##           <dbl>   <int>  <dbl> <dbl> <dbl>    <dbl>       <int>
-    ## 1         2281.      60     NA    NA    NA    1187.          57
+![](01-country-analysis_files/figure-gfm/r%20mod-gam-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20mod-gam-2.png)<!-- -->
+
+    ## 
+    ## Method: REML   Optimizer: outer newton
+    ## full convergence after 5 iterations.
+    ## Gradient range [-2.669008e-08,5.800586e-09]
+    ## (score 260.0781 & scale 516.977).
+    ## Hessian positive definite, eigenvalue range [0.6854646,27.1326].
+    ## Model rank =  23 / 23 
+    ## 
+    ## Basis dimension (k) checking results. Low p-value (k-index<1) may
+    ## indicate that k is too low, especially if edf is close to k'.
+    ## 
+    ##                                  k'  edf k-index p-value
+    ## s(log(NY.GDP.MKTP.CD.Billion)) 9.00 3.51    1.08    0.65
+    ## s(log(SP.POP.TOTL))            9.00 3.76    1.11    0.76
