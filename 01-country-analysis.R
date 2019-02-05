@@ -10,10 +10,10 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse)
 library(here)
 library(broom)
-library(MASS)
 library(mgcv)
-library(caret)
-source(here("multiplot.R"))
+library(dbarts)
+library(DALEX)
+library(ceterisParibus)
 
 set.seed(101)
 
@@ -28,161 +28,109 @@ country_dat <- read_csv(here("country_level.csv")) %>%
 country_dat_rs <- country_dat %>% 
   gather(key = "var", value = "val", -n, -continent)
 
-#' -----------------Visualize-----------------
+#' -----------------View Data-----------------
 #+ r plots
 
-# look at data - eval distribution
-# country_dat %>% arrange(-n)
-hist(country_dat$n)
-# lamda <- mean(country_dat$n)
-# var <- var(country_dat$n)
-
-# confirm data are overdispersed
-# od_mod <- glm(data = country_dat, formula = n ~ NY.GDP.MKTP.CD.Billion:continent + SP.POP.TOTL:continent , family = "poisson")
-# AER::dispersiontest(od_mod)
-
 # plot population + gdp
-p0 <- ggplot(data = country_dat_rs,
-             mapping = aes(x = val, y = n)) +
+ggplot(data = country_dat_rs,
+       mapping = aes(x = val, y = n)) +
   geom_point(alpha = 0.8, aes(color = continent)) +
   scale_x_log10() +
   facet_grid(~ var, scales = "free_x")
 
-p0
-# p0 +
-#   geom_smooth(method="glm", method.args = list(family = "quasipoisson")) +
-#   labs(title = "Quasipoisson")
-# 
-# p0 +
-#   geom_smooth(method = "glm.nb") +
-#   labs(title = "Neg. Binomial")  
-# 
-# p0 +
-#   geom_smooth(method = "gam", formula = y ~ s(x)) +
-#   labs(title = "GAM")  
-
-# -----------------Fit Quasipoisson-----------------
-#+ r mod-quasipoisson
-# mod <- glm(data = country_dat,
-#            formula = n ~ log10(NY.GDP.MKTP.CD.Billion):continent+ log10(SP.POP.TOTL):continent,
-#            family="quasipoisson")
-# tidy(mod)
-# glance(mod)
-# 
-# country_dat$predicted <- predict(mod, type="response")
-# country_dat$residuals <- residuals(mod, type="response")
-
-# model_qp <- train(n ~ NY.GDP.MKTP.CD.Billion + SP.POP.TOTL + continent,
-#                   #data = training,
-#                   data = country_dat,
-#                   method = "glm",
-#                   family = "quasipoisson",
-#                   trControl = trainControl(
-#                     method = "cv", number = 10, verboseIter = TRUE
-#                   )
-# )
-# # test data
-# pred <- predict(model_qp, newdata = testing, type="raw") 
-# actual <- testing$n
-# mae <- sum(abs(pred - actual))
-# 
-# # full data
-# country_dat$predicted <- predict(model_qp, newdata = country_dat, type="raw")   
-# country_dat$residuals <- country_dat$n - country_dat$predicted
-
-# country_dat %>% 
-#   dplyr::select(-continent) %>%
-#   gather(key = "var", value = "x", -n, -predicted, -residuals) %>%
-#   ggplot(aes(x = x, y = n)) +
-#   geom_segment(aes(xend = x, yend = predicted), alpha = .2) +
-#   geom_point(aes(color = residuals)) +
-#   scale_color_gradient2(low = "blue", mid = "white", high = "red") +
-#   scale_x_log10() +
-#   guides(color = FALSE) +
-#   geom_point(aes(y = predicted), shape = 1) +
-#   facet_grid(~ var, scales = "free_x") +
-#   theme_bw()
-
-# -----------------Fit Negative Binomial-----------------
-#+ r mod-neg-binom
-# mod <- glm.nb(data = country_dat,
-#               formula = n ~ NY.GDP.MKTP.CD.Billion + SP.POP.TOTL + continent,
-#               control=glm.control(maxit=1000))
-# tidy(mod)
-# glance(mod)
-# 
-# country_dat$predicted <- predict(mod, type="response")   
-# country_dat$residuals <- residuals(mod, type="response")
-# 
-# model_np <- train(n ~ NY.GDP.MKTP.CD.Billion + SP.POP.TOTL + continent,
-#                   data = country_dat,
-#                   method = "glm.nb",
-#                   link = "log",
-#                   #control=glm.control(maxit=1000),
-#                   trControl = trainControl(
-#                     method = "cv", number = 1, verboseIter = TRUE
-#                   )
-# )
-# 
-# country_dat$predicted <- predict(model_qp, type="raw")   
-# country_dat$residuals <- residuals(model_qp, type="response")
-# 
-# country_dat %>% 
-#   dplyr::select(-continent) %>%
-#   gather(key = "var", value = "x", -n, -predicted, -residuals) %>%
-#   #mutate(x = log(x)) %>%
-#   ggplot(aes(x = x, y = n)) +
-#   geom_segment(aes(xend = x, yend = predicted), alpha = .2) +
-#   geom_point(aes(color = residuals)) +
-#   scale_color_gradient2(low = "blue", mid = "white", high = "red") +
-#   scale_x_log10() +
-#   guides(color = FALSE) +
-#   geom_point(aes(y = predicted), shape = 1) +
-#   facet_grid(~ var, scales = "free_x") +
-#   theme_bw()
 #' -----------------Fit GAM-----------------
 #+ r mod-gam
-#sp = smoothing parameter (higher = smoother, can be fit with method = "REML")
-#k = number of base curves
-# mod <- gam(data = country_dat, 
-#            formula = n ~ + s(log(NY.GDP.MKTP.CD.Billion)) + continent + offset(SP.POP.TOTL), method = "REML")
-mod <- gam(data = country_dat, 
-           formula = n ~ + s(log(NY.GDP.MKTP.CD.Billion)) + continent + s(log(SP.POP.TOTL)), method = "REML")
+# sp = smoothing parameter (higher = smoother, can be fit with method = "REML")
+# k  = number of base curves
 
-summary(mod)
-# plot(mod, page=1, 
-#      all.terms = TRUE, 
+gam_mod <- gam(data = country_dat, 
+               formula = n ~ + s(log(NY.GDP.MKTP.CD.Billion)) + continent + offset(log(SP.POP.TOTL)), method = "REML")
+
+summary(gam_mod) # higher EDF = more wiggly (1 = linear)
+concurvity(gam_mod, full = TRUE)
+gam.check(gam_mod)
+
+# plot(gam_mod, page=1,
+#      all.terms = TRUE,
 #      residuals = TRUE, pch = 1, cex = 1, shade = TRUE, shade.col = "lightblue",
-#      seWithMean = TRUE, shift = coef(mod)[1])
-# higher EDF = more wiggly (1 = linear)
-# assumes average of other vars
-concurvity(mod, full = TRUE)
+#      seWithMean = TRUE, shift = coef(gam_mod)[1])
 
-country_dat %>% 
-  mutate(predicted = predict(mod, type="response"),
-         residuals = residuals(mod, type="response")) %>%
-  dplyr::select(-continent) %>%
-  gather(key = "var", value = "x", -n, -predicted, -residuals) %>%
-  ggplot(aes(x = x, y = n)) +
+#' -----------------Fit BART-----------------
+#+ r mod-bart
+
+bart_mod <- bart(country_dat %>% dplyr::select(-n),
+                 country_dat$n,
+                 ndpost=1000,
+                 keeptrees = TRUE)
+
+summary(bart_mod)
+
+#' -----------------Compare models-----------------
+#+ r mod-comp
+
+# add in model predictions
+country_dat2 <- country_dat %>%
+  mutate(gam = predict(gam_mod, type="response"),
+         bart = bart_mod$yhat.train.mean) %>%
+  dplyr::select(-continent) 
+
+# reshape
+country_dat_rs2 <- country_dat2  %>%
+  gather(key = "var", value = "x", -n, -gam, -bart) %>%
+  gather(key = "model", value = "predicted", -x, -n, -var) %>%
+  mutate(residual = n - predicted)
+
+# mean residuals
+country_dat_rs2 %>%
+  group_by(model) %>%
+  summarize(mean_residuals = mean(abs(residual)))
+
+# covariance of predictions with n
+country_dat2 %>%
+  dplyr::select(n, gam, bart) %>%
+  as.matrix() %>%
+  cor()
+
+# residual plots
+ggplot(data = country_dat_rs2, aes(x = x, y = n)) +
   geom_segment(aes(xend = x, yend = predicted), alpha = .2) +
-  geom_point(aes(color = residuals)) +
+  geom_point(aes(color = residual)) +
   scale_color_gradient2(low = "blue", mid = "white", high = "red") +
   scale_x_log10() +
   guides(color = FALSE) +
   geom_point(aes(y = predicted), shape = 1) +
-  facet_grid(~ var, scales = "free_x") +
+  labs(title = "", x = "") + 
+  facet_grid(model ~ var, scales = "free_x") +
   theme_bw()
 
-gam.check(mod)
+# ICE plots
+mod_dat <- as.data.frame(country_dat)
 
-#' -----------------Fit BART-----------------
-#+ r mod-bart
-library(dbarts)
-bart_fit <- bart(country_dat %>% dplyr::select(-n),
-               country_dat$n,
-               ndpost=1000) 
-plot(bartFit) # plot bart fit
+# function for bart model predict
+bart_predict <- function(model, newdat) {
+  apply(predict(object = model, test = newdat), 2, mean)
+}
 
-fitmat = cbind(y,Ey,lmFit$fitted,bartFit$yhat.train.mean)
-colnames(fitmat) = c('y','Ey','lm','bart')
-print(cor(fitmat))
+gamexp <- DALEX::explain(gam_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
+                         predict_function = predict.gam, label = "GAM")
+bartexp <- DALEX::explain(bart_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
+                         predict_function = bart_predict, label = "BART")
+
+
+# calculating ceteris paribus profiles, cpm is a ceteris_paribus_explainer and data frame
+gamcpm <- ceteris_paribus(gamexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
+bartcpm <- ceteris_paribus(bartexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
+
+plot(gamcpm) +
+  labs(title = "GAM", x = "", y = "n") +
+  scale_x_log10() +
+  scale_color_manual(values  = "black") +
+  stat_summary(aes(group = 1),
+               geom = "line", fun.y = mean, size = 1.5, color = "coral") 
+
+plot(bartcpm) +
+  labs(title = "BART", x = "", y = "n") +
+  scale_x_log10() +
+  scale_color_manual(values  = "black") +
+  stat_summary(aes(group = 1),
+               geom = "line", fun.y = mean, size = 1.5, color = "coral") 
