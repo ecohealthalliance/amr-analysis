@@ -12,8 +12,8 @@ events <- read_csv(content(events, "text"))
 # Rename a few countries in our data to match WB
 events <- events %>%
   # need to follow up on this (and implement earlier in workflow)
-  mutate(country = replace(country, country == "palestine", "israel"),
-         country = replace(country, country == "taiwan", "china")
+  mutate(study_country = replace(study_country, study_country == "palestine", "israel"),
+         study_country = replace(study_country, study_country == "taiwan", "china")
   )
 
 # Summarize counts
@@ -40,4 +40,4 @@ wb_data <- wb(indicator = c("SP.POP.TOTL", "NY.GDP.MKTP.CD"), startdate = 2015, 
 # b=unique(events_by_country$country)
 # b[!b%in%a]
 
-write_csv(wb_data, here("country_level.csv"))
+write_csv(wb_data, here::here("country_level.csv"))

@@ -44,11 +44,18 @@ ggplot(data = country_dat_rs,
 # k  = number of base curves
 
 gam_mod <- gam(data = country_dat, 
-               formula = n ~ + s(log(NY.GDP.MKTP.CD.Billion)) + continent + offset(log(SP.POP.TOTL)), method = "REML")
+               formula = n ~  s(log(NY.GDP.MKTP.CD.Billion)) + continent + s(log(SP.POP.TOTL)), 
+               method = "REML",
+               family = "quasipoisson")
+
+# gam_mod <- gam(data = country_dat,
+#                formula = n ~ s(log(NY.GDP.MKTP.CD.Billion)) +  s(log(SP.POP.TOTL)) + ti(log(NY.GDP.MKTP.CD.Billion), log(SP.POP.TOTL)) + continent,
+#                method = "REML",
+#                family = "quasipoisson")
 
 summary(gam_mod) # higher EDF = more wiggly (1 = linear)
 concurvity(gam_mod, full = TRUE)
-gam.check(gam_mod)
+#gam.check(gam_mod)
 
 # plot(gam_mod, page=1,
 #      all.terms = TRUE,
@@ -106,20 +113,31 @@ ggplot(data = country_dat_rs2, aes(x = x, y = n)) +
 # ICE plots
 mod_dat <- as.data.frame(country_dat)
 
-# function for bart model predict
+# function for bart and gam model predict
 bart_predict <- function(model, newdat) {
   apply(predict(object = model, test = newdat), 2, mean)
 }
 
+gam_predict <- function(model, newdat) {
+  predict.gam(object = model, newdata = newdat, type="response")
+}
+
+# explain objects
 gamexp <- DALEX::explain(gam_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
-                         predict_function = predict.gam, label = "GAM")
+                         predict_function = gam_predict, label = "GAM")
 bartexp <- DALEX::explain(bart_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
-                         predict_function = bart_predict, label = "BART")
-
-
+                          predict_function = bart_predict, label = "BART")
+ 
 # calculating ceteris paribus profiles, cpm is a ceteris_paribus_explainer and data frame
 gamcpm <- ceteris_paribus(gamexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
 bartcpm <- ceteris_paribus(bartexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
+
+plot(bartcpm) +
+  labs(title = "BART", x = "", y = "n") +
+  scale_x_log10() +
+  scale_color_manual(values  = "black") +
+  stat_summary(aes(group = 1),
+               geom = "line", fun.y = mean, size = 1.5, color = "coral") 
 
 plot(gamcpm) +
   labs(title = "GAM", x = "", y = "n") +
@@ -128,9 +146,22 @@ plot(gamcpm) +
   stat_summary(aes(group = 1),
                geom = "line", fun.y = mean, size = 1.5, color = "coral") 
 
-plot(bartcpm) +
-  labs(title = "BART", x = "", y = "n") +
-  scale_x_log10() +
-  scale_color_manual(values  = "black") +
-  stat_summary(aes(group = 1),
-               geom = "line", fun.y = mean, size = 1.5, color = "coral") 
+# gamcpm2 <- gamcpm %>% as_tibble() %>%
+#   rename(yhat = `_yhat_`,
+#          vname = `_vname_`,
+#          ids = `_ids_`,
+#          label = `_label_`) 
+# 
+# gamobs <- attr(gamcpm, "observations") %>% as_tibble() %>%
+#   rename(yhat = `_yhat_`,
+#          y = `_y_`,
+#          label = `_label_`) 
+# ggplot(gamcpm2, aes(SP.POP.TOTL, yhat)) +
+#  geom_line(aes(group = ids), data = filter(gamcpm2, vname == "SP.POP.TOTL"), size = 1.4, alpha = 0.7, color = "gray40") +
+#  geom_point(data = gamobs, size = 1.5) + 
+#  stat_summary(data = filter(gamcpm2, vname == "SP.POP.TOTL"), 
+#               geom = "line", fun.y = mean, size = 1.5, color = "yellow") +
+#  xlab("Population") + ylab("n") + 
+#  theme(axis.title.x = element_text(face = "bold"), legend.text = element_text(size = 14),
+#        legend.background = element_rect(color = "white", fill = "#f9f8f4"), legend.title = element_blank())
+

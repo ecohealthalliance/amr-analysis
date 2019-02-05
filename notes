@@ -1,0 +1,11 @@
+Pubcrawler
+
+side goal - how to turn pubcrawler into tool?
+
+first pass - download results - and average over time by country
+
+Data has country (geonames) and infectious disease.
+
+Note that weights are same for all locations mentioned in article.  Algorithm does not use author front matter for location.  Models pseudo absences with boosted regerssion tree.
+
+in 2nd tier, still include population and health spending etc. as predictors because they can be independently important (aside from pubcrawler) 
