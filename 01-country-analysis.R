@@ -14,15 +14,17 @@ library(mgcv)
 library(dbarts)
 library(DALEX)
 library(ceterisParibus)
+library(PerformanceAnalytics)
 
 set.seed(101)
 
 # prep data
-country_dat <- read_csv(here("country_level.csv")) %>%
+country_dat <- read_csv(here::here("country_level.csv")) %>%
   na.omit() %>%
   mutate(NY.GDP.MKTP.CD.Billion = NY.GDP.MKTP.CD/1000000000) %>%
-  dplyr::select(-NY.GDP.MKTP.CD, -date, -country) %>%
-  mutate(continent = as.factor(continent))
+  mutate(continent = as.factor(continent)) %>%
+  mutate(pubcrawler_weight = 1/pubs_sum) %>%
+  dplyr::select(-NY.GDP.MKTP.CD, -date, -country, -pubs_sum)
 
 # create reshape version
 country_dat_rs <- country_dat %>% 
@@ -38,24 +40,29 @@ ggplot(data = country_dat_rs,
   scale_x_log10() +
   facet_grid(~ var, scales = "free_x")
 
+chart.Correlation(country_dat %>% 
+                    select(-continent, -n) %>%
+                    mutate_at(vars(SP.POP.TOTL,NY.GDP.MKTP.CD.Billion), ~log(.)), 
+                  histogram=TRUE, pch=19)
 #' -----------------Fit GAM-----------------
 #+ r mod-gam
 # sp = smoothing parameter (higher = smoother, can be fit with method = "REML")
 # k  = number of base curves
 
 gam_mod <- gam(data = country_dat, 
-               formula = n ~  s(log(NY.GDP.MKTP.CD.Billion)) + continent + s(log(SP.POP.TOTL)), 
+               formula = n ~  s(log(NY.GDP.MKTP.CD.Billion)) + continent + s(log(SP.POP.TOTL)),
+               weight = pubcrawler_weight, 
                method = "REML",
                family = "quasipoisson")
 
-# gam_mod <- gam(data = country_dat,
+# gam_mod <- gam(data = country2_dat,
 #                formula = n ~ s(log(NY.GDP.MKTP.CD.Billion)) +  s(log(SP.POP.TOTL)) + ti(log(NY.GDP.MKTP.CD.Billion), log(SP.POP.TOTL)) + continent,
 #                method = "REML",
 #                family = "quasipoisson")
 
 summary(gam_mod) # higher EDF = more wiggly (1 = linear)
 concurvity(gam_mod, full = TRUE)
-#gam.check(gam_mod)
+gam.check(gam_mod)
 
 # plot(gam_mod, page=1,
 #      all.terms = TRUE,
@@ -85,7 +92,8 @@ country_dat2 <- country_dat %>%
 country_dat_rs2 <- country_dat2  %>%
   gather(key = "var", value = "x", -n, -gam, -bart) %>%
   gather(key = "model", value = "predicted", -x, -n, -var) %>%
-  mutate(residual = n - predicted)
+  mutate(residual = n - predicted) %>%
+  filter(var != "pubcrawler_weight")
 
 # mean residuals
 country_dat_rs2 %>%
@@ -127,7 +135,7 @@ gamexp <- DALEX::explain(gam_mod, data = mod_dat %>% dplyr::select(-n), y = mod_
                          predict_function = gam_predict, label = "GAM")
 bartexp <- DALEX::explain(bart_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
                           predict_function = bart_predict, label = "BART")
- 
+
 # calculating ceteris paribus profiles, cpm is a ceteris_paribus_explainer and data frame
 gamcpm <- ceteris_paribus(gamexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
 bartcpm <- ceteris_paribus(bartexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
