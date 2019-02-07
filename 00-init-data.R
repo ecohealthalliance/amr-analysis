@@ -25,6 +25,8 @@ events_by_country <- events %>%
   na.omit()
 #-----------------World Bank data-----------------
 # Population and GDP
+# SP.POP.TOTL = Population, total
+# NY.GDP.MKTP.CD = GDP (current US$)
 wb_data <- wb(indicator = c("SP.POP.TOTL", "NY.GDP.MKTP.CD"), startdate = 2015, enddate = 2015, return_wide = TRUE) %>%
   mutate(country = tolower(country),
          country = str_remove(country, ",.*$"),
