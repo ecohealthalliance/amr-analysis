@@ -8,6 +8,7 @@
 #+ r setup, include = FALSE
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse)
+library(magrittr)
 library(here)
 library(broom)
 library(mgcv)
@@ -19,51 +20,64 @@ library(PerformanceAnalytics)
 set.seed(101)
 
 # prep data
-country_dat <- read_csv(here::here("country_level.csv")) %>%
+country_dat <- read_csv(here::here("country_level_amr.csv")) %>%
   na.omit() %>%
-  mutate(NY.GDP.MKTP.CD.Billion = NY.GDP.MKTP.CD/1000000000) %>%
-  mutate(NY.GDP.MKTP.CD.Billion.log = log(NY.GDP.MKTP.CD.Billion)) %>%
-  mutate(SP.POP.TOTL.log = log(SP.POP.TOTL)) %>%
-  mutate(continent = as.factor(continent)) %>%
-  dplyr::select(-NY.GDP.MKTP.CD, -date, -country, -NY.GDP.MKTP.CD.Billion, -SP.POP.TOTL)
+  mutate(wb_gdp_dollars = log10(wb_gdp_dollars/1000000000),
+         wb_population = log(wb_population),
+         oec_ab_import = log(oec_ab_import),
+         oec_ab_export = log(oec_ab_export),
+         oec_ab_export = ifelse(is.infinite(oec_ab_export), 0, oec_ab_export),
+         continent = as.factor(continent),
+         region = as.factor(region)) %>%
+  rename(wb_gdp_billion_log = wb_gdp_dollars,
+         wb_population_log = wb_population,
+         oec_ab_import_log = oec_ab_import,
+         oec_ab_export_log = oec_ab_export)
 
 # create reshape version
 country_dat_rs <- country_dat %>% 
-  gather(key = "var", value = "val", -n, -continent) %>%
-  mutate(var = as_factor(var, levels = c(NY.GDP.MKTP.CD.Billion.log, SP.POP.TOTL.log, pubs_sum)))
-
+  gather(key = "var", value = "val", -n_amr_events, -continent, -region, - country, -iso3c) %>%
+  mutate(var = factor(var, levels = c("pubs_sum", 
+                                      "wb_gdp_billion_log",
+                                      "wb_population_log",
+                                      "wb_health_expend_perc",
+                                      "wb_ag_land_perc", 
+                                      "wb_livestock_index",
+                                      "oec_ab_import_log",
+                                      "oec_ab_export_log")))
 #' -----------------View Data-----------------
 #+ r plots
-
-# plot population + gdp
 ggplot(data = country_dat_rs,
-       mapping = aes(x = val, y = n)) +
-  geom_point(alpha = 0.8, aes(color = continent)) +
-  facet_wrap(var ~ ., scales = "free_x") +
-  theme_bw() +
-  theme(legend.position = "top", legend.title = element_blank())
+       mapping = aes(x = val)) +
+  geom_histogram() +
+  facet_wrap(var ~ ., scales = "free") +
+  theme_bw()
 
-chart.Correlation(country_dat %>% 
-                    select(-continent, -n), 
-                  histogram=TRUE, pch=19)
+chart.Correlation(country_dat %>%
+                    select(-continent, -region, - country, -iso3c),
+                  histogram=FALSE, pch=19)
+
 #' -----------------Fit GAM-----------------
 #+ r mod-gam
 # sp = smoothing parameter (higher = smoother, can be fit with method = "REML")
 # k  = number of base curves
 
 gam_mod <- gam(data = country_dat, 
-               formula = n ~  s(NY.GDP.MKTP.CD.Billion.log) + continent + s(SP.POP.TOTL.log) + s(pubs_sum),
-               #weight = pubs_sum, 
+               formula = n_amr_events ~  
+                 s(wb_gdp_billion_log) + 
+                 s(wb_population_log) +
+                 #s(wb_livestock_index) +
+                 s(wb_ag_land_perc) + 
+                 #s(wb_health_expend_perc) +
+                 #s(oec_ab_import_log) +
+                 s(oec_ab_export_log) +
+                 s(pubs_sum), #+ 
+                 #continent,
                method = "REML",
                family = "quasipoisson")
 
-# gam_mod <- gam(data = country2_dat,
-#                formula = n ~ s(log(NY.GDP.MKTP.CD.Billion)) +  s(log(SP.POP.TOTL)) + ti(log(NY.GDP.MKTP.CD.Billion), log(SP.POP.TOTL)) + continent,
-#                method = "REML",
-#                family = "quasipoisson")
-
 summary(gam_mod) # higher EDF = more wiggly (1 = linear)
-concurvity(gam_mod, full = TRUE)
+concurvity(gam_mod, full = TRUE) # Concurvity occurs when some smooth term in a model could be approximated by one or more of the other smooth terms in the model. 
 gam.check(gam_mod)
 
 # plot(gam_mod, page=1,
@@ -73,9 +87,8 @@ gam.check(gam_mod)
 
 #' -----------------Fit BART-----------------
 #+ r mod-bart
-
-bart_mod <- bart(country_dat %>% dplyr::select(-n),
-                 country_dat$n,
+bart_mod <- bart(country_dat %>% dplyr::select(-n_amr_events, -iso3c, -country, -continent),
+                 country_dat$n_amr_events,
                  ndpost=1000,
                  keeptrees = TRUE)
 
@@ -84,44 +97,67 @@ summary(bart_mod)
 #' -----------------Compare models-----------------
 #+ r mod-comp
 
+# model results
+country_dat %<>% mutate(id = row_number())
+gt <- tibble(gam = predict(gam_mod, type="response"), id = country_dat %>% filter(!is.na(pubs_sum), !is.na(wb_gdp_billion_log)) %>% pull(id))
+bt <- tibble(bart = bart_mod$yhat.train.mean, id = country_dat %>% na.omit() %>% pull(id))
+
 # add in model predictions
 country_dat2 <- country_dat %>%
-  mutate(gam = predict(gam_mod, type="response"),
-         bart = bart_mod$yhat.train.mean) %>%
-  dplyr::select(-continent) 
+  left_join(gt) %>%
+  left_join(bt) %>%
+  dplyr::select(-continent, -region, -country, -iso3c, -id) 
 
 # reshape
 country_dat_rs2 <- country_dat2  %>%
-  gather(key = "var", value = "x", -n, -gam, -bart) %>%
-  gather(key = "model", value = "predicted", -x, -n, -var) %>%
-  mutate(residual = n - predicted,
-         var = as_factor(var, levels = c(NY.GDP.MKTP.CD.Billion.log, SP.POP.TOTL.log, pubs_sum)))
-
+  gather(key = "var", value = "x", -n_amr_events, -gam, -bart) %>%
+  gather(key = "model", value = "predicted", -x, -n_amr_events, -var) %>%
+  mutate(residual = n_amr_events - predicted,
+         var = factor(var, levels = c("pubs_sum",
+                                      "wb_gdp_billion_log",
+                                      "wb_population_log",
+                                      "wb_health_expend_perc",
+                                      "wb_ag_land_perc",
+                                      "wb_livestock_index",
+                                      "oec_ab_import_log",
+                                      "oec_ab_export_log"))) %>%
+  filter(!(model=="gam" & var %in% c("wb_livestock_index", "wb_health_expend_perc", "oec_ab_import_log")))
 
 # mean residuals
 country_dat_rs2 %>%
   group_by(model) %>%
-  summarize(mean_residuals = mean(abs(residual)))
+  summarize(mean_residuals = mean(abs(residual), na.rm=TRUE))
 
 # covariance of predictions with n
 country_dat2 %>%
-  dplyr::select(n, gam, bart) %>%
+  dplyr::select(n_amr_events, gam, bart) %>%
   as.matrix() %>%
   cor()
 
 # residual plots
-ggplot(data = country_dat_rs2, aes(x = x, y = n)) +
+ggplot(data = country_dat_rs2, aes(x = x, y = n_amr_events)) +
   geom_segment(aes(xend = x, yend = predicted), alpha = .2) +
   geom_point(aes(color = residual)) +
   scale_color_gradient2(low = "blue", mid = "white", high = "red") +
   guides(color = FALSE) +
   geom_point(aes(y = predicted), shape = 1) +
-  labs(title = "", x = "") + 
+  labs(title = "", x = "") +
   facet_grid(model ~ var, scales = "free_x") +
   theme_bw()
 
 # ICE plots
-mod_dat <- as.data.frame(country_dat)
+mod_dat_gam <-  country_dat %>%
+  select(pubs_sum, 
+         wb_ag_land_perc, 
+         wb_gdp_billion_log, 
+         wb_population_log ,
+         oec_ab_export_log
+         ) %>%
+  as.data.frame()
+
+mod_dat_bart <-  country_dat %>%
+  select(-iso3c, -country, -continent, -id) %>%
+  as.data.frame()
 
 # function for bart and gam model predict
 bart_predict <- function(model, newdat) {
@@ -133,25 +169,27 @@ gam_predict <- function(model, newdat) {
 }
 
 # explain objects
-gamexp <- DALEX::explain(gam_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
+gamexp <- DALEX::explain(gam_mod, data = mod_dat_gam, y = country_dat$n_amr_events,
                          predict_function = gam_predict, label = "GAM")
-bartexp <- DALEX::explain(bart_mod, data = mod_dat %>% dplyr::select(-n), y = mod_dat$n,
+
+bartexp <- DALEX::explain(bart_mod, data = mod_dat_bart, y = country_dat$n_amr_events,
                           predict_function = bart_predict, label = "BART")
 
 # calculating ceteris paribus profiles, cpm is a ceteris_paribus_explainer and data frame
-gamcpm <- ceteris_paribus(gamexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
-bartcpm <- ceteris_paribus(bartexp, observations = mod_dat %>% dplyr::select(-n), y = mod_dat$n)
+gamcpm <- ceteris_paribus(gamexp, observations = mod_dat_gam, y = country_dat$n_amr_events)
+bartcpm <- ceteris_paribus(bartexp, observations = mod_dat_bart, y = country_dat$n_amr_events)
 
+# ice plot (individual conditional expectation) - shows what the model would predict if all values for variable were x
 plot(bartcpm) +
   labs(title = "BART", x = "", y = "n") +
   scale_color_manual(values  = "black") +
   stat_summary(aes(group = 1),
-               geom = "line", fun.y = mean, size = 1.5, color = "coral") + 
+               geom = "line", fun.y = mean, size = 1.5, color = "green") +
   theme_bw()
 
 plot(gamcpm) +
   labs(title = "GAM", x = "", y = "n") +
   scale_color_manual(values  = "black") +
   stat_summary(aes(group = 1),
-               geom = "line", fun.y = mean, size = 1.5, color = "coral") + 
+               geom = "line", fun.y = mean, size = 1.5, color = "green") + 
   theme_bw()
