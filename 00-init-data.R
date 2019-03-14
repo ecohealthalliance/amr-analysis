@@ -55,10 +55,10 @@ wbd <- map_df(indicator, function(x){
 
 wbd %<>%
   spread(key = param, value = value) %>%
-  rename(wb_population_15 = SP.POP.TOTL,
-         wb_gdp_dollars_15 = NY.GDP.MKTP.CD,
-         wb_ag_land_perc_15 = AG.LND.AGRI.ZS,
-         wb_livestock_ind_15 = AG.PRD.LVSK.XD,
+  rename(wb_population = SP.POP.TOTL,
+         wb_gdp_dollars = NY.GDP.MKTP.CD,
+         wb_ag_land_perc = AG.LND.AGRI.ZS,
+         wb_livestock_index = AG.PRD.LVSK.XD,
          wb_health_expend_perc = SH.XPD.CHEX.GD.ZS,
          iso3c = countryiso3code)
 
@@ -67,10 +67,10 @@ wbd %<>%
 oec <- read_json("https://atlas.media.mit.edu/hs92/export/2015/show/all/2941/")$data 
 oec <- map_df(oec, function(x){
   
-  import_val <- ifelse(is.null(x$import_val), 0, x$import_val)
-  export_val <- ifelse(is.null(x$export_val), 0, x$export_val)
+  import <- ifelse(is.null(x$import_val), 0, x$import_val)
+  export <- ifelse(is.null(x$export_val), 0, x$export_val)
   
-  tibble(iso3c = toupper(substr(x$origin_id, 3, 5)), oec_ab_import_val = import_val, oec_ab_export_val = export_val)
+  tibble(iso3c = toupper(substr(x$origin_id, 3, 5)), oec_ab_import = import, oec_ab_export = export)
 })
 
 #-----------------Pubcrawler data-----------------
@@ -98,9 +98,12 @@ pubcrawl_weights <- read_csv(here::here("pubcrawler_country.csv")) %>% # generat
 amr <- left_join(events_by_country, pubcrawl_weights) %>%
   left_join(wbd) %>%
   left_join(oec) %>%
-  mutate(countrsy = countrycode::countrycode(sourcevar = iso3c,
+  mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name"), 
+         region = countrycode::countrycode(sourcevar = iso3c,
+                                            origin = "iso3c",
+                                            destination = "region"), 
          continent = countrycode::countrycode(sourcevar = iso3c,
                                               origin = "iso3c",
                                               destination = "continent"))
