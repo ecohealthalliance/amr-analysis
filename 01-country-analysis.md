@@ -1,7 +1,7 @@
 exploratory\_analysis
 ================
 emmamendelsohn
-Mon Mar 18 08:38:24 2019
+Mon Mar 18 12:09:00 2019
 
 —————–View
 Data—————–
@@ -16,55 +16,57 @@ Data—————–
     ## 
     ## Formula:
     ## n_amr_events ~ s(wb_gdp_billion_log) + s(wb_population_log) + 
-    ##     s(wb_ag_land_perc) + s(oec_ab_export_log) + s(pubs_sum)
+    ##     s(wb_ag_land_perc) + s(oec_ab_export_log) + s(pubs_sum) + 
+    ##     english_spoken
     ## 
     ## Parametric coefficients:
-    ##             Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   1.3811     0.2829   4.881 2.71e-06 ***
+    ##                    Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)          1.2569     0.3167   3.969 0.000114 ***
+    ## english_spokenTRUE   0.1081     0.3364   0.321 0.748339    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Approximate significance of smooth terms:
-    ##                         edf Ref.df     F p-value  
-    ## s(wb_gdp_billion_log) 1.000  1.000 6.561  0.0114 *
-    ## s(wb_population_log)  1.000  1.000 2.355  0.1270  
-    ## s(wb_ag_land_perc)    1.000  1.000 0.151  0.6982  
-    ## s(oec_ab_export_log)  1.000  1.000 1.518  0.2198  
-    ## s(pubs_sum)           1.716  2.018 0.508  0.6037  
+    ##                         edf Ref.df     F p-value   
+    ## s(wb_gdp_billion_log) 1.000  1.000 8.113 0.00503 **
+    ## s(wb_population_log)  1.000  1.000 2.465 0.11863   
+    ## s(wb_ag_land_perc)    1.000  1.000 0.335 0.56336   
+    ## s(oec_ab_export_log)  1.000  1.000 0.924 0.33808   
+    ## s(pubs_sum)           1.819  2.109 0.812 0.44976   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## R-sq.(adj) =   0.65   Deviance explained = 62.1%
-    ## -REML = 298.49  Scale est. = 32.59     n = 154
+    ## R-sq.(adj) =   0.66   Deviance explained = 64.3%
+    ## -REML = 287.88  Scale est. = 31.813    n = 150
 
-    ##                  para s(wb_gdp_billion_log) s(wb_population_log)
-    ## worst    6.171808e-22             0.9820172            0.7928571
-    ## observed 6.171808e-22             0.9110801            0.7864109
-    ## estimate 6.171808e-22             0.8307339            0.6932861
+    ##               para s(wb_gdp_billion_log) s(wb_population_log)
+    ## worst    0.3596039             0.9832233            0.8047906
+    ## observed 0.3596039             0.9201944            0.7979892
+    ## estimate 0.3596039             0.8398783            0.7091453
     ##          s(wb_ag_land_perc) s(oec_ab_export_log) s(pubs_sum)
-    ## worst             0.4963853            0.9067014   0.9837666
-    ## observed          0.3496542            0.6845594   0.9264111
-    ## estimate          0.3410067            0.6222398   0.9161905
+    ## worst             0.5169353            0.9092820   0.9847088
+    ## observed          0.3822866            0.6954539   0.9291929
+    ## estimate          0.3662709            0.6333795   0.9204884
 
 ![](01-country-analysis_files/figure-gfm/r%20mod-gam-1.png)<!-- -->
 
     ## 
     ## Method: REML   Optimizer: outer newton
-    ## full convergence after 9 iterations.
-    ## Gradient range [-7.084472e-05,3.712677e-05]
-    ## (score 298.4862 & scale 32.59028).
-    ## Hessian positive definite, eigenvalue range [6.554219e-06,74.00157].
-    ## Model rank =  46 / 46 
+    ## full convergence after 11 iterations.
+    ## Gradient range [-5.869272e-05,4.579862e-05]
+    ## (score 287.8797 & scale 31.81286).
+    ## Hessian positive definite, eigenvalue range [3.797635e-06,71.50208].
+    ## Model rank =  47 / 47 
     ## 
     ## Basis dimension (k) checking results. Low p-value (k-index<1) may
     ## indicate that k is too low, especially if edf is close to k'.
     ## 
-    ##                         k'  edf k-index p-value   
-    ## s(wb_gdp_billion_log) 9.00 1.00    0.96   0.630   
-    ## s(wb_population_log)  9.00 1.00    1.00   0.795   
-    ## s(wb_ag_land_perc)    9.00 1.00    0.73   0.005 **
-    ## s(oec_ab_export_log)  9.00 1.00    0.84   0.070 . 
-    ## s(pubs_sum)           9.00 1.72    0.88   0.185   
+    ##                         k'  edf k-index p-value    
+    ## s(wb_gdp_billion_log) 9.00 1.00    0.93    0.43    
+    ## s(wb_population_log)  9.00 1.00    1.06    0.97    
+    ## s(wb_ag_land_perc)    9.00 1.00    0.69  <2e-16 ***
+    ## s(oec_ab_export_log)  9.00 1.00    0.85    0.12    
+    ## s(pubs_sum)           9.00 1.82    0.87    0.20    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -78,14 +80,14 @@ Data—————–
     ##  k: 2.000000
     ##  degrees of freedom in sigma prior: 3.000000
     ##  quantile in sigma prior: 0.900000
-    ##  scale in sigma prior: 0.002294
+    ##  scale in sigma prior: 0.002374
     ##  power and base for tree prior: 2.000000 0.950000
     ##  use quantiles for rule cut points: false
     ## data:
-    ##  number of training observations: 154
+    ##  number of training observations: 150
     ##  number of test observations: 0
-    ##  number of explanatory variables: 28
-    ##  init sigma: 21.053375, curr sigma: 21.053375
+    ##  number of explanatory variables: 29
+    ##  init sigma: 21.416361, curr sigma: 21.416361
     ## 
     ## Cutoff rules c in x<=c vs x>c
     ## Number of cutoffs: (var: number of possible c):
@@ -94,7 +96,7 @@ Data—————–
     ## (11: 100) (12: 100) (13: 100) (14: 100) (15: 100) 
     ## (16: 100) (17: 100) (18: 100) (19: 100) (20: 100) 
     ## (21: 100) (22: 100) (23: 100) (24: 100) (25: 100) 
-    ## (26: 100) (27: 100) (28: 100) 
+    ## (26: 100) (27: 100) (28: 100) (29: 100) 
     ## Running mcmc loop:
     ## iteration: 100 (of 1000)
     ## iteration: 200 (of 1000)
@@ -106,28 +108,28 @@ Data—————–
     ## iteration: 800 (of 1000)
     ## iteration: 900 (of 1000)
     ## iteration: 1000 (of 1000)
-    ## total seconds in loop: 1.111204
+    ## total seconds in loop: 1.098406
     ## 
     ## Tree sizes, last iteration:
-    ## [1] 2 2 2 2 2 1 2 2 2 3 2 2 2 2 3 2 2 3 
-    ## 3 3 3 2 2 3 2 3 2 2 2 1 2 2 2 4 1 2 2 2 
-    ## 2 2 2 2 2 2 1 2 2 4 2 2 2 2 2 2 2 1 2 2 
-    ## 2 2 2 2 3 2 2 2 2 2 3 2 2 1 2 2 4 2 2 2 
-    ## 2 2 3 2 2 2 2 2 3 2 2 2 2 3 2 2 2 2 2 1 
-    ## 1 5 3 1 3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 
-    ## 3 2 2 2 2 2 2 2 5 3 2 2 2 2 2 2 2 2 2 2 
-    ## 2 2 2 2 2 2 2 2 2 2 2 2 2 3 2 3 2 3 2 2 
-    ## 2 2 2 1 1 2 2 4 2 2 2 2 2 2 3 3 2 3 2 3 
-    ## 2 2 1 2 2 2 3 1 3 2 2 2 4 2 2 2 2 3 2 2 
-    ## 2 3 
+    ## [1] 4 2 2 2 2 2 2 2 1 2 3 3 2 2 3 2 2 2 
+    ## 2 2 2 1 3 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 
+    ## 2 1 2 2 2 1 1 2 2 1 2 2 2 3 4 2 2 2 2 3 
+    ## 2 2 2 2 2 2 2 2 2 3 1 3 2 2 1 2 2 4 2 2 
+    ## 1 2 3 2 2 1 2 2 2 2 2 2 2 2 2 1 2 2 3 2 
+    ## 2 3 2 3 2 2 3 2 4 2 3 3 2 2 2 2 3 2 2 4 
+    ## 2 2 3 2 2 2 3 2 2 3 2 2 2 2 2 1 2 4 2 2 
+    ## 3 2 3 2 2 2 4 2 1 2 2 3 2 2 3 3 1 4 3 3 
+    ## 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2 2 
+    ## 2 2 1 3 2 1 2 2 2 2 1 2 3 3 3 2 2 2 3 2 
+    ## 2 2 
     ## 
     ## Variable Usage, last iteration (var:count):
-    ## (1: 8) (2: 12) (3: 11) (4: 5) (5: 10) 
-    ## (6: 8) (7: 9) (8: 15) (9: 5) (10: 10) 
-    ## (11: 4) (12: 8) (13: 8) (14: 10) (15: 7) 
-    ## (16: 7) (17: 7) (18: 8) (19: 8) (20: 7) 
-    ## (21: 10) (22: 13) (23: 8) (24: 8) (25: 7) 
-    ## (26: 5) (27: 4) (28: 9) 
+    ## (1: 11) (2: 7) (3: 1) (4: 10) (5: 13) 
+    ## (6: 15) (7: 11) (8: 8) (9: 3) (10: 10) 
+    ## (11: 8) (12: 2) (13: 9) (14: 7) (15: 6) 
+    ## (16: 5) (17: 10) (18: 4) (19: 4) (20: 13) 
+    ## (21: 9) (22: 11) (23: 3) (24: 6) (25: 4) 
+    ## (26: 11) (27: 13) (28: 7) (29: 7) 
     ## DONE BART
 
     ##                 Length Class         Mode   
@@ -135,12 +137,12 @@ Data—————–
     ## first.sigma        100 -none-        numeric
     ## sigma             1000 -none-        numeric
     ## sigest               1 -none-        numeric
-    ## yhat.train      154000 -none-        numeric
-    ## yhat.train.mean    154 -none-        numeric
+    ## yhat.train      150000 -none-        numeric
+    ## yhat.train.mean    150 -none-        numeric
     ## yhat.test            0 -none-        NULL   
     ## yhat.test.mean       0 -none-        NULL   
-    ## varcount         28000 -none-        numeric
-    ## y                  154 -none-        numeric
+    ## varcount         29000 -none-        numeric
+    ## y                  150 -none-        numeric
     ## fit                  1 dbartsSampler S4
 
 —————–Compare models—————–
@@ -148,12 +150,12 @@ Data—————–
     ## # A tibble: 2 x 2
     ##   model mean_residuals
     ##   <chr>          <dbl>
-    ## 1 bart            8.24
-    ## 2 gam             9.47
+    ## 1 bart            8.27
+    ## 2 gam             9.28
 
     ##              n_amr_events       gam      bart
-    ## n_amr_events    1.0000000 0.8142246 0.9073768
-    ## gam             0.8142246 1.0000000 0.9216600
-    ## bart            0.9073768 0.9216600 1.0000000
+    ## n_amr_events    1.0000000 0.8219705 0.9091044
+    ## gam             0.8219705 1.0000000 0.9286275
+    ## bart            0.9091044 0.9286275 1.0000000
 
 ![](01-country-analysis_files/figure-gfm/r%20mod-comp-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20mod-comp-2.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20mod-comp-3.png)<!-- -->
