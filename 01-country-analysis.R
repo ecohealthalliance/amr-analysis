@@ -25,6 +25,7 @@ country_dat <- read_csv(here::here("country_level_amr.csv")) %>%
   mutate(wb_gdp_dollars = log10(wb_gdp_dollars/1000000000),
          wb_population = log(wb_population),
          oec_ab_import = log(oec_ab_import),
+         oec_ab_import = ifelse(is.infinite(oec_ab_import), 0, oec_ab_import),
          oec_ab_export = log(oec_ab_export),
          oec_ab_export = ifelse(is.infinite(oec_ab_export), 0, oec_ab_export),
          continent = as.factor(continent),
@@ -47,7 +48,12 @@ country_dat_rs <- country_dat %>%
                                       "oec_ab_export_log")))
 #' -----------------View Data-----------------
 #+ r plots
-ggplot(data = country_dat_rs,
+ggplot(data = country_dat_rs %>%
+         bind_rows(country_dat_rs %>%
+                     select(n_amr_events, iso3c) %>%
+                     rename(val = n_amr_events) %>%
+                     mutate(var = "n_amr_events") %>% 
+                     distinct()),
        mapping = aes(x = val)) +
   geom_histogram() +
   facet_wrap(var ~ ., scales = "free") +

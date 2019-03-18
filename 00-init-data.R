@@ -1,4 +1,4 @@
-library(tidyverse)
+llibrary(tidyverse)
 library(magrittr)
 library(httr)
 #library(lubridate)
@@ -93,11 +93,20 @@ pubcrawl_weights <- read_csv(here::here("pubcrawler_country.csv")) %>% # generat
                              destination = "iso3c")) %>%
   select(-country)
 
+#-----------------All countries-----------------
+all_countries <- map_data("world") %>%
+  mutate(iso3c = countrycode(sourcevar = region,
+                             origin = "country.name",
+                             destination = "iso3c"))  %>%
+  select(iso3c) %>% distinct() 
 
 #-----------------All data-----------------
-amr <- left_join(events_by_country, pubcrawl_weights) %>%
+amr <- all_countries %>%
+  left_join(events_by_country) %>%
+  left_join(pubcrawl_weights) %>%
   left_join(wbd) %>%
   left_join(oec) %>%
+  mutate(n_amr_events = ifelse(is.na(n_amr_events), 0 , n_amr_events)) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name"), 
@@ -107,5 +116,8 @@ amr <- left_join(events_by_country, pubcrawl_weights) %>%
          continent = countrycode::countrycode(sourcevar = iso3c,
                                               origin = "iso3c",
                                               destination = "continent"))
+
+
+
 
 write_csv(amr, here::here("country_level_amr.csv"))
