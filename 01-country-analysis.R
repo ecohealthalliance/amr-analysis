@@ -6,7 +6,7 @@
 #' 
 #' 
 #+ r setup, include = FALSE
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width=10)
 library(tidyverse)
 library(magrittr)
 library(here)
@@ -65,7 +65,7 @@ gam_mod <- gam(data = country_dat,
                  s(wb_gdp_billion_log) + 
                  s(wb_population_log) +
                  #s(wb_livestock_index) +
-                 s(wb_ag_land_perc) + 
+                 s(wb_ag_land_perc, k = 15) + 
                  #s(wb_health_expend_perc) +
                  #s(oec_ab_import_log) +
                  s(oec_ab_export_log) +
@@ -90,8 +90,6 @@ bart_mod <- bart(country_dat %>% dplyr::select(-n_amr_events, -iso3c, -country, 
                  country_dat$n_amr_events,
                  ndpost=1000,
                  keeptrees = TRUE)
-
-summary(bart_mod)
 
 #' -----------------Compare models-----------------
 #+ r mod-comp
@@ -132,7 +130,10 @@ country_dat_rs2 %>%
 country_dat2 %>%
   dplyr::select(n_amr_events, gam, bart) %>%
   as.matrix() %>%
-  cor()
+  cor() 
+
+#' -----------------Residuals-----------------
+#+ r resids
 
 # residual plots (black open circle = predicted, solid = actual)
 ggplot(data = country_dat_rs2, aes(x = x, y = n_amr_events)) +
@@ -145,11 +146,14 @@ ggplot(data = country_dat_rs2, aes(x = x, y = n_amr_events)) +
   facet_grid(model ~ var, scales = "free_x") +
   theme_bw()
 
+#' -----------------ICE (Individual Conditional Expectation) Plots-----------------
+#+ r ice
+
 # ICE plots
 mod_dat_gam <-  country_dat %>%
-  select(pubs_sum, 
-         wb_ag_land_perc, 
-         wb_gdp_billion_log, 
+  select(pubs_sum,
+         wb_ag_land_perc,
+         wb_gdp_billion_log,
          wb_population_log ,
          oec_ab_export_log,
          english_spoken
@@ -192,5 +196,5 @@ plot(gamcpm) +
   labs(title = "GAM", x = "", y = "n") +
   scale_color_manual(values  = "black") +
   stat_summary(aes(group = 1),
-               geom = "line", fun.y = mean, size = 1.5, color = "green") + 
+               geom = "line", fun.y = mean, size = 1.5, color = "green") +
   theme_bw()
