@@ -6,7 +6,8 @@
 #' 
 #' 
 #+ r setup, include = FALSE
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width=10)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
+                      fig.width = 10, dpi = 300)
 library(tidyverse)
 library(magrittr)
 library(here)

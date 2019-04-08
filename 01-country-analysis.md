@@ -1,10 +1,9 @@
 exploratory\_analysis
 ================
-emmamendelsohn
-2019-03-22
+noamross
+2019-04-08
 
-—————–View
-Data—————–
+—————–View Data—————–
 
 ![](01-country-analysis_files/figure-gfm/r%20plots-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20plots-2.png)<!-- -->
 
@@ -108,7 +107,7 @@ Data—————–
     ## iteration: 800 (of 1000)
     ## iteration: 900 (of 1000)
     ## iteration: 1000 (of 1000)
-    ## total seconds in loop: 1.176679
+    ## total seconds in loop: 1.441426
     ## 
     ## Tree sizes, last iteration:
     ## [1] 4 2 2 2 2 2 2 2 1 2 3 3 2 2 3 2 2 2 
@@ -149,7 +148,6 @@ Data—————–
 
 ![](01-country-analysis_files/figure-gfm/r%20resids-1.png)<!-- -->
 
-—————–ICE (Individual Conditional Expectation)
-Plots—————–
+—————–ICE (Individual Conditional Expectation) Plots—————–
 
 ![](01-country-analysis_files/figure-gfm/r%20ice-1.png)<!-- -->![](01-country-analysis_files/figure-gfm/r%20ice-2.png)<!-- -->
