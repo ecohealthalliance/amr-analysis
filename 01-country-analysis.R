@@ -24,10 +24,10 @@ set.seed(101)
 country_dat <- read_csv(here::here("country_level_amr.csv")) %>%
   na.omit() %>%
   mutate(wb_gdp_dollars = log10(wb_gdp_dollars/1000000000),
-         wb_population = log(wb_population),
-         oec_ab_import = log(oec_ab_import),
+         wb_population = log10(wb_population),
+         oec_ab_import = log10(oec_ab_import),
          oec_ab_import = ifelse(is.infinite(oec_ab_import), 0, oec_ab_import),
-         oec_ab_export = log(oec_ab_export),
+         oec_ab_export = log10(oec_ab_export),
          oec_ab_export = ifelse(is.infinite(oec_ab_export), 0, oec_ab_export),
          continent = as.factor(continent),
          region = as.factor(region)) %>%
@@ -43,8 +43,7 @@ country_dat_rs <- country_dat %>%
 #+ r plots
 ggplot(data = country_dat_rs %>%
          bind_rows(country_dat_rs %>%
-                     select(n_amr_events, iso3c) %>%
-                     rename(val = n_amr_events) %>%
+                     select(val = n_amr_events, iso3c) %>%
                      mutate(var = "n_amr_events") %>% 
                      distinct()),
        mapping = aes(x = val)) +
@@ -65,13 +64,15 @@ gam_mod <- gam(data = country_dat,
                formula = n_amr_events ~  
                  s(wb_gdp_billion_log) + 
                  s(wb_population_log) +
+                 s(wb_migrant_pop_perc) +
                  #s(wb_livestock_index) +
-                 s(wb_ag_land_perc, k = 15) + 
+                 #s(wb_ag_land_perc, k = 15) + 
                  #s(wb_health_expend_perc) +
                  #s(oec_ab_import_log) +
                  s(oec_ab_export_log) +
-                 s(pubs_sum) +
-                 english_spoken,
+                 s(pubs_sum, k = 15) +
+                 s(im_ab_consumption), #+
+                 #english_spoken,
                  #continent,
                method = "REML",
                family = "quasipoisson")
@@ -80,10 +81,10 @@ summary(gam_mod) # higher EDF = more wiggly (1 = linear)
 concurvity(gam_mod, full = TRUE) # Concurvity occurs when some smooth term in a model could be approximated by one or more of the other smooth terms in the model. 
 gam.check(gam_mod)
 
-# plot(gam_mod, page=1,
-#      all.terms = TRUE,
-#      residuals = TRUE, pch = 1, cex = 1, shade = TRUE, shade.col = "lightblue",
-#      seWithMean = TRUE, shift = coef(gam_mod)[1])
+plot(gam_mod, page=1,
+     all.terms = TRUE,
+     residuals = TRUE, pch = 1, cex = 1, shade = TRUE, shade.col = "lightblue",
+     seWithMean = TRUE, shift = coef(gam_mod)[1])
 
 #' -----------------Fit BART-----------------
 #+ r mod-bart
@@ -110,17 +111,30 @@ country_dat2 <- country_dat %>%
 country_dat_rs2 <- country_dat2  %>%
   gather(key = "var", value = "x", -n_amr_events, -gam, -bart) %>%
   gather(key = "model", value = "predicted", -x, -n_amr_events, -var) %>%
+  filter(!(model=="gam" & var %in% c("wb_livestock_index", "wb_ag_land_perc", "wb_health_expend_perc", "oec_ab_import_log", "english_spoken"))) %>%
   mutate(residual = n_amr_events - predicted,
          var = factor(var, levels = c("pubs_sum",
                                       "wb_gdp_billion_log",
                                       "wb_population_log",
+                                      "wb_migrant_pop_perc",
                                       "wb_health_expend_perc",
                                       "wb_ag_land_perc",
                                       "wb_livestock_index",
                                       "oec_ab_import_log",
                                       "oec_ab_export_log",
-                                      "english_spoken"))) %>%
-  filter(!(model=="gam" & var %in% c("wb_livestock_index", "wb_health_expend_perc", "oec_ab_import_log")))
+                                      "im_ab_consumption",
+                                      "english_spoken"),
+                      labels = c("Pubcrawler sum",
+                                 "GDP ($ billion; log scale)",
+                                 "Population (log scale)",
+                                 "Migrant Population (% total population)",
+                                 "Health Expenditure (% GDP)",
+                                 "Agricultural Land Coverage (%)",
+                                 "Livestock Index",
+                                 "Antibiotic Imports ($ billion; log scale)",
+                                 "Antibiotic Exports ($ billion; log scale)",
+                                 "Antibiotic Consumption (DDD per capita)",
+                                 "English Spoken"))) 
 
 # mean residuals
 country_dat_rs2 %>%
@@ -153,11 +167,11 @@ ggplot(data = country_dat_rs2, aes(x = x, y = n_amr_events)) +
 # ICE plots
 mod_dat_gam <-  country_dat %>%
   select(pubs_sum,
-         wb_ag_land_perc,
          wb_gdp_billion_log,
          wb_population_log ,
+         wb_migrant_pop_perc,
          oec_ab_export_log,
-         english_spoken
+         im_ab_consumption
          ) %>%
   as.data.frame()
 
