@@ -28,8 +28,7 @@ events %<>%
 events_by_country <- events %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
-  ungroup() %>%
-  na.omit()
+  ungroup() 
 #-----------------World Bank data-----------------
 # 2015
 # Population and GDP
@@ -60,6 +59,7 @@ wbd <- map_df(indicator, function(x){
 })
 
 wbd %<>%
+  na.omit() %>%
   spread(key = param, value = value) %>%
   mutate(SM.POP.TOTL = 100 * SM.POP.TOTL/SP.POP.TOTL) %>% #calc migrant % of population
   rename(population = SP.POP.TOTL,
@@ -75,12 +75,13 @@ wbd %<>%
 # 2015
 # Download 6/24 from http://www.fao.org/faostat/en/#data/GU
 fao <- read_csv(h("data/FAOSTAT_data_6-24-2019.csv")) %>%
-  filter(Element == "Manure applied to soils (N content)") %>%
+  filter(Element == "Manure applied to soils (N content)",
+         Area != "China, mainland") %>%
   mutate(iso3c = countrycode(sourcevar = Area,
                       origin = "country.name",
                       destination = "iso3c")) %>%
-  select(iso3c, manure_soils_kg = Value)
-  
+  select(iso3c, manure_soils_kg = Value) %>%
+  na.omit()
 #-----------------Observatory of Economic Complexity------------
 # 2015
 # Visualization: https://atlas.media.mit.edu/en/visualize/tree_map/hs92/export/show/all/2941/2015/
@@ -94,7 +95,7 @@ oec <- map_df(oec, function(x){
   tibble(iso3c = toupper(substr(x$origin_id, 3, 5)), 
          #ab_import_dollars = import, 
          ab_export_dollars = export)
-})
+}) 
 
 #-----------------Pubcrawler data-----------------
 # Values are unitless
@@ -115,17 +116,21 @@ pubcrawl_weights <- read_csv(h("data/pubcrawler_country.csv")) %>% # generated b
          iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
                              destination = "iso3c")) %>%
-  select(-country)
+  filter(!(iso3c == "MRT" & pubs_sum==0)) %>%
+  select(-country) %>%
+  na.omit()
 
 #-----------------Language by country-----------------
 lang <- read_csv(h("data/wikipedia-language-by-country.csv"), skip = 1) %>% # 3/18/19 from https://wikitable2csv.ggor.de/
   select(Country, `Official language`) %>%
+  filter(!Country %in% c("Sovereign Military Order of Malta", "Somaliland")) %>%
   mutate(english_spoken = grepl("English", `Official language`, ignore.case = TRUE),
          iso3c = countrycode(sourcevar = Country,
                              origin = "country.name",
                              destination = "iso3c")) %>%
   na.omit() %>%
-  select(iso3c, english_spoken)
+  select(iso3c, english_spoken) %>%
+  distinct()
 
 #-----------------Human Consumption data-----------------
 # 2014
@@ -138,7 +143,7 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
   rename(iso3c = `International Organization for Standardization (ISO)*`, 
          ab_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   na.omit() %>%
-  filter(iso3c != "na")
+  filter(iso3c != "na") 
 
 #-----------------Livestock Consumption data-----------------
 # 2010 
@@ -157,12 +162,13 @@ all_countries <- map_data("world") %>%
   mutate(iso3c = countrycode(sourcevar = region,
                              origin = "country.name",
                              destination = "iso3c"))  %>%
-  select(iso3c) %>% distinct() 
+  select(iso3c) %>% na.omit() %>% distinct() 
 
 
 #-----------------All data-----------------
 amr <- all_countries %>%
   left_join(events_by_country) %>%
+  mutate(n_amr_events = replace_na(n_amr_events, 0)) %>%
   left_join(pubcrawl_weights) %>%
   left_join(wbd) %>%
   left_join(oec) %>%

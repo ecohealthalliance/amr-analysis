@@ -57,15 +57,35 @@ chart.Correlation(country_dat %>%
 # sp = smoothing parameter (higher = smoother, can be fit with method = "REML")
 # k  = number of base curves
 
+# handling NAs
+## process data.frame producing binary indicators of missingness,
+## mx0, mx1 etc. For each missing value create a level of a factor
+## idx0, idx1, etc. So idx0 has as many levels as x0 has missing 
+## values. Replace the NA's in each variable by the mean of the 
+## non missing for that variable...
+
+# dname <- c("gdp_billion_log", "population_log", "pubs_sum", "migrant_pop_perc", "health_expend_perc", "ab_export_perc", "ab_consumption_ddd", "ag_land_perc", "manure_soils_kg_per_km2")
+# dat1 <- country_dat
+# for (i in 1:length(dname)) {
+#   by.name <- paste("m",dname[i],sep="") 
+#   dat1[[by.name]] <- is.na(dat1[[dname[i]]])
+#   dat1[[dname[i]]][dat1[[by.name]]] <- mean(dat1[[dname[i]]],na.rm=TRUE)
+#   lev <- rep(1,n);lev[dat1[[by.name]]] <- 1:sum(dat1[[by.name]])
+#   id.name <- paste("id",dname[i],sep="")
+#   dat1[[id.name]] <- factor(lev) 
+#   dat1[[by.name]] <- as.numeric(dat1[[by.name]])
+# }
+
+
 gam_mod <- gam(data = country_dat, 
                formula = n_amr_events ~  
-                  s(gdp_billion_log) + 
-                  s(population_log) +
-                  s(pubs_sum) +
+                  s(gdp_billion_log, k = 9) + 
+                  s(population_log, k = 9) +
+                  s(pubs_sum, k = 9) +
                   s(migrant_pop_perc, k = 5) +
-                  s(health_expend_perc) +
+                  s(health_expend_perc, k = 9) +
                   s(ab_export_perc, k = 5) +
-                  s(ab_consumption_ddd) +
+                  s(ab_consumption_ddd, k = 9) +
                   s(ag_land_perc, k = 5) +
                   s(manure_soils_kg_per_km2, k = 5) +
                  english_spoken,
