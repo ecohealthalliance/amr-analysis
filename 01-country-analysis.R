@@ -70,7 +70,7 @@ gam_mod <- gam(data = country_dat,
                   s(manure_soils_kg_per_km2, k = 5) +
                  english_spoken,
                method = "REML", # to set sp
-               family = "ziP") 
+               family = ziP()) 
 
 gam_mod$outer.info$conv
 summary(gam_mod) # higher EDF = more wiggly (1 = linear)
@@ -81,6 +81,13 @@ plot(gam_mod,
      all.terms = FALSE,
      residuals = TRUE, pch = 1, cex = 1, shade = TRUE, shade.col = "lightblue",
      seWithMean = TRUE, shift = coef(gam_mod)[1])
+
+## more checking...
+## 1. If the zero inflation rate becomes decoupled from the linear predictor, 
+## it is possible for the linear predictor to be almost unbounded in regions
+## containing many zeroes. So examine if the range of predicted values 
+## is sane for the zero cases? 
+range(predict(gam_mod,type="response")[gam_mod$y==0]) # range is reasonable
 
 #' -----------------Fit BART-----------------
 #+ r mod-bart
