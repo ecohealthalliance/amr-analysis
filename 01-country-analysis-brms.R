@@ -18,6 +18,7 @@ library(dbarts)
 library(DALEX)
 library(ceterisParibus)
 library(PerformanceAnalytics)
+library(mice)
 
 set.seed(101)
 
@@ -111,11 +112,11 @@ set.seed(101)
 # # https://cran.r-project.org/web/packages/brms/vignettes/brms_missings.html
 # # Imputation before model fitting
 # # Each missing value is not imputed once but times leading to a total of fully imputed data sets. The model can then be fitted to each of those data sets separetely and results are pooled across models, afterwards. 
-library(mice)
-
-country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
-  select(-continent, -region, -english_spoken, -country) %>%
-  filter_at(.vars =  vars(pubs_sum:manure_soils_kg_per_km2), .vars_predicate = any_vars(!is.na(.)))
+# library(mice)
+# 
+# country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
+#   select(-continent, -region, -english_spoken, -country) %>%
+#   filter_at(.vars =  vars(pubs_sum:manure_soils_kg_per_km2), .vars_predicate = any_vars(!is.na(.))) %>% # remove all NA rows
 
 # comparing imputed to true distribution
 # country_mice <- mice(country_raw, m=1, maxit=500, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
@@ -250,18 +251,42 @@ country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
 # 
 # 13: Imputed model 4 did not converge.
 
-country_mice <- mice(country_raw, m=15, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
-write_rds(country_mice, "country_mice.rds") 
+# country_mice <- mice(country_raw, m=15, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+# write_rds(country_mice, "country_mice.rds") 
+# 
+# mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + gdp_dollars + population, #+ health_expend_perc + 
+#                          #migrant_pop_perc + ab_consumption_ddd + manure_soils_kg_per_km2 + ag_land_perc, 
+#                        zi ~ pubs_sum + gdp_dollars + population #+ health_expend_perc
+#                        ), 
+#                     data = country_mice, 
+#                     family = zero_inflated_poisson(),
+#                     cores = getOption("mc.cores", 4L), 
+#                     inits = "0",
+#                     iter = 2000, 
+#                     control = list(max_treedepth = 15))
+# write_rds(mod, "lastest_mod_2000iter_m15.rds") 
+# summary(mod)
+# ^ no convergence
 
-mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + gdp_dollars + population + health_expend_perc + 
-                         migrant_pop_perc + ab_consumption_ddd + manure_soils_kg_per_km2 + ag_land_perc, 
-                       zi ~ pubs_sum + gdp_dollars + population + health_expend_perc), 
+country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
+  select(-continent, -region, -english_spoken, -country) %>%
+  drop_na(population) %>% # remove if population data is unavailable (usually territories)
+  mutate_at(vars(pubs_sum, ab_export_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and export NAs
+
+country_center <- country_raw %>%
+  mutate_at(vars(-iso3c, -n_amr_events, -pubs_sum), ~scale(., scale=F))
+
+# simple model with un-centered data
+country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+# 'cart'(classification and regression trees)
+# https://arxiv.org/pdf/1603.01631.pdf - CART is nonparametric, tends to reduce error, not hindered by multicollinearity 
+
+mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + population + ab_consumption_ddd + livestock_ab_sales_kg, 
+                       zi ~  pubs_sum + population), 
                     data = country_mice, 
                     family = zero_inflated_poisson(),
                     cores = getOption("mc.cores", 4L), 
                     inits = "0",
-                    iter = 2000, 
+                    iter = 500, 
                     control = list(max_treedepth = 15))
-write_rds(mod, "lastest_mod_2000iter_m15.rds") 
 
-# 
