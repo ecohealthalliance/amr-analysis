@@ -1,13 +1,3 @@
-#'---
-#' title: "exploratory_analysis"
-#' output: github_document
-#' always_allow_html: yes
-#' ---
-#'
-#'
-#+ r setup, include = FALSE
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
-                      fig.width = 10, dpi = 300)
 library(tidyverse)
 library(brms)
 library(magrittr)
@@ -22,6 +12,15 @@ library(mice)
 library(future)
 
 set.seed(101)
+
+country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
+  select(-continent, -region, -english_spoken, -country) %>%
+  drop_na(population) %>% # remove if population data is unavailable (usually territories)
+  mutate_at(vars(pubs_sum, ab_export_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and ab_export NAs
+
+country_center <- country_raw %>%
+  mutate_at(vars(-iso3c, -n_amr_events, -pubs_sum), ~as.numeric(scale(., scale=F)) )
+
 
 # # prep data
 # country_dat <- read_csv(here::here("country_level_amr.csv")) %>%
@@ -269,14 +268,6 @@ set.seed(101)
 # summary(mod)
 # ^ no convergence
 
-country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
-  select(-continent, -region, -english_spoken, -country) %>%
-  drop_na(population) %>% # remove if population data is unavailable (usually territories)
-  mutate_at(vars(pubs_sum, ab_export_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and export NAs
-
-country_center <- country_raw %>%
-  mutate_at(vars(-iso3c, -n_amr_events, -pubs_sum), ~as.numeric(scale(., scale=F)) )
-
 # simple model with un-centered data
 #country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
 # 'cart'(classification and regression trees)
@@ -316,6 +307,22 @@ mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + population,
                     inits = "0",
                     iter = 2000,
                     control = list(max_treedepth = 15))
-write_rds(mod, "lastest_mod.rds")
-mod <- read_rds("lastest_mod.rds")
-summary(mod)
+write_rds(mod, "latest_mod.rds")
+
+country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+plan(multiprocess)
+mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + gdp_dollars + population + health_expend_perc +
+                         migrant_pop_perc + ab_consumption_ddd + manure_soils_kg_per_km2 + ag_land_perc,
+                       zi ~ pubs_sum + gdp_dollars + population + health_expend_perc
+                       ),
+                    data = country_mice,
+                    family = zero_inflated_poisson(),
+                    cores = getOption("mc.cores", 4L),
+                    inits = "0",
+                    iter = 2000,
+                    control = list(max_treedepth = 15))
+write_rds(mod, "latest_full_mod.rds")
+
+mod_simple <- read_rds("latest_mod.rds")
+mod_full <- read_rds("latest_full_mod.rds")
+
