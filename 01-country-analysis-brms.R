@@ -1,13 +1,3 @@
-#'---
-#' title: "exploratory_analysis"
-#' output: github_document
-#' always_allow_html: yes
-#' ---
-#'
-#'
-#+ r setup, include = FALSE
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE,
-                      fig.width = 10, dpi = 300)
 library(tidyverse)
 library(brms)
 library(magrittr)
@@ -22,6 +12,17 @@ library(mice)
 library(future)
 
 set.seed(101)
+
+country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
+  select(-continent, -region, -english_spoken, -country) %>%
+  drop_na(population, gdp_dollars) %>% # remove if population or gdp data is unavailable (usually territories)
+  mutate_at(vars(pubs_sum, ab_export_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and ab_export NAs
+
+country_mean_imp <- country_raw %>%
+  mutate_all(~ifelse(is.na(.), mean(., na.rm = TRUE), .)) 
+
+# country_center <- country_raw %>%
+#   mutate_at(vars(-iso3c, -n_amr_events, -pubs_sum), ~as.numeric(scale(., scale=F)) )
 
 # # prep data
 # country_dat <- read_csv(here::here("country_level_amr.csv")) %>%
@@ -269,14 +270,6 @@ set.seed(101)
 # summary(mod)
 # ^ no convergence
 
-country_raw <- read_csv(here::here("country_level_amr.csv")) %>%
-  select(-continent, -region, -english_spoken, -country) %>%
-  drop_na(population) %>% # remove if population data is unavailable (usually territories)
-  mutate_at(vars(pubs_sum, ab_export_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and export NAs
-
-country_center <- country_raw %>%
-  mutate_at(vars(-iso3c, -n_amr_events, -pubs_sum), ~as.numeric(scale(., scale=F)) )
-
 # simple model with un-centered data
 #country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
 # 'cart'(classification and regression trees)
@@ -306,16 +299,185 @@ country_center <- country_raw %>%
 # summary(mod)
 # ^ did not converge
 
+# country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+# plan(multiprocess)
+# mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + population,
+#                        zi ~  pubs_sum ),
+#                     data = country_mice,
+#                     family = zero_inflated_poisson(),
+#                     cores = getOption("mc.cores", 4L),
+#                     inits = "0",
+#                     iter = 2000,
+#                     control = list(max_treedepth = 15))
+# write_rds(mod, "latest_mod.rds")
+# 
+# country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+# plan(multiprocess)
+# mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + gdp_dollars + population + health_expend_perc +
+#                          migrant_pop_perc + ab_consumption_ddd + manure_soils_kg_per_km2 + ag_land_perc,
+#                        zi ~ pubs_sum + gdp_dollars + population + health_expend_perc
+#                        ),
+#                     data = country_mice,
+#                     family = zero_inflated_poisson(),
+#                     cores = getOption("mc.cores", 4L),
+#                     inits = "0",
+#                     iter = 2000,
+#                     control = list(max_treedepth = 15))
+# write_rds(mod, "latest_full_mod.rds")
+# 
+# mod_simple <- read_rds("latest_mod.rds")
+# mod_full <- read_rds("latest_full_mod.rds")
+#  
+# country_raw %>%
+#  gather(key = "key", value="value", pubs_sum:manure_soils_kg_per_km2) %>%
+#   ggplot(aes(x = value)) +
+#   geom_histogram() +
+#   facet_wrap(key~., scale = "free")
+
+# 7/12/19
+# back to simple
+# mod <- brm(bf(n_amr_events ~  gdp_dollars,
+#               zi ~ pubs_sum ),
+#            data = country_raw,
+#            inits = "0",
+#            iter = 2000,
+#            control = list(max_treedepth = 15),
+#            family = zero_inflated_poisson(),
+#            cores = getOption("mc.cores", 4L))
+# 
+# write_rds(mod, "latest_mod.rds")
+# mod <- read_rds( "latest_mod.rds")
+# ^ did not converge
+
+# evaluate variation in imputations
+# country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) 
+# 
+# imp <- country_mice$imp
+# 
+# imp2 <- imap_dfr(imp, function(x, y){
+#   x %>%
+#     as_tibble() %>%
+#     rownames_to_column(var = "country_id") %>%
+#     gather(key = "m", value = "value", `1`:`4`) %>%
+#     mutate(field = y)
+# })
+# 
+# raw_means <- country_raw %>%
+#   select_if(~any(is.na(.))) %>%
+#   gather(key = "field", value = "value") %>%
+#   group_by(field) %>%
+#   summarize(mean = mean(value, na.rm = T), min = min(value, na.rm = T), max = max(value, na.rm = T)) 
+# 
+# ggplot(data = imp2, aes(x = country_id,  y = value, color = m)) +
+#   geom_point() +
+#   geom_hline(data = raw_means, aes(yintercept = mean)) +
+#  # geom_hline(data = raw_means, aes(yintercept = min), lty= 2) +
+#  # geom_hline(data = raw_means, aes(yintercept = max), lty = 2) +
+#   facet_wrap(field ~., scales = "free")
+
+# try with mean imputations 
+# country_mean_imp <- country_raw %>%
+#   mutate_all(~ifelse(is.na(.), mean(., na.rm = TRUE), .)) 
+
+# simple models with mean imputations
+# mod <- brm(bf(n_amr_events ~  ab_consumption_ddd,
+#               zi ~ pubs_sum),
+#            data = country_mean_imp,
+#            family = zero_inflated_poisson(),
+#            cores = getOption("mc.cores", 4L),
+#            inits = "0",
+#            iter = 2000,
+#            control = list(max_treedepth = 15))
+# write_rds(mod, "latest_mod_simple.rds")
+# summary(mod)
+# rstan::traceplot(mod$fit)
+# # ^ works
+# 
+# mod <- brm(bf(n_amr_events ~  pubs_sum + ab_consumption_ddd + livestock_ab_sales_kg,
+#               zi ~ pubs_sum),
+#            data = country_mean_imp,
+#            family = zero_inflated_poisson(),
+#            cores = getOption("mc.cores", 4L),
+#            inits = "0",
+#            iter = 2000,
+#            control = list(max_treedepth = 15))
+# write_rds(mod, "latest_mod_simple.rds")
+# summary(mod)
+# rstan::traceplot(mod$fit)
+# ^ not converged
+
+# ^ not converged :(
+
+# full model with mean imputations
+# mod <- brm(bf(n_amr_events ~ pubs_sum + gdp_dollars + population + health_expend_perc +
+#                              migrant_pop_perc + livestock_ab_sales_kg + ab_consumption_ddd +
+#                              manure_soils_kg_per_km2 + ag_land_perc + ab_export_perc,
+#               zi ~ pubs_sum + gdp_dollars + population + health_expend_perc),
+#            data = country_mean_imp,
+#            family = zero_inflated_poisson(),
+#            cores = getOption("mc.cores", 4L),
+#            inits = "0",
+#            iter = 2000,
+#            control = list(max_treedepth = 15))
+# 
+# write_rds(mod, "latest_mod_full.rds")
+# ^ not converged
+
+# Now try imputing in the model
+# not ZIP
+# bform <- bf(n_amr_events ~ population + mi(ab_consumption_ddd))  + 
+#   bf(ab_consumption_ddd | mi() ~ population) +  set_rescor(FALSE)
+# mod <- brm(bform, data = country_raw)
+# # ^ not converged
+# 
+# # ZIP
+bform <- bf(n_amr_events ~ population + mi(ab_consumption_ddd), zi ~ pubs_sum)  +
+  bf(ab_consumption_ddd | mi() ~ population) +  set_rescor(FALSE)
+mod <- brm(bform,
+           data = country_raw,
+           family = zero_inflated_poisson(),
+           cores = getOption("mc.cores", 4L),
+           inits = "0",
+           iter = 2000,
+           control = list(max_treedepth = 15))
+# ^ not compatible 
+
 country_mice <- mice(country_raw, m=4, maxit=35, method='cart', seed=500) #https://www.kaggle.com/c/house-prices-advanced-regression-techniques/discussion/24586
+
+plot(country_raw$ab_consumption_ddd, country_raw$n_amr_events)
+
 plan(multiprocess)
-mod <- brm_multiple(bf(n_amr_events ~ pubs_sum + population,
-                       zi ~  pubs_sum ),
+mod <- brm_multiple(bf(n_amr_events ~ ab_consumption_ddd  + population,
+                       zi ~  population ),
                     data = country_mice,
                     family = zero_inflated_poisson(),
                     cores = getOption("mc.cores", 4L),
                     inits = "0",
                     iter = 2000,
                     control = list(max_treedepth = 15))
-write_rds(mod, "lastest_mod.rds")
-mod <- read_rds("lastest_mod.rds")
-summary(mod)
+write_rds(mod, "latest_mod.rds")
+mod <- read_rds("latest_mod.rds")
+
+imp <- country_mice$imp
+
+imp2 <- imap_dfr(imp, function(x, y){
+  x %>%
+    as_tibble() %>%
+    rownames_to_column(var = "country_id") %>%
+    gather(key = "m", value = "value", `1`:`4`) %>%
+    mutate(field = y)
+})
+
+raw_means <- country_raw %>%
+  select_if(~any(is.na(.))) %>%
+  gather(key = "field", value = "value") %>%
+  group_by(field) %>%
+  summarize(mean = mean(value, na.rm = T), min = min(value, na.rm = T), max = max(value, na.rm = T))
+
+ggplot(data = imp2, aes(x = country_id,  y = value, color = m)) +
+  geom_point() +
+  geom_hline(data = raw_means, aes(yintercept = mean)) +
+  # geom_hline(data = raw_means, aes(yintercept = min), lty= 2) +
+  # geom_hline(data = raw_means, aes(yintercept = max), lty = 2) +
+  facet_wrap(field ~., scales = "free")
+
