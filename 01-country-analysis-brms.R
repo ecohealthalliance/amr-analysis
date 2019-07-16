@@ -480,4 +480,3 @@ ggplot(data = imp2, aes(x = country_id,  y = value, color = m)) +
   # geom_hline(data = raw_means, aes(yintercept = min), lty= 2) +
   # geom_hline(data = raw_means, aes(yintercept = max), lty = 2) +
   facet_wrap(field ~., scales = "free")
-
