@@ -4,6 +4,9 @@ library(httr)
 library(jsonlite)
 library(here)
 library(countrycode)
+library(raster)
+library(sf)
+library(maptools)
 
 h <- here::here
 
@@ -43,16 +46,16 @@ events_by_country <- events %>%
 indicator = c("SP.POP.TOTL", 
               "SM.POP.TOTL",
               "NY.GDP.MKTP.CD",
-              "AG.LND.AGRI.ZS",
+              #"AG.LND.AGRI.ZS",
               #"AG.PRD.LVSK.XD",
-              "SH.XPD.CHEX.GD.ZS",
-              "AG.LND.TOTL.K2"
+              "SH.XPD.CHEX.GD.ZS"#,
+              #"AG.LND.TOTL.K2"
 )
 
 wbd <- map_df(indicator, function(x){
   tmp <- fromJSON(paste0("http://api.worldbank.org/v2/country/all/indicator/", x, "?date=2015:2015&per_page=20000&format=json"))
   tmp[[2]] %>% 
-    select(value, countryiso3code) %>%
+    dplyr::select(value, countryiso3code) %>%
     mutate(param = tmp[[2]][[1]]$id) %>%
     as_tibble() %>%
     filter(countryiso3code != "")
@@ -65,23 +68,23 @@ wbd %<>%
   rename(population = SP.POP.TOTL,
          migrant_pop_perc = SM.POP.TOTL,
          gdp_dollars = NY.GDP.MKTP.CD,
-         ag_land_perc = AG.LND.AGRI.ZS,
+         #ag_land_perc = AG.LND.AGRI.ZS,
          #livestock_index = AG.PRD.LVSK.XD,
          health_expend_perc = SH.XPD.CHEX.GD.ZS,
-         land_area_km2 = AG.LND.TOTL.K2,
+         #land_area_km2 = AG.LND.TOTL.K2,
          iso3c = countryiso3code)
 
 #-----------------Food and Agriculture Organization------------
 # 2015
 # Download 6/24 from http://www.fao.org/faostat/en/#data/GU
-fao <- read_csv(h("data/FAOSTAT_data_6-24-2019.csv")) %>%
-  filter(Element == "Manure applied to soils (N content)",
-         Area != "China, mainland") %>%
-  mutate(iso3c = countrycode(sourcevar = Area,
-                      origin = "country.name",
-                      destination = "iso3c")) %>%
-  select(iso3c, manure_soils_kg = Value) %>%
-  na.omit()
+# fao <- read_csv(h("data/FAOSTAT_data_6-24-2019.csv")) %>%
+#   filter(Element == "Manure applied to soils (N content)",
+#          Area != "China, mainland") %>%
+#   mutate(iso3c = countrycode(sourcevar = Area,
+#                       origin = "country.name",
+#                       destination = "iso3c")) %>%
+#   dplyr::select(iso3c, manure_soils_kg = Value) %>%
+#   na.omit()
 #-----------------Observatory of Economic Complexity------------
 # 2015
 # Visualization: https://atlas.media.mit.edu/en/visualize/tree_map/hs92/export/show/all/2941/2015/
@@ -93,7 +96,7 @@ oec <- map_df(oec, function(x){
   export <- ifelse(is.null(x$export_val), 0, x$export_val)
   
   tibble(iso3c = toupper(substr(x$origin_id, 3, 5)), 
-         #ab_import_dollars = import, 
+         ab_import_dollars = import, 
          ab_export_dollars = export)
 }) 
 
@@ -117,19 +120,19 @@ pubcrawl_weights <- read_csv(h("data/pubcrawler_country.csv")) %>% # generated b
                              origin = "country.name",
                              destination = "iso3c")) %>%
   filter(!(iso3c == "MRT" & pubs_sum==0)) %>%
-  select(-country) %>%
+  dplyr::select(-country) %>%
   na.omit()
 
 #-----------------Language by country-----------------
 lang <- read_csv(h("data/wikipedia-language-by-country.csv"), skip = 1) %>% # 3/18/19 from https://wikitable2csv.ggor.de/
-  select(Country, `Official language`) %>%
+  dplyr::select(Country, `Official language`) %>%
   filter(!Country %in% c("Sovereign Military Order of Malta", "Somaliland")) %>%
   mutate(english_spoken = grepl("English", `Official language`, ignore.case = TRUE),
          iso3c = countrycode(sourcevar = Country,
                              origin = "country.name",
                              destination = "iso3c")) %>%
   na.omit() %>%
-  select(iso3c, english_spoken) %>%
+  dplyr::select(iso3c, english_spoken) %>%
   distinct()
 
 #-----------------Human Consumption data-----------------
@@ -138,31 +141,50 @@ lang <- read_csv(h("data/wikipedia-language-by-country.csv"), skip = 1) %>% # 3/
 # Values are Total defined daily dose (DDD) per capita
 # Defined Daily Dose (DDD): The assumed average maintenance dose per day for a drug used for its main indication in adults.
 consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[2].xlsx")) %>%
-  select(`International Organization for Standardization (ISO)*`, 
+  dplyr::select(`International Organization for Standardization (ISO)*`, 
          `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   rename(iso3c = `International Organization for Standardization (ISO)*`, 
-         ab_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
+         human_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   na.omit() %>%
   filter(iso3c != "na") 
-
 #-----------------Livestock Consumption data-----------------
 # 2010 
 # Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
-livestock <- read_csv(h("data/VanBoeckelEA_total_annual_sales.csv")) %>%
-  group_by(country) %>%
-  summarize(livestock_ab_sales_kg = mean(livestock_ab_sales_kg)) %>% # average multiple values by country (all are very close)
-  ungroup() %>%
-  mutate(iso3c = countrycode(sourcevar = country,
-                            origin = "country.name",
-                            destination = "iso3c")) %>%
-  select(-country)
+# livestock <- read_csv(h("data/VanBoeckelEA_total_annual_sales.csv")) %>%
+#   group_by(country) %>%
+#   summarize(livestock_ab_sales_kg = mean(livestock_ab_sales_kg)) %>% # average multiple values by country (all are very close)
+#   ungroup() %>%
+#   mutate(iso3c = countrycode(sourcevar = country,
+#                             origin = "country.name",
+#                             destination = "iso3c")) %>%
+#   dplyr::select(-country)
+
+# Raster obtained via personal communication with authors
+livestock <- raster('antimicrobial_use/mgabx_Log10p1.tif')
+countries <- maps::map("world", fill=TRUE, col="transparent", plot=FALSE)
+IDs <- sapply(strsplit(countries$names, ":"), function(x) x[1])
+countries <- map2SpatialPolygons(countries, IDs=IDs,  proj4string=CRS("+proj=longlat +datum=WGS84"))
+country_ids <- getSpPPolygonsIDSlots(countries)
+
+livestock <- extract(livestock, countries, sum, na.rm = TRUE, df = TRUE)
+
+livestock2 <- livestock %>% 
+  mutate(country_ids = country_ids) %>%
+  mutate(iso3c = countrycode(sourcevar = country_ids,
+                             origin = "country.name",
+                             destination = "iso3c")) %>%
+  filter(!is.na(iso3c), !is.nan(mgabx_Log10p1)) %>% 
+  mutate(livestock_consumption_kg = (mgabx_Log10p1 ^ 10)/1000000) %>%
+  dplyr::select(-ID, -country_ids, -mgabx_Log10p1)
+  
+
 
 #-----------------All countries-----------------
 all_countries <- map_data("world") %>%
   mutate(iso3c = countrycode(sourcevar = region,
                              origin = "country.name",
                              destination = "iso3c"))  %>%
-  select(iso3c) %>% na.omit() %>% distinct() 
+  dplyr::select(iso3c) %>% na.omit() %>% distinct() 
 
 
 #-----------------All data-----------------
@@ -174,8 +196,8 @@ amr <- all_countries %>%
   left_join(oec) %>%
   left_join(lang) %>%
   left_join(consumption) %>%
-  left_join(livestock) %>%
-  left_join(fao) %>%
+  left_join(livestock2) %>%
+  #left_join(fao) %>%
   mutate(n_amr_events = ifelse(is.na(n_amr_events), 0 , n_amr_events),
          country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
@@ -189,10 +211,10 @@ amr <- all_countries %>%
 
 # Post process
 amr %<>%
-  mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars) %>%
-  mutate(manure_soils_kg_per_km2 = manure_soils_kg/(land_area_km2 * ag_land_perc/100)) %>%
-  select(-ab_export_dollars, -land_area_km2, -manure_soils_kg)
-  
+  mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
+         ab_import_perc = 100 * ab_import_dollars/gdp_dollars) %>%
+  dplyr::select(-ab_export_dollars, -ab_import_dollars)
+
 write_csv(amr, h("country_level_amr.csv"))
 
   
