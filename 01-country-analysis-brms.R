@@ -33,6 +33,7 @@ country_scale_mice <- mice(country_scale, m=4, maxit=35, method='cart', seed=500
 
 # run models
 
+par(mfrow=c(2,2))
 ## simple run without impute
 ### raw
 mod <- brm(bf(n_amr_events ~  livestock_consumption_kg,
@@ -46,6 +47,7 @@ mod <- brm(bf(n_amr_events ~  livestock_consumption_kg,
 write_rds(mod, "mod1.rds")
 mod <- read_rds("mod1.rds")
 summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
 # ^ works
 
 ### scale
@@ -60,6 +62,7 @@ mod <- brm(bf(n_amr_events ~  livestock_consumption_kg,
 write_rds(mod, "mod2.rds")
 mod <- read_rds("mod2.rds")
 summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
 # ^ works
 
 
@@ -74,6 +77,9 @@ mod <- brm(bf(n_amr_events ~  livestock_consumption_kg + migrant_pop_perc +
            cores = getOption("mc.cores", 4L))
 
 write_rds(mod, "mod3.rds")
+mod <- read_rds("mod3.rds")
+summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
 # ^ did not converge, but rhats were fairly low
 
 ### scale
@@ -87,6 +93,10 @@ mod <- brm(bf(n_amr_events ~  livestock_consumption_kg + migrant_pop_perc +
            cores = getOption("mc.cores", 4L))
 
 write_rds(mod, "mod4.rds")
+mod <- read_rds("mod4.rds")
+summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
+
 
 ## now run with impute
 ### raw
@@ -96,10 +106,15 @@ mod <- brm_multiple(bf(n_amr_events ~  livestock_consumption_kg + migrant_pop_pe
               zi ~ pubs_sum + gdp_dollars + population),
            data = country_raw_mice,
            inits = "0",
-           iter = 2000,
+           iter = 4000,
            family = zero_inflated_poisson(),
            cores = getOption("mc.cores", 4L))
 write_rds(mod, "mod5.rds")
+mod <- read_rds("mod5.rds")
+summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
+plot(mod, ask = FALSE)
+
 
 ### scale
 plan(multiprocess)
@@ -108,8 +123,11 @@ mod <- brm_multiple(bf(n_amr_events ~  livestock_consumption_kg + migrant_pop_pe
                        zi ~ pubs_sum + gdp_dollars + population ),
                     data = country_scale_mice,
                     inits = "0",
-                    iter = 2000,
+                    iter = 4000,
                     family = zero_inflated_poisson(),
                     cores = getOption("mc.cores", 4L))
 write_rds(mod, "mod6.rds")
+mod <- read_rds("mod6.rds")
 summary(mod)
+plot(marginal_effects(mod), ask = FALSE)
+plot(mod, ask = FALSE)
