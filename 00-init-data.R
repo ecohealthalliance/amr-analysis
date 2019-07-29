@@ -6,7 +6,7 @@ library(here)
 library(countrycode)
 library(raster)
 library(sf)
-library(maptools)
+library(rnaturalearth)
 
 h <- here::here
 
@@ -15,12 +15,6 @@ events <- GET(url, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))
 
 #-----------------Country-wide data-----------------
-# Rename a few countries in our data to match WB
-# events %<>%
-#   mutate(study_country = replace(study_country, study_country == "palestine", "israel"),
-#          study_country = replace(study_country, study_country == "taiwan", "china")
-#   )
-
 # Get iso3c codes for countries
 events %<>%
   mutate(iso3c = countrycode(sourcevar = study_country,
@@ -142,7 +136,7 @@ lang <- read_csv(h("data/wikipedia-language-by-country.csv"), skip = 1) %>% # 3/
 # Defined Daily Dose (DDD): The assumed average maintenance dose per day for a drug used for its main indication in adults.
 consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[2].xlsx")) %>%
   dplyr::select(`International Organization for Standardization (ISO)*`, 
-         `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
+                `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   rename(iso3c = `International Organization for Standardization (ISO)*`, 
          human_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   na.omit() %>%
@@ -150,34 +144,38 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
 #-----------------Livestock Consumption data-----------------
 # 2010 
 # Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
-# livestock <- read_csv(h("data/VanBoeckelEA_total_annual_sales.csv")) %>%
-#   group_by(country) %>%
-#   summarize(livestock_ab_sales_kg = mean(livestock_ab_sales_kg)) %>% # average multiple values by country (all are very close)
-#   ungroup() %>%
-#   mutate(iso3c = countrycode(sourcevar = country,
-#                             origin = "country.name",
-#                             destination = "iso3c")) %>%
-#   dplyr::select(-country)
 
 # Raster obtained via personal communication with authors
-livestock <- raster('antimicrobial_use/mgabx_Log10p1.tif')
-countries <- maps::map("world", fill=TRUE, col="transparent", plot=FALSE)
-IDs <- sapply(strsplit(countries$names, ":"), function(x) x[1])
-countries <- map2SpatialPolygons(countries, IDs=IDs,  proj4string=CRS("+proj=longlat +datum=WGS84"))
-country_ids <- getSpPPolygonsIDSlots(countries)
+livestock <- raster('antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
+livestock$livestock_consumption_mg_per_px <- (10^livestock$mgabx_Log10p1)-1
+livestock$livestock_consumption_kg_per_px <- livestock$livestock_consumption_mg_per_px/1000000
 
-livestock <- extract(livestock, countries, sum, na.rm = TRUE, df = TRUE)
+countries <- ne_countries(scale = "medium") # for extracting
 
-livestock2 <- livestock %>% 
-  mutate(country_ids = country_ids) %>%
-  mutate(iso3c = countrycode(sourcevar = country_ids,
+livestock2 <- extract(x = livestock, y = countries, layer = 3, 
+                      fun = sum, na.rm = TRUE, df = TRUE) # sum for kg for each country
+
+livestock3 <- livestock2 %>% 
+  mutate(country = countries$name,
+         iso_a3_eh = countries$iso_a3_eh,
+         iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
-                             destination = "iso3c")) %>%
-  filter(!is.na(iso3c), !is.nan(mgabx_Log10p1)) %>% 
-  mutate(livestock_consumption_kg = (mgabx_Log10p1 ^ 10)/1000000) %>%
-  dplyr::select(-ID, -country_ids, -mgabx_Log10p1)
-  
+                             destination = "iso3c"),
+         iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
+  drop_na(iso3c) %>% 
+  arrange(-livestock_consumption_kg_per_px) %>%
+  dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px)
 
+# Read in json pcu data - scraped from https://resistancemap.cddep.org/AnimalUse.php - 07/29/2019
+pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
+  mutate(livestock_consumption_kg_per_pcu = value/1000000) %>%
+  dplyr::select(iso3c = `iso-a3`, livestock_consumption_kg_per_pcu)
+
+livestock3 <- livestock3 %>%
+  right_join(pcu) %>%
+  mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
+  filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) %>% # unclear if no livestock or no consumption
+  dplyr::select(-livestock_consumption_kg)
 
 #-----------------All countries-----------------
 all_countries <- map_data("world") %>%
@@ -196,7 +194,7 @@ amr <- all_countries %>%
   left_join(oec) %>%
   left_join(lang) %>%
   left_join(consumption) %>%
-  left_join(livestock2) %>%
+  left_join(livestock3) %>%
   #left_join(fao) %>%
   mutate(n_amr_events = ifelse(is.na(n_amr_events), 0 , n_amr_events),
          country = countrycode::countrycode(sourcevar = iso3c,
@@ -217,5 +215,4 @@ amr %<>%
 
 write_csv(amr, h("country_level_amr.csv"))
 
-  
-  
+
