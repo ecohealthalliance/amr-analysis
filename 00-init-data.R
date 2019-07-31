@@ -146,7 +146,7 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
 # Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
 
 # Raster obtained via personal communication with authors
-livestock <- raster('antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
+livestock <- raster('data/antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
 livestock$livestock_consumption_mg_per_px <- (10^livestock$mgabx_Log10p1)-1
 livestock$livestock_consumption_kg_per_px <- livestock$livestock_consumption_mg_per_px/1000000
 
