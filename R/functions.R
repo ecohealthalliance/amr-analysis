@@ -1,3 +1,10 @@
+get_me_dat <- function(me){
+  imap_dfr(me, function(x, y){
+    x %>% 
+      select(value = y, cond__:upper__) %>%
+      mutate(var = y)
+  })
+}
 
 show_imputes <- function(mice, m, raw){
   

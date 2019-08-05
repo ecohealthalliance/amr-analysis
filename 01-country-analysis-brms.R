@@ -49,44 +49,23 @@ maxit <- 40
 
 ## with specified predictors
 country_mice <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "livestock_consumption_kg_per_pcu", "livestock_pcu"), predictorMatrix = pred_matrix) 
-plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
-densityplot(country_mice)
-stripplot(country_mice) # not working?
-show_imputes(country_mice, m = m, raw = country_raw)
+# plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
+# densityplot(country_mice)
+# stripplot(country_mice) # not working?
+# show_imputes(country_mice, m = m, raw = country_raw)
 
 ## using full predictors
 country_mice_full <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500)
-plot(country_mice_full) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
-densityplot(country_mice_full)
-stripplot(country_mice_full) # not working?
-show_imputes(country_mice_full, m = m, raw = country_raw)
+# plot(country_mice_full) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
+# densityplot(country_mice_full)
+# stripplot(country_mice_full) # not working?
+# show_imputes(country_mice_full, m = m, raw = country_raw)
 
 
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html
 
-## population on right, gdp on left
-plan(multiprocess)
-mod8 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                          migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                          human_consumption_ddd + 
-                          offset(log(population)),
-                        zi ~ pubs_sum + log(gdp_dollars)),
-                     data = country_mice,
-                     inits = "0", 
-                     iter = 4000,
-                     control = list(adapt_delta = 0.9),
-                     family = zero_inflated_poisson(),
-                     cores = getOption("mc.cores", 4L))
-write_rds(mod8, h("model/mod8.rds"))
-mod8 <- read_rds(h("model/mod8.rds"))
-# summary(mod8)
-# plot(mod8)
-# plot(marginal_effects(mod8), ask = FALSE)
-# pp_check(mod8)
-# pp_check(mod8,  type = "error_hist")
-
-## population and gdp on both sides
+## Full model, combine = TRUE
 plan(multiprocess)
 mod9 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
                           migrant_pop_perc + ab_export_perc + health_expend_perc + 
@@ -98,7 +77,8 @@ mod9 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + 
                      iter = 4000,
                      control = list(adapt_delta = 0.9),
                      family = zero_inflated_poisson(),
-                     cores = getOption("mc.cores", 4L))
+                     cores = getOption("mc.cores", 4L),
+                     combine = TRUE)
 # write_rds(mod9, h("model/mod9.rds"))
 # mod9 <- read_rds(h("model/mod9.rds"))
 # summary(mod9)
@@ -109,28 +89,6 @@ mod9 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + 
 # pp_check(mod9, type = "intervals")
 # binned - where y is 0-10, 10-20
 
-
-##  gdp on left, population on right and left
-plan(multiprocess)
-mod10 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                           migrant_pop_perc + ab_export_perc+ health_expend_perc + 
-                           human_consumption_ddd + 
-                           offset(log(population)),
-                         zi ~ pubs_sum + log(gdp_dollars) + log(population)),
-                      data = country_mice,
-                      inits = "0", 
-                      iter = 4000,
-                      control = list(adapt_delta = 0.9),
-                      family = zero_inflated_poisson(),
-                      cores = getOption("mc.cores", 4L))
-write_rds(mod10, h("model/mod10.rds"))
-# mod10 <- read_rds(h("model/mod10.rds"))
-# summary(mod10)
-# plot(mod10)
-# plot(marginal_effects(mod10), ask = FALSE)
-# pp_check(mod10)
-# pp_check(mod10,  type = "error_hist")
-
 # Note about warning message
 
 # Warning message:
@@ -139,41 +97,7 @@ write_rds(mod10, h("model/mod10.rds"))
 # brm_multiple combines the models into a single fitted model (see combine argument) 
 # so it's okay to make predictions from the model object, and I think specifying newdata would mean the warning does not apply
 
-
-# Plotting
-# 1 - partial effects - average model over data range
-mod8_me <- marginal_effects(mod8)
-write_rds(mod8_me, h("model/mod8_marginal_effects.rds"))
-mod9_me <- marginal_effects(mod9)
-write_rds(mod9_me, h("model/mod9_marginal_effects.rds"))
-mod10_me <- marginal_effects(mod10)
-write_rds(mod10_me, h("model/mod10_marginal_effects.rds"))
-
-get_me_dat <- function(me){
-  imap_dfr(me, function(x, y){
-    x %>% 
-      select(value = y, cond__:upper__) %>%
-      mutate(var = y)
-  })
-}
-
-mod8_me2 <- get_me_dat(mod8_me) %>% mutate(mod = "8 - population right, gdp left")
-mod9_me2 <- get_me_dat(mod9_me) %>% mutate(mod = "9 - population and gdp both sides")
-mod10_me2 <- get_me_dat(mod10_me )%>% mutate(mod = "10 - population both, gdp left")
-
-all_me2 <- list(mod8_me2, mod9_me2, mod10_me2) %>% reduce(bind_rows)
-
-p <- ggplot(all_me2, aes(x = value, y = estimate__, color = mod, fill = mod)) + 
-  geom_line() +
-  geom_ribbon(aes(ymin=lower__, ymax=upper__), color = "transparent", alpha=0.1) +
-  facet_wrap(mod ~ var,  scales = "free", drop = FALSE, nrow = 3) + 
-  labs(x = "", y = "Count AMR Events") +
-  theme_minimal() 
-
-ggsave(filename = h("plots/marginal_effects.png"), plot = p, width = 22, height = 12)
-
-# 2 - partial effects - each model over data range
-# do this only for mod9 - setting combine to F
+## Full model, combine = FALSE
 plan(multiprocess)
 mod11 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
                            migrant_pop_perc + ab_export_perc + health_expend_perc + 
@@ -190,8 +114,12 @@ mod11 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) +
 write_rds(mod11, h("model/mod11.rds"))
 mod11 <- read_rds( h("model/mod11.rds"))
 
+# Plotting
+# partial effects - each model over data range
 mod11_me <- map(mod11, ~marginal_effects(.))
 write_rds(mod11_me, h("model/mod11_marginal_effects.rds"))
+mod11_me <- read_rds(h("model/mod11_marginal_effects.rds"))
+
 
 mod11_me2 <- imap_dfr(mod11_me, function(x, y){
   get_me_dat(x) %>%
@@ -212,149 +140,8 @@ p <- ggplot(mod11_me2, aes(x = value)) +
 
 ggsave(filename = h("plots/marginal_effects_multi.png"), plot = p, width = 22, height = 12)
 
-# 2 - partial effects - each model over data range
-# Repeat but using the full mice impute
-plan(multiprocess)
-mod12 <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                           migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                           human_consumption_ddd + 
-                           log(gdp_dollars) + offset(log(population)),
-                         zi ~ pubs_sum + log(gdp_dollars) + log(population)),
-                      data = country_mice_full,
-                      inits = "0", 
-                      iter = 4000,
-                      control = list(adapt_delta = 0.9),
-                      family = zero_inflated_poisson(),
-                      cores = getOption("mc.cores", 4L), 
-                      combine = FALSE)
-write_rds(mod12, h("model/mod12.rds"))
-
-mod12_me <- map(mod12, ~marginal_effects(.))
-write_rds(mod12_me, h("model/mod12_marginal_effects.rds"))
-
-mod12_me2 <- imap_dfr(mod12_me, function(x, y){
-  get_me_dat(x) %>%
-    mutate(iteration = y)
-})
-
-mod12_me2_avg <- mod12_me2 %>%
-  group_by(value, var) %>%
-  summarize(mean = mean(estimate__)) %>%
-  ungroup()
-
-p <- ggplot(mod12_me2, aes(x = value)) + 
-  geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
-  geom_line(data = mod12_me2_avg, aes(x = value, y = mean)) +
-  facet_wrap(. ~ var,  scales = "free") + 
-  labs(x = "", y = "Count AMR Events") +
-  theme_minimal() 
-
-ggsave(filename = h("plots/marginal_effects_multi_full_mice.png"), plot = p, width = 22, height = 12)
 
 # separate zi from poisson
-
-# testing 1 - works
-mod <- brm(bf(n_amr_events ~  ab_export_perc),
-           data = country_raw,
-           inits = "0",
-           iter = 2000,
-           family = poisson(),
-           cores = getOption("mc.cores", 4L))
-
-minx <- min(country_raw$ab_export_perc)
-maxx <- max(country_raw$ab_export_perc)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-seqy <- exp(fixef(mod)["Intercept", "Estimate"] + fixef(mod)["ab_export_perc", "Estimate"] * seqx)
-test = marginal_effects(mod, "ab_export_perc", method = "fitted")
-test
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-test$ab_export_perc[1:5,]
-
-# testing 2 - works
-mod <- brm(bf(n_amr_events ~  log(population)),
-           data = country_raw,
-           inits = "0",
-           iter = 2000,
-           family = poisson(),
-           cores = getOption("mc.cores", 4L))
-
-minx <- min(country_raw$population)
-maxx <- max(country_raw$population)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-seqy <- exp(fixef(mod)["Intercept", "Estimate"] + fixef(mod)["logpopulation", "Estimate"] * log(seqx))
-test = marginal_effects(mod, "population", method = "fitted")
-test
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-test$population[1:5,]
-
-# testing 3
-mod <- brm(bf(n_amr_events ~  ab_export_perc,
-              zi ~ pubs_sum ),
-           data = country_raw,
-           inits = "0",
-           iter = 2000,
-           family = zero_inflated_poisson(),
-           cores = getOption("mc.cores", 4L))
-
-minx <- min(country_raw$ab_export_perc)
-maxx <- max(country_raw$ab_export_perc)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-seqy <- exp(fixef(mod)["Intercept", "Estimate"] + fixef(mod)["ab_export_perc", "Estimate"] * seqx)
-test = marginal_effects(mod, "ab_export_perc", method = "fitted")
-test
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-test$ab_export_perc[1:5,]
-
-minx <- min(country_raw$pubs_sum)
-maxx <- max(country_raw$pubs_sum)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-intercept <- fixef(mod)["zi_Intercept", "Estimate"]
-beta <- fixef(mod)["zi_pubs_sum", "Estimate"]
-seqy <- exp(intercept + beta*seqx)/(1 + exp(intercept + beta*seqx))
-test = marginal_effects(mod, "pubs_sum", method = "fitted")
-test
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-
-# testing 4
-mod <- read_rds(h("model/mod9.rds"))
-minx <- min(country_raw$ab_export_perc)
-maxx <- max(country_raw$ab_export_perc)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-intercept <- fixef(mod)["Intercept", "Estimate"]
-beta <- fixef(mod)["ab_export_perc", "Estimate"]
-seqy <- exp(intercept + beta * seqx)
-test = marginal_effects(mod, "ab_export_perc", method = "fitted")
-test
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-test$ab_export_perc[1:5,]
-
-# testing 5
-mod <- brm(bf(n_amr_events ~  log(population) + ab_export_perc),
-           data = country_raw,
-           inits = "0",
-           iter = 2000,
-           family = poisson(),
-           cores = getOption("mc.cores", 4L))
-
-coefs <- fixef(mod)
-vars <- rownames(coefs)[-(1:2)] %>% sort()
-imp <- complete(country_mice) %>% as_tibble() %>% select(-iso3c, -ab_import_perc)
-means <- map_dbl(imp, ~mean(., na.rm = T))
-betas <- coefs[,"Estimate"]
-
-minx <- imp %>% pull(ab_export_perc) %>% min(., na.rm = T)
-maxx <- imp %>% pull(ab_export_perc) %>% max(., na.rm = T)
-seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-seqy <- exp(betas["Intercept"] + 
-              betas["ab_export_perc"] * seqx + 
-              betas["logpopulation"] * log(means["population"]))
-
-ggplot(data = tibble(seqx, seqy), aes(x = seqx, y = seqy)) + geom_line()
-test = marginal_effects(mod, "ab_export_perc", method = "fitted")
-test$ab_export_perc[1,]
-
-
-# actual
 mod <- read_rds(h("model/mod9.rds"))
 coefs <- fixef(mod)
 imp <- complete(country_mice) %>% as_tibble() %>% select(-iso3c, -ab_import_perc)
@@ -385,7 +172,6 @@ out_zi <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
     if(ci == "low"){assign(paste0("zi_", var, "_b"), betas_low[paste0("zi_", var)])}
     if(ci == "high"){assign(paste0("zi_", var, "_b"), betas_high[paste0("zi_", var)])}
     
-    # avg
     log_mod_lm <- betas["zi_Intercept"] + 
       zi_pubs_sum_b * pubs_sum_x +
       zi_gdp_dollars_b * log(gdp_dollars_x) +
@@ -419,35 +205,29 @@ p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>%
 
 ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_zi.png"), width = 22, height = 12)
 
-out_pois <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
-  map_df(c("avg", "low", "high"), function(ci){
-    
-    minx <- imp %>% pull(var) %>% min(., na.rm = T)
-    maxx <- imp %>% pull(var) %>% max(., na.rm = T)
-    seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-    assign(paste0(var, "_x"), seqx)
-    if(ci == "low"){assign(paste0("zi_", var, "_b"), betas_low[paste0("zi_", var)])}
-    if(ci == "high"){assign(paste0("zi_", var, "_b"), betas_high[paste0("zi_", var)])}
-    
-    # avg
-    log_mod_lm <- betas["zi_Intercept"] + 
-      zi_pubs_sum_b * pubs_sum_x +
-      zi_gdp_dollars_b * log(gdp_dollars_x) +
-      zi_population_b * log(population_x)
-    
-    seqy <- exp(log_mod_lm)/(1 + exp(log_mod_lm))
-    
-    return(tibble(seqx, seqy, var, ci))
-  })
-})
-
-pois_mod <- exp(betas["Intercept"] + 
-                  betas["ab_export_perc"] * means["ab_export_perc"] + 
-                  betas["health_expend_perc"] * means["health_expend_perc"] + 
-                  betas["human_consumption_ddd"] * means["human_consumption_ddd"] + 
-                  betas["loggdp_dollars"] * log(means["gdp_dollars"]) + 
-                  betas["loglivestock_consumption_kg_per_pcu"] * log(means["livestock_consumption_kg_per_pcu"]) + 
-                  betas["loglivestock_pcu"] * log(means["livestock_pcu"]) + 
-                  betas["migrant_pop_perc"] * means["migrant_pop_perc"]) # and offset
+out_pois <- map_df(c("livestock_consumption_kg_per_pcu", "livestock_pcu",
+                     "migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      
+                     "gdp_dollars"), function(var){
+                       map_df(c("avg", "low", "high"), function(ci){
+                         
+                         minx <- imp %>% pull(var) %>% min(., na.rm = T)
+                         maxx <- imp %>% pull(var) %>% max(., na.rm = T)
+                         seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
+                         assign(paste0(var, "_x"), seqx)
+                         if(ci == "low"){assign(paste0(var, "_b"), betas_low[var])}
+                         if(ci == "high"){assign(paste0(var, "_b"), betas_high[var])}
+                         
+                         seqy <- exp(betas["Intercept"] + 
+                                           ab_export_perc_b * ab_export_perc_x + 
+                                           health_expend_perc_b * health_expend_perc_x + 
+                                           human_consumption_ddd_b * human_consumption_ddd_x + 
+                                           gdp_dollars_b * log(gdp_dollars_x) + 
+                                           livestock_consumption_kg_per_pcu_b * log(livestock_consumption_kg_per_pcu_x) + 
+                                           livestock_pcu_b * log(livestock_pcu_x) + 
+                                           migrant_pop_perc_b * migrant_pop_perc_x) # and offset
+                         
+                         return(tibble(seqx, seqy, var, ci))
+                       })
+                     })
 
 
