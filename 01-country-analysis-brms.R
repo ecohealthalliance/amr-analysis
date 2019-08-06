@@ -68,17 +68,17 @@ write_rds(country_mice, h("model/mice-imputation.rds"))
 ## Full model, combine = TRUE
 plan(multiprocess)
 fit_combined <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                          migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                          human_consumption_ddd + 
-                          log(gdp_dollars) + offset(log(population)),
-                        zi ~ pubs_sum + log(gdp_dollars) + log(population)),
-                     data = country_mice,
-                     inits = "0", 
-                     iter = 4000,
-                     control = list(adapt_delta = 0.9),
-                     family = zero_inflated_poisson(),
-                     cores = getOption("mc.cores", 4L),
-                     combine = TRUE)
+                                  log(migrant_pop_perc) + ab_export_perc + health_expend_perc + 
+                                  human_consumption_ddd + 
+                                  log(gdp_dollars) + offset(log(population)),
+                                zi ~ log(pubs_sum + 0.1) + log(gdp_dollars) + log(population)),
+                             data = country_mice,
+                             inits = "0", 
+                             iter = 4000,
+                             control = list(adapt_delta = 0.9),
+                             family = zero_inflated_poisson(),
+                             cores = getOption("mc.cores", 4L),
+                             combine = TRUE)
 write_rds(fit_combined, h("model/fit_combined.rds"))
 
 # Note about warning message
@@ -92,17 +92,17 @@ write_rds(fit_combined, h("model/fit_combined.rds"))
 ## Full model, combine = FALSE
 plan(multiprocess)
 fit_all <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                           migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                           human_consumption_ddd + 
-                           log(gdp_dollars) + offset(log(population)),
-                         zi ~ pubs_sum + log(gdp_dollars) + log(population)),
-                      data = country_mice,
-                      inits = "0", 
-                      iter = 4000,
-                      control = list(adapt_delta = 0.9),
-                      family = zero_inflated_poisson(),
-                      cores = getOption("mc.cores", 4L), 
-                      combine = FALSE)
+                             log(migrant_pop_perc) + ab_export_perc + health_expend_perc + 
+                             human_consumption_ddd + 
+                             log(gdp_dollars) + offset(log(population)),
+                           zi ~ log(pubs_sum + 0.1) + log(gdp_dollars) + log(population)),
+                        data = country_mice,
+                        inits = "0", 
+                        iter = 4000,
+                        control = list(adapt_delta = 0.9),
+                        family = zero_inflated_poisson(),
+                        cores = getOption("mc.cores", 4L), 
+                        combine = FALSE)
 write_rds(fit_all, h("model/fit_all.rds"))
 fit_all_me <- map(fit_all, ~marginal_effects(.))
 write_rds(fit_all_me, h("model/fit_all_marginal_effects.rds"))
