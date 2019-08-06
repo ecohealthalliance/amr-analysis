@@ -1,0 +1,90 @@
+---
+title: "AMR Country Hotspots"
+output:
+  rmdformats::html_clean:
+    lightbox: TRUE
+    gallery: TRUE
+    thumbnails: FALSE
+    keep_md: TRUE
+---
+```{r setup, include = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(brms)
+library(bayesplot)
+library(here)
+h <- here::here
+
+color_scheme_set("viridis")
+
+amr <- read_rds(h("model/mice-imputation.rds")) %>% mice::complete(.)
+fit_combined <- read_rds(h("model/mod9.rds"))
+fit_all <- read_rds( h("model/mod11.rds"))
+```
+
+Model Summary
+```{r sum}
+summary(fit_combined)
+```
+
+```{r diag, fig.width=12}
+y <- amr$n_amr_events
+yrep <- posterior_predict(fit_combined) # dim 240000 post-warmup samples, 200 observations
+yord <- order(y)
+yrep <- yrep[,yord]
+y <- y[yord]
+
+ppc_dens_overlay(y, yrep[1:500,]) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay (n posterior = 500)")
+
+#ppc_boxplot(y, yrep[1:20,], notch=FALSE) + labs(title = "Density Overlay (n posterior = 20)")
+
+prop_zero <- function(x) mean(x == 0)
+ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
+ppc_stat(y, yrep, stat = "max")  + labs(title = "Max Values")
+
+ppc_intervals(y, yrep[1:500,]) + labs(title = "Observations versus Predictions(individual observations; n posterior = 500)", caption = "dark line = 50% probability; faded line = 90% probability")
+
+
+y_grped <- tibble(y) %>%
+  mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%
+  group_by(grp) %>%
+  mutate(n = n()) %>%
+  ungroup() %>%
+  mutate(grp = paste0(grp, " (n = ", n, ")")) %>%
+  select(-n)
+
+y_grped_sum <- y_grped %>%
+  group_by(grp) %>%
+  summarize(med = median(y)) %>%
+  mutate(ytype = "y")
+
+colnames(yrep) <- y_grped$grp
+
+yrep_grped <- map_df(unique(colnames(yrep)), function(x){
+
+  grp <- yrep[, x]
+  med <- median(grp)
+  prob_50_upper <- quantile(grp, 0.75)
+  prob_50_lower <- quantile(grp, 0.25)
+  prob_90_upper <- quantile(grp, 0.95)
+  prob_90_lower <- quantile(grp, 0.05)
+
+  tibble(grp = x, med, prob_50_upper, prob_50_lower, prob_90_upper, prob_90_lower, ytype = "yrep")
+
+})
+
+yall <- bind_rows(y_grped_sum, yrep_grped)
+
+ggplot(data = yall, aes(x = grp)) + 
+  geom_errorbar(aes(ymin = prob_50_lower, ymax = prob_50_upper), color = color_scheme_get()[2], width=0, size = 1.5) +
+geom_errorbar(aes(ymin = prob_90_lower, ymax = prob_90_upper), color = color_scheme_get()[2], width=0, alpha = 0.3, size = 1.5) +
+      geom_point(aes(x = grp, y = med, color = ytype, fill = ytype), pch=21, size = 3) +
+  scale_fill_manual(values = c("y" = unname(color_scheme_get()[6]), "yrep" = unname(color_scheme_get()[1]))) +
+    scale_color_manual(values = c("y" = unname(color_scheme_get()[5]), "yrep" = unname(color_scheme_get()[2]))) +
+   labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability", x = "", y = "", color = "", fill = "")
+
+
+```
+
+
+Model Plots

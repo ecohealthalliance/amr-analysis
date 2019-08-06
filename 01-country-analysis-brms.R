@@ -49,6 +49,7 @@ maxit <- 40
 
 ## with specified predictors
 country_mice <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "livestock_consumption_kg_per_pcu", "livestock_pcu"), predictorMatrix = pred_matrix) 
+write_rds(country_mice, h("model/mice-imputation.rds"))
 # plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
 # densityplot(country_mice)
 # stripplot(country_mice) # not working?
@@ -169,15 +170,21 @@ out_zi <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
     maxx <- imp %>% pull(var) %>% max(., na.rm = T)
     seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
     assign(paste0(var, "_x"), seqx)
-    if(ci == "low"){assign(paste0("zi_", var, "_b"), betas_low[paste0("zi_", var)])}
-    if(ci == "high"){assign(paste0("zi_", var, "_b"), betas_high[paste0("zi_", var)])}
+    if(ci == "low"){
+      assign(paste0("zi_", var, "_b"), betas_low[paste0("zi_", var)])
+      #assign("zi_Intercept_b", betas_low["zi_Intercept"])
+      }
+    if(ci == "high"){
+      assign(paste0("zi_", var, "_b"), betas_high[paste0("zi_", var)])
+      #assign("zi_Intercept_b", betas_high["zi_Intercept"])
+    }
     
-    log_mod_lm <- betas["zi_Intercept"] + 
+    seqy_lm <- zi_Intercept_b + 
       zi_pubs_sum_b * pubs_sum_x +
       zi_gdp_dollars_b * log(gdp_dollars_x) +
       zi_population_b * log(population_x)
     
-    seqy <- exp(log_mod_lm)/(1 + exp(log_mod_lm))
+    seqy <- exp(seqy_lm)/(1 + exp(seqy_lm))
     
     return(tibble(seqx, seqy, var, ci))
   })
@@ -190,7 +197,7 @@ p1 <- out_zi %>%
   geom_line(aes(x = seqx, y = avg), color = "cornflowerblue") +
   geom_ribbon(aes(x = seqx, ymin = low, ymax = high), alpha = 0.2, fill = "cornflowerblue") +
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 3) +
-  labs(y = "Logisitic Prob", x = "") +
+  labs(y = "Logisitic Prob (Calculated)", x = "") +
   theme_minimal()
 
 p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>% 
@@ -200,7 +207,7 @@ p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>%
   geom_line(color = "green") +
   geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "green") +
   facet_wrap(var ~ .,  scales = "free", drop = FALSE, ncol = 3) + 
-  labs(x = "", y = "Count AMR Events") +
+  labs(x = "", y = "Count AMR Events (marginal_effects)") +
   theme_minimal() 
 
 ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_zi.png"), width = 22, height = 12)
@@ -214,20 +221,50 @@ out_pois <- map_df(c("livestock_consumption_kg_per_pcu", "livestock_pcu",
                          maxx <- imp %>% pull(var) %>% max(., na.rm = T)
                          seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
                          assign(paste0(var, "_x"), seqx)
-                         if(ci == "low"){assign(paste0(var, "_b"), betas_low[var])}
-                         if(ci == "high"){assign(paste0(var, "_b"), betas_high[var])}
+                         if(ci == "low"){
+                           assign(paste0(var, "_b"), betas_low[var])
+                           #assign(Intercept_b, betas_low["Intercept"])
+                           }
+                         if(ci == "high"){
+                           assign(paste0(var, "_b"), betas_high[var])
+                           #assign(Intercept_b, betas_high["Intercept"])
+                           }
                          
-                         seqy <- exp(betas["Intercept"] + 
+                         seqy <- exp(Intercept_b + 
                                            ab_export_perc_b * ab_export_perc_x + 
                                            health_expend_perc_b * health_expend_perc_x + 
                                            human_consumption_ddd_b * human_consumption_ddd_x + 
                                            gdp_dollars_b * log(gdp_dollars_x) + 
                                            livestock_consumption_kg_per_pcu_b * log(livestock_consumption_kg_per_pcu_x) + 
                                            livestock_pcu_b * log(livestock_pcu_x) + 
-                                           migrant_pop_perc_b * migrant_pop_perc_x) # and offset
+                                           migrant_pop_perc_b * migrant_pop_perc_x +
+                                           log(population_x)
+                                       ) 
                          
                          return(tibble(seqx, seqy, var, ci))
                        })
                      })
 
 
+p1 <- out_pois %>%
+  spread(key = ci, value = seqy)  %>%
+  ggplot(data = .) + 
+  geom_line(aes(x = seqx, y = avg), color = "cornflowerblue") +
+  geom_ribbon(aes(x = seqx, ymin = low, ymax = high), alpha = 0.2, fill = "cornflowerblue") +
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 1) +
+  labs(y = "Count AMR Events (calculated)", x = "") +
+  theme_minimal()
+
+p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>% 
+  get_me_dat(.) %>%
+  filter(var %in% c("livestock_consumption_kg_per_pcu", "livestock_pcu",
+                    "migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      
+                    "gdp_dollars")) %>%
+  ggplot(., aes(x = value, y = estimate__)) + 
+  geom_line(color = "green") +
+  geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "green") +
+  facet_wrap(var ~ .,  scales = "free", drop = FALSE, nrow = 1) + 
+  labs(x = "", y = "Count AMR Events (marginal_effects)") +
+  theme_minimal() 
+
+ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_pois.png"), width = 22, height = 12)
