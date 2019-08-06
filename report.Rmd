@@ -19,10 +19,9 @@ source(h("R/functions.R"))
 color_scheme_set("viridis")
 
 amr <- read_rds(h("model/mice-imputation.rds")) %>% mice::complete(.)
-fit_combined <- read_rds(h("model/mod9.rds"))
-fit_all <- read_rds( h("model/mod11.rds"))
-me_all <- read_rds(h("model/mod11_marginal_effects.rds"))
-
+fit_combined <- read_rds(h("model/fit_combined.rds"))
+fit_all <- read_rds( h("model/fit_all.rds"))
+me_all <- read_rds(h("model/fit_all_marginal_effects.rds"))
 ```
 
 ```{r sum}
@@ -30,6 +29,9 @@ summary(fit_combined)
 ```
 
 ```{r diagnostics}
+# Trace Plots
+stanplot(fit_combined, type = "trace")
+
 y <- amr$n_amr_events
 yrep <- posterior_predict(fit_combined) # dim 240000 post-warmup samples, 200 observations
 yord <- order(y)
@@ -37,8 +39,6 @@ yrep <- yrep[,yord]
 y <- y[yord]
 
 ppc_dens_overlay(y, yrep[1:500,]) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay (n posterior = 500)")
-
-#ppc_boxplot(y, yrep[1:20,], notch=FALSE) + labs(title = "Density Overlay (n posterior = 20)")
 
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
@@ -82,12 +82,13 @@ geom_errorbar(aes(ymin = prob_90_lower, ymax = prob_90_upper), color = color_sch
       geom_point(aes(x = grp, y = med, color = ytype, fill = ytype), pch=21, size = 3) +
   scale_fill_manual(values = c("y" = unname(color_scheme_get()[6]), "yrep" = unname(color_scheme_get()[1]))) +
     scale_color_manual(values = c("y" = unname(color_scheme_get()[5]), "yrep" = unname(color_scheme_get()[2]))) +
-   labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability", x = "", y = "", color = "", fill = "")
+   labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability; points are medians", x = "", y = "", color = "", fill = "")
 
 
 ```
 
 ```{r plots}
+
 # partial effects - each model over data range
 
 me_all2 <- imap_dfr(me_all, function(x, y){
