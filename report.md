@@ -9,7 +9,6 @@ output:
 ---
 
 
-Model Summary
 
 ```
 ##  Family: zero_inflated_poisson 
@@ -53,7 +52,7 @@ Model Summary
 ## scale reduction factor on split chains (at convergence, Rhat = 1).
 ```
 
-![](report_files/figure-html/diag-1.png)<!-- -->![](report_files/figure-html/diag-2.png)<!-- -->![](report_files/figure-html/diag-3.png)<!-- -->![](report_files/figure-html/diag-4.png)<!-- -->![](report_files/figure-html/diag-5.png)<!-- -->
+![](report_files/figure-html/diagnostics-1.png)<!-- -->![](report_files/figure-html/diagnostics-2.png)<!-- -->![](report_files/figure-html/diagnostics-3.png)<!-- -->![](report_files/figure-html/diagnostics-4.png)<!-- -->![](report_files/figure-html/diagnostics-5.png)<!-- -->
 
+![](report_files/figure-html/plots-1.png)<!-- -->![](report_files/figure-html/plots-2.png)<!-- -->![](report_files/figure-html/plots-3.png)<!-- -->
 
-Model Plots
