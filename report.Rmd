@@ -21,7 +21,9 @@ color_scheme_set("viridis")
 amr <- read_rds(h("model/mice-imputation.rds")) %>% mice::complete(.)
 fit_combined <- read_rds(h("model/fit_combined.rds"))
 fit_all <- read_rds( h("model/fit_all.rds"))
+me_combined <- read_rds(h("model/fit_combined_marginal_effects.rds"))
 me_all <- read_rds(h("model/fit_all_marginal_effects.rds"))
+
 ```
 
 ```{r sum}
@@ -38,13 +40,13 @@ yord <- order(y)
 yrep <- yrep[,yord]
 y <- y[yord]
 
-ppc_dens_overlay(y, yrep[1:500,]) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay (n posterior = 500)")
+ppc_dens_overlay(y, yrep[sample(240000, 500),]) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay (n posterior = 500)")
 
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
-ppc_stat(y, yrep, stat = "max")  + labs(title = "Max Values")
+#ppc_stat(y, yrep, stat = "max")  + labs(title = "Max Values")
 
-ppc_intervals(y, yrep[1:500,]) + labs(title = "Observations versus Predictions(individual observations; n posterior = 500)", caption = "dark line = 50% probability; faded line = 90% probability")
+ppc_intervals(y, yrep[sample(240000, 500),]) + labs(title = "Observations versus Predictions(individual observations; n posterior = 500)", caption = "dark line = 50% probability; faded line = 90% probability")
 
 y_grped <- tibble(y) %>%
   mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%
@@ -62,35 +64,33 @@ y_grped_sum <- y_grped %>%
 colnames(yrep) <- y_grped$grp
 
 yrep_grped <- map_df(unique(colnames(yrep)), function(x){
-
+  
   grp <- yrep[, x]
   med <- median(grp)
   prob_50_upper <- quantile(grp, 0.75)
   prob_50_lower <- quantile(grp, 0.25)
   prob_90_upper <- quantile(grp, 0.95)
   prob_90_lower <- quantile(grp, 0.05)
-
+  
   tibble(grp = x, med, prob_50_upper, prob_50_lower, prob_90_upper, prob_90_lower, ytype = "yrep")
-
+  
 })
 
 yall <- bind_rows(y_grped_sum, yrep_grped)
 
 ggplot(data = yall, aes(x = grp)) + 
   geom_errorbar(aes(ymin = prob_50_lower, ymax = prob_50_upper), color = color_scheme_get()[2], width=0, size = 1.5) +
-geom_errorbar(aes(ymin = prob_90_lower, ymax = prob_90_upper), color = color_scheme_get()[2], width=0, alpha = 0.3, size = 1.5) +
-      geom_point(aes(x = grp, y = med, color = ytype, fill = ytype), pch=21, size = 3) +
+  geom_errorbar(aes(ymin = prob_90_lower, ymax = prob_90_upper), color = color_scheme_get()[2], width=0, alpha = 0.3, size = 1.5) +
+  geom_point(aes(x = grp, y = med, color = ytype, fill = ytype), pch=21, size = 3) +
   scale_fill_manual(values = c("y" = unname(color_scheme_get()[6]), "yrep" = unname(color_scheme_get()[1]))) +
-    scale_color_manual(values = c("y" = unname(color_scheme_get()[5]), "yrep" = unname(color_scheme_get()[2]))) +
-   labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability; points are medians", x = "", y = "", color = "", fill = "")
+  scale_color_manual(values = c("y" = unname(color_scheme_get()[5]), "yrep" = unname(color_scheme_get()[2]))) +
+  labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability; points are medians", x = "", y = "", color = "", fill = "")
 
 
 ```
 
 ```{r plots}
-
 # partial effects - each model over data range
-
 me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
     mutate(iteration = y)
@@ -111,63 +111,60 @@ ggplot(me_all2, aes(x = value)) +
 ggsave(filename = h("plots/marginal_effects_multi.png"), width = 22, height = 12)
 
 # separate zi from poisson
-coefs <- fixef(fit_combined)
-imp <- amr %>% select(-iso3c, -ab_import_perc)
-means <- map_dbl(imp, ~mean(., na.rm = T))
+
+raw <- amr %>% select(-iso3c, -ab_import_perc)
+means <- map_dbl(raw, ~mean(., na.rm = T))
 for(var in names(means)){
-  assign(paste0(var, "_x"), means[var])
+  assign(paste0("x_", var), means[var])
 }
 
-vars <- str_remove_all(rownames(coefs), "log")
-
-betas <- coefs[,"Estimate"]
-betas_low <- coefs[,"Q2.5"]
-betas_high <- coefs[,"Q97.5"]
-
-names(betas) <- names(betas_low) <- names(betas_high) <- vars
-
-for(var in vars){
-  assign(paste0(var, "_b"), betas[var])
+beta_samples <- posterior_samples(fit_combined, subset = sample(240000, 10000, replace = F)) 
+beta_summary <- posterior_summary(fit_combined) 
+beta_estimate <- beta_summary[,1]
+names(beta_estimate) <- str_remove_all(names(beta_estimate), "log|P0.1")
+for(var in names(beta_estimate) ){
+  assign(var, beta_estimate[var])
 }
 
 out_zi <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
-  map_df(c("avg", "low", "high"), function(ci){
+  
+  minx <- raw %>% pull(var) %>% min(., na.rm = T)
+  maxx <- raw %>% pull(var) %>% max(., na.rm = T)
+  seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/500, 1))
+  assign(paste0("x_", var), seqx)
+  
+  betas <- beta_samples[,grep("zi", colnames(beta_samples))]
+  betas <- betas[,grep(var, colnames(betas))]
+  
+  sampy <- map_dfc(1:10000, function(i){
     
-    minx <- imp %>% pull(var) %>% min(., na.rm = T)
-    maxx <- imp %>% pull(var) %>% max(., na.rm = T)
-    seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-    assign(paste0(var, "_x"), seqx)
-    if(ci == "low"){
-      assign(paste0("zi_", var, "_b"), betas_low[paste0("zi_", var)])
-      #assign("zi_Intercept_b", betas_low["zi_Intercept"])
-      }
-    if(ci == "high"){
-      assign(paste0("zi_", var, "_b"), betas_high[paste0("zi_", var)])
-      #assign("zi_Intercept_b", betas_high["zi_Intercept"])
-    }
+    assign(paste0("b_zi_", var), betas[i])
     
-    seqy_lm <- zi_Intercept_b + 
-      zi_pubs_sum_b * pubs_sum_x +
-      zi_gdp_dollars_b * log(gdp_dollars_x) +
-      zi_population_b * log(population_x)
+    seqy_lm <- b_zi_Intercept + 
+      b_zi_pubs_sum * log(x_pubs_sum + 0.1) +
+      b_zi_gdp_dollars * log(x_gdp_dollars) +
+      b_zi_population * log(x_population)
     
     seqy <- exp(seqy_lm)/(1 + exp(seqy_lm))
-    
-    return(tibble(seqx, seqy, var, ci))
+    seqy
   })
+  
+  medy <- apply(sampy, 1, median)
+  q2.5y <- apply(sampy, 1, function(x){quantile(x, 0.025)})
+  q97.5y <- apply(sampy, 1, function(x){quantile(x, 0.975)})
+  
+  return(tibble(seqx, medy, q2.5y, q97.5y, var))
 })
 
-
-p1 <- out_zi %>%
-  spread(key = ci, value = seqy)  %>%
-  ggplot(data = .) + 
-  geom_line(aes(x = seqx, y = avg), color = "cornflowerblue") +
-  geom_ribbon(aes(x = seqx, ymin = low, ymax = high), alpha = 0.2, fill = "cornflowerblue") +
+p1 <- 
+  ggplot(data = out_zi) + 
+  geom_line(aes(x = seqx, y = medy), color = "cornflowerblue") +
+  geom_ribbon(aes(x = seqx, ymin = q2.5y, ymax = q97.5y), alpha = 0.2, fill = "cornflowerblue") +
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 3) +
   labs(y = "Logisitic Prob (Calculated)", x = "", main = "Logistic Model (zi)") +
   theme_minimal()
 
-p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>% 
+p2 <- me_combined %>% 
   get_me_dat(.) %>%
   filter(var %in% c("pubs_sum", "gdp_dollars", "population")) %>%
   ggplot(., aes(x = value, y = estimate__)) + 
@@ -181,50 +178,53 @@ gridExtra::grid.arrange(p1, p2)
 
 ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_zi.png"), width = 22, height = 12)
 
+
 out_pois <- map_df(c("livestock_consumption_kg_per_pcu", "livestock_pcu",
-                     "migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      
-                     "gdp_dollars"), function(var){
-                       map_df(c("avg", "low", "high"), function(ci){
+                     "migrant_pop_perc",  "ab_export_perc", "health_expend_perc",
+                     "human_consumption_ddd", "gdp_dollars"), function(var){
+                       
+                       minx <- raw %>% pull(var) %>% min(., na.rm = T)
+                       maxx <- raw %>% pull(var) %>% max(., na.rm = T)
+                       seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/500, 1))
+                       assign(paste0("x_", var), seqx)
+                       
+                       betas <- beta_samples[,grep("zi", colnames(beta_samples), invert = TRUE)]
+                       betas <- betas[,grep(var, colnames(betas))]
+                       
+                       sampy <- map_dfc(1:10000, function(i){
                          
-                         minx <- imp %>% pull(var) %>% min(., na.rm = T)
-                         maxx <- imp %>% pull(var) %>% max(., na.rm = T)
-                         seqx <- seq(from = minx, to = maxx, by = signif((maxx - minx)/1000, 1))
-                         assign(paste0(var, "_x"), seqx)
-                         if(ci == "low"){
-                           assign(paste0(var, "_b"), betas_low[var])
-                           #assign(Intercept_b, betas_low["Intercept"])
-                           }
-                         if(ci == "high"){
-                           assign(paste0(var, "_b"), betas_high[var])
-                           #assign(Intercept_b, betas_high["Intercept"])
-                           }
+                         assign(paste0("b_", var), betas[i])
                          
-                         seqy <- exp(Intercept_b + 
-                                           ab_export_perc_b * ab_export_perc_x + 
-                                           health_expend_perc_b * health_expend_perc_x + 
-                                           human_consumption_ddd_b * human_consumption_ddd_x + 
-                                           gdp_dollars_b * log(gdp_dollars_x) + 
-                                           livestock_consumption_kg_per_pcu_b * log(livestock_consumption_kg_per_pcu_x) + 
-                                           livestock_pcu_b * log(livestock_pcu_x) + 
-                                           migrant_pop_perc_b * migrant_pop_perc_x +
-                                           log(population_x)
-                                       ) 
-                         
-                         return(tibble(seqx, seqy, var, ci))
+                         seqy <- exp(b_Intercept + 
+                                       b_ab_export_perc * x_ab_export_perc + 
+                                       b_health_expend_perc * x_health_expend_perc + 
+                                       b_human_consumption_ddd * x_human_consumption_ddd + 
+                                       b_gdp_dollars * log(x_gdp_dollars) + 
+                                       b_livestock_consumption_kg_per_pcu * log(x_livestock_consumption_kg_per_pcu) + 
+                                       b_livestock_pcu * log(x_livestock_pcu) + 
+                                       b_migrant_pop_perc * log(x_migrant_pop_perc) +
+                                       log(x_population)
+                         )
+                         seqy
                        })
+                       
+                       medy <- apply(sampy, 1, median)
+                       q2.5y <- apply(sampy, 1, function(x){quantile(x, 0.025)})
+                       q97.5y <- apply(sampy, 1, function(x){quantile(x, 0.975)})
+                       
+                       return(tibble(seqx, medy, q2.5y, q97.5y, var))
                      })
 
 
-p1 <- out_pois %>%
-  spread(key = ci, value = seqy)  %>%
-  ggplot(data = .) + 
-  geom_line(aes(x = seqx, y = avg), color = "cornflowerblue") +
-  geom_ribbon(aes(x = seqx, ymin = low, ymax = high), alpha = 0.2, fill = "cornflowerblue") +
+p1 <- 
+  ggplot(data = out_pois) + 
+  geom_line(aes(x = seqx, y = medy), color = "cornflowerblue") +
+  geom_ribbon(aes(x = seqx, ymin = q2.5y, ymax = q97.5y), alpha = 0.2, fill = "cornflowerblue") +
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 1) +
   labs(y = "Count AMR Events (calculated)", x = "", main = "Poisson Model (zi)") +
   theme_minimal()
 
-p2 <- read_rds(h("model/mod9_marginal_effects.rds")) %>% 
+p2 <- me_combined %>% 
   get_me_dat(.) %>%
   filter(var %in% c("livestock_consumption_kg_per_pcu", "livestock_pcu",
                     "migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      

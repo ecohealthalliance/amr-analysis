@@ -80,6 +80,9 @@ fit_combined <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per
                              cores = getOption("mc.cores", 4L),
                              combine = TRUE)
 write_rds(fit_combined, h("model/fit_combined.rds"))
+fit_combined_me <- marginal_effects(fit_combined)
+write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
+
 
 # Note about warning message
 
