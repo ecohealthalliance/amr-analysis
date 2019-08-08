@@ -44,9 +44,19 @@ ppc_dens_overlay(y, yrep[sample(240000, 500),]) + scale_x_continuous(limits = c(
 
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
-#ppc_stat(y, yrep, stat = "max")  + labs(title = "Max Values")
 
-ppc_intervals(y, yrep[sample(240000, 500),]) + labs(title = "Observations versus Predictions(individual observations; n posterior = 500)", caption = "dark line = 50% probability; faded line = 90% probability")
+
+int_dat <- ppc_intervals_data(y, yrep) 
+int_dat <- int_dat %>%
+  filter(y_obs>0) %>%
+  mutate(in_50 = y_obs > l & y_obs < h,
+         in_90 = y_obs > ll & y_obs < hh)
+
+p50 <- round(100*sum(int_dat$in_50)/nrow(int_dat))
+p90 <- round(100*sum(int_dat$in_90)/nrow(int_dat))
+
+ppc_intervals(y, yrep) + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
+
 
 y_grped <- tibble(y) %>%
   mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%
