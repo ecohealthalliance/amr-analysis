@@ -12,7 +12,12 @@ source(h("R/functions.R"))
 country_raw <- read_csv(h("country_level_amr.csv")) %>%
   dplyr::select(-continent, -region, -country, -english_spoken) %>%
   drop_na(population, gdp_dollars) %>% # remove if population or gdp data is unavailable (usually territories)
-  mutate_at(vars(pubs_sum, ab_export_perc, ab_import_perc), ~replace_na(., 0)) # assume 0 for pubs_sum and ab_export NAs
+  mutate_at(vars(pubs_sum, ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for pubs_sum and ab_export NAs
+  mutate_at(vars(gdp_dollars, migrant_pop_perc, population, livestock_consumption_kg_per_pcu, livestock_pcu),
+            ~log(.)) %>%
+  mutate(pubs_sum = log(pubs_sum + 0.1)) %>%
+  rename_at(vars("livestock_consumption_kg_per_pcu", "livestock_pcu", "migrant_pop_perc", 
+                   "gdp_dollars", "pubs_sum" , "population"), ~paste0("ln_", .))
 
 # View correlation matrix
 # country_raw %>%
@@ -27,12 +32,12 @@ map_int(country_raw, ~sum(is.na(.)))
 # https://stefvanbuuren.name/fimd/sec-modelform.html#sec:predictors
 # Conditioning on all other data is often reasonable for small to medium datasets, containing up to, say, 20–30 variables, without derived variables, interactions effects and other complexities. As a general rule, using every bit of available information yields multiple imputations that have minimal bias and maximal efficiency (Meng 1994; Collins, Schafer, and Kam 2001). It is often beneficial to choose as large a number of predictors as possible. Including as many predictors as possible tends to make the MAR assumption more plausible, thus reducing the need to make special adjustments for MNAR mechanisms (Schafer 1997).
 pred_matrix <- matrix(nrow = 4, ncol = ncol(country_raw), 
-                      dimnames = list(c("health_expend_perc", "human_consumption_ddd", "livestock_consumption_kg_per_pcu", "livestock_pcu"),
+                      dimnames = list(c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"),
                                       colnames(country_raw)), data = 0)
-pred_matrix["health_expend_perc", c("gdp_dollars", "population")] <- 1
-pred_matrix["human_consumption_ddd", c("gdp_dollars", "population", "ab_export_perc", "ab_import_perc")] <- 1
-pred_matrix["livestock_consumption_kg_per_pcu", c("gdp_dollars", "population", "ab_export_perc", "ab_import_perc", "livestock_pcu", "human_consumption_ddd")] <- 1
-pred_matrix["livestock_pcu", c("gdp_dollars", "population")] <- 1
+pred_matrix["health_expend_perc", c("ln_gdp_dollars", "ln_population")] <- 1
+pred_matrix["human_consumption_ddd", c("ln_gdp_dollars", "ln_population", "ab_export_perc", "ab_import_perc")] <- 1
+pred_matrix["ln_livestock_consumption_kg_per_pcu", c("ln_gdp_dollars", "ln_population", "ab_export_perc", "ab_import_perc", "ln_livestock_pcu", "human_consumption_ddd")] <- 1
+pred_matrix["ln_livestock_pcu", c("ln_gdp_dollars", "ln_population")] <- 1
 
 # Mice settings
 # helpful for setting parameters: https://stats.stackexchange.com/questions/219013/how-do-the-number-of-imputations-the-maximum-iterations-affect-accuracy-in-mul/219049
@@ -47,7 +52,9 @@ maxit <- 40
 # https://stefvanbuuren.name/fimd/sec-diagnostics.html
 
 ## with specified predictors
-country_mice <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "livestock_consumption_kg_per_pcu", "livestock_pcu"), predictorMatrix = pred_matrix) 
+country_mice <- mice(country_raw,
+                     m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"), predictorMatrix = pred_matrix) 
+
 write_rds(country_mice, h("model/mice-imputation.rds"))
 # plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
 # densityplot(country_mice)
@@ -67,11 +74,11 @@ write_rds(country_mice, h("model/mice-imputation.rds"))
 
 ## Full model, combine = TRUE
 plan(multiprocess)
-fit_combined <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                                  log(migrant_pop_perc) + ab_export_perc + health_expend_perc + 
+fit_combined <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
+                                 ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
                                   human_consumption_ddd + 
-                                  log(gdp_dollars) + offset(log(population)),
-                                zi ~ log(pubs_sum + 0.1) + log(gdp_dollars) + log(population)),
+                                  ln_gdp_dollars + offset(ln_population),
+                                zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population),
                              data = country_mice,
                              inits = "0", 
                              iter = 4000,
@@ -94,12 +101,12 @@ write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
 
 ## Full model, combine = FALSE
 plan(multiprocess)
-fit_all <- brm_multiple(bf(n_amr_events ~  log(livestock_consumption_kg_per_pcu) + log(livestock_pcu) + 
-                             log(migrant_pop_perc) + ab_export_perc + health_expend_perc + 
-                             human_consumption_ddd + 
-                             log(gdp_dollars) + offset(log(population)),
-                           zi ~ log(pubs_sum + 0.1) + log(gdp_dollars) + log(population)),
-                        data = country_mice,
+fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
+                                  ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
+                                  human_consumption_ddd + 
+                                  ln_gdp_dollars + offset(ln_population),
+                                zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population),
+                             data = country_mice,
                         inits = "0", 
                         iter = 4000,
                         control = list(adapt_delta = 0.9),

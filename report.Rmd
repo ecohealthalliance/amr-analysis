@@ -103,13 +103,13 @@ ggplot(data = yall, aes(x = grp)) +
 # partial effects - each model over data range
 me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
-    mutate(iteration = y)
+    mutate(iteration = y) 
 })
 
 me_all2_avg <- me_all2 %>%
   group_by(value, var) %>%
   summarize(mean = mean(estimate__)) %>%
-  ungroup()
+  ungroup() 
 
 ggplot(me_all2, aes(x = value)) + 
   geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
@@ -136,7 +136,7 @@ for(var in names(beta_estimate) ){
   assign(var, beta_estimate[var])
 }
 
-out_zi <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
+out_zi <- map_df(c("ln_pubs_sum", "ln_gdp_dollars", "ln_population"), function(var){
   
   minx <- raw %>% pull(var) %>% min(., na.rm = T)
   maxx <- raw %>% pull(var) %>% max(., na.rm = T)
@@ -151,9 +151,9 @@ out_zi <- map_df(c("pubs_sum", "gdp_dollars", "population"), function(var){
     assign(paste0("b_zi_", var), betas[i])
     
     seqy_lm <- b_zi_Intercept + 
-      b_zi_pubs_sum * log(x_pubs_sum + 0.1) +
-      b_zi_gdp_dollars * log(x_gdp_dollars) +
-      b_zi_population * log(x_population)
+      b_zi_ln_pubs_sum * x_ln_pubs_sum +
+      b_zi_ln_gdp_dollars * x_ln_gdp_dollars +
+      b_zi_ln_population * x_ln_population
     
     seqy <- exp(seqy_lm)/(1 + exp(seqy_lm))
     seqy
@@ -176,7 +176,7 @@ p1 <-
 
 p2 <- me_combined %>% 
   get_me_dat(.) %>%
-  filter(var %in% c("pubs_sum", "gdp_dollars", "population")) %>%
+  filter(var %in% c("ln_pubs_sum", "ln_gdp_dollars", "ln_population")) %>%
   ggplot(., aes(x = value, y = estimate__)) + 
   geom_line(color = "green") +
   geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "green") +
@@ -189,9 +189,9 @@ gridExtra::grid.arrange(p1, p2)
 ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_zi.png"), width = 22, height = 12)
 
 
-out_pois <- map_df(c("livestock_consumption_kg_per_pcu", "livestock_pcu",
-                     "migrant_pop_perc",  "ab_export_perc", "health_expend_perc",
-                     "human_consumption_ddd", "gdp_dollars"), function(var){
+out_pois <- map_df(c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu",
+                     "ln_migrant_pop_perc",  "ab_export_perc", "health_expend_perc",
+                     "human_consumption_ddd", "ln_gdp_dollars"), function(var){
                        
                        minx <- raw %>% pull(var) %>% min(., na.rm = T)
                        maxx <- raw %>% pull(var) %>% max(., na.rm = T)
@@ -209,11 +209,11 @@ out_pois <- map_df(c("livestock_consumption_kg_per_pcu", "livestock_pcu",
                                        b_ab_export_perc * x_ab_export_perc + 
                                        b_health_expend_perc * x_health_expend_perc + 
                                        b_human_consumption_ddd * x_human_consumption_ddd + 
-                                       b_gdp_dollars * log(x_gdp_dollars) + 
-                                       b_livestock_consumption_kg_per_pcu * log(x_livestock_consumption_kg_per_pcu) + 
-                                       b_livestock_pcu * log(x_livestock_pcu) + 
-                                       b_migrant_pop_perc * log(x_migrant_pop_perc) +
-                                       log(x_population)
+                                       b_ln_gdp_dollars * x_ln_gdp_dollars + 
+                                       b_ln_livestock_consumption_kg_per_pcu * x_ln_livestock_consumption_kg_per_pcu + 
+                                       b_ln_livestock_pcu * x_ln_livestock_pcu + 
+                                       b_ln_migrant_pop_perc * x_ln_migrant_pop_perc +
+                                      x_ln_population
                          )
                          seqy
                        })
@@ -236,9 +236,9 @@ p1 <-
 
 p2 <- me_combined %>% 
   get_me_dat(.) %>%
-  filter(var %in% c("livestock_consumption_kg_per_pcu", "livestock_pcu",
-                    "migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      
-                    "gdp_dollars")) %>%
+  filter(var %in% c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu",
+                    "ln_migrant_pop_perc",  "ab_export_perc", "health_expend_perc", "human_consumption_ddd",      
+                    "ln_gdp_dollars")) %>%
   ggplot(., aes(x = value, y = estimate__)) + 
   geom_line(color = "green") +
   geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "green") +
