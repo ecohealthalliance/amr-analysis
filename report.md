@@ -13,39 +13,39 @@ output:
 ```
 ##  Family: zero_inflated_poisson 
 ##   Links: mu = log; zi = logit 
-## Formula: n_amr_events ~ ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + ln_migrant_pop_perc + ab_export_perc + health_expend_perc + human_consumption_ddd + ln_gdp_dollars + offset(ln_population) 
-##          zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population
+## Formula: n_amr_events ~ ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + ln_migrant_pop_perc + ab_export_perc + health_expend_perc + human_consumption_ddd + ln_gdp_per_capita + offset(ln_population) 
+##          zi ~ ln_pubs_sum_per_capita + ln_gdp_per_capita + ln_population
 ##    Data: data[[i]] (Number of observations: 200) 
 ## Samples: 120 chains, each with iter = 2000; warmup = 1000; thin = 1;
 ##          total post-warmup samples = 120000
 ## 
 ## Population-Level Effects: 
 ##                                     Estimate Est.Error l-95% CI u-95% CI
-## Intercept                              -0.58      1.16    -2.74     1.75
-## zi_Intercept                           33.23      5.90    22.45    45.57
-## ln_livestock_consumption_kg_per_pcu     0.25      0.07     0.12     0.39
-## ln_livestock_pcu                       -0.24      0.05    -0.33    -0.14
-## ln_migrant_pop_perc                     0.15      0.02     0.10     0.19
-## ab_export_perc                          5.77      0.74     4.28     7.19
-## health_expend_perc                      0.16      0.01     0.14     0.18
-## human_consumption_ddd                   0.06      0.01     0.04     0.08
-## ln_gdp_dollars                         -0.30      0.05    -0.40    -0.21
-## zi_ln_pubs_sum                         -0.03      0.18    -0.38     0.33
-## zi_ln_gdp_dollars                      -1.48      0.27    -2.04    -0.99
-## zi_ln_population                        0.27      0.23    -0.17     0.72
+## Intercept                             -10.17      1.06   -12.20    -8.14
+## zi_Intercept                           30.59      5.97    19.55    43.03
+## ln_livestock_consumption_kg_per_pcu    -0.13      0.05    -0.23    -0.03
+## ln_livestock_pcu                       -0.42      0.03    -0.47    -0.36
+## ln_migrant_pop_perc                     0.01      0.03    -0.05     0.07
+## ab_export_perc                          5.28      0.71     3.85     6.66
+## health_expend_perc                      0.11      0.01     0.08     0.13
+## human_consumption_ddd                   0.09      0.01     0.08     0.11
+## ln_gdp_per_capita                       0.23      0.06     0.12     0.34
+## zi_ln_pubs_sum_per_capita              -0.14      0.20    -0.54     0.24
+## zi_ln_gdp_per_capita                   -1.39      0.26    -1.93    -0.90
+## zi_ln_population                       -1.20      0.21    -1.64    -0.82
 ##                                     Eff.Sample Rhat
-## Intercept                                  147 1.31
-## zi_Intercept                             97688 1.00
-## ln_livestock_consumption_kg_per_pcu        155 1.28
-## ln_livestock_pcu                           119 1.42
-## ln_migrant_pop_perc                        319 1.12
-## ab_export_perc                             524 1.07
-## health_expend_perc                        1220 1.03
-## human_consumption_ddd                      162 1.26
-## ln_gdp_dollars                             124 1.40
-## zi_ln_pubs_sum                          105336 1.00
-## zi_ln_gdp_dollars                        95030 1.00
-## zi_ln_population                        110161 1.00
+## Intercept                                  114 1.46
+## zi_Intercept                             84798 1.00
+## ln_livestock_consumption_kg_per_pcu        222 1.17
+## ln_livestock_pcu                            92 1.70
+## ln_migrant_pop_perc                        173 1.25
+## ab_export_perc                            6797 1.01
+## health_expend_perc                         119 1.42
+## human_consumption_ddd                      178 1.23
+## ln_gdp_per_capita                          147 1.31
+## zi_ln_pubs_sum_per_capita               115532 1.00
+## zi_ln_gdp_per_capita                     96029 1.00
+## zi_ln_population                         84592 1.00
 ## 
 ## Samples were drawn using sampling(NUTS). For each parameter, Eff.Sample 
 ## is a crude measure of effective sample size, and Rhat is the potential 

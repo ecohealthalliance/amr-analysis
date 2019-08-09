@@ -35,12 +35,12 @@ summary(fit_combined)
 stanplot(fit_combined, type = "trace")
 
 y <- amr$n_amr_events
-yrep <- posterior_predict(fit_combined, nsamples = 500) 
+yrep <- posterior_predict(fit_combined, nsamples = 1000) 
 yord <- order(y)
 yrep <- yrep[,yord]
 y <- y[yord]
 
-ppc_dens_overlay(y, yrep) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay (n posterior = 500)")
+ppc_dens_overlay(y, yrep) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay")
 
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
@@ -128,7 +128,7 @@ means <- map_dbl(raw, ~mean(., na.rm = T))
 
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
-zi_vars <- c("ln_pubs_sum", "ln_gdp_dollars", "ln_population")
+zi_vars <- c("ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population")
 out_zi <- map_dfr(zi_vars, function(var){
   
   minx <- raw %>% pull(var) %>% min(., na.rm = T)
@@ -162,7 +162,7 @@ out_zi_sum <- out_zi %>%
 
 p_zi_lines <- 
   ggplot(data = out_zi) + 
-  geom_line(aes(x = x, y = y, group = samp), color = "cornflowerblue", alpha = 0.1) + #For lots of lines
+  geom_line(aes(x = x, y = y, group = samp), color = "lightsalmon", alpha = 0.1) + #For lots of lines
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 3) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
@@ -170,8 +170,8 @@ p_zi_lines <-
 
 p_zi_ribbon <- 
   ggplot(data = out_zi_sum) +
-  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "cornflowerblue", col = NA, alpha = 0.2) +
-  geom_line(aes(x = x, y = med), color = "cornflowerblue") +
+  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightsalmon", col = NA, alpha = 0.2) +
+  geom_line(aes(x = x, y = med), color = "lightsalmon") +
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 3) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
@@ -181,8 +181,8 @@ p_zi_me <- me_combined %>%
   get_me_dat(.) %>%
   filter(var %in% zi_vars) %>%
   ggplot(., aes(x = value, y = estimate__)) + 
-  geom_line(color = "green") +
-  geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "green") +
+  geom_line(color = "lightsalmon") +
+  geom_ribbon(aes(ymin=lower__, ymax=upper__), alpha = 0.2, fill = "lightsalmon") +
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x, y = 0)) + 
   facet_wrap(var ~ .,  scales = "free", drop = FALSE, nrow = 1) + 
   labs(x = "", y = "Count AMR Events (marginal_effects)") +
@@ -193,7 +193,7 @@ gridExtra::grid.arrange(p_zi_ribbon, p_zi_me)
 ggsave(plot = gridExtra::grid.arrange(p_zi_ribbon, p_zi_me), 
        filename = h("plots/compare_zi.png"), width = 22, height = 12)
 
-pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "ln_gdp_dollars")
+pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "ln_gdp_per_capita")
 out_pois <- map_dfr(pois_vars, function(var){
   
   minx <- raw %>% pull(var) %>% min(., na.rm = T)
