@@ -35,7 +35,7 @@ summary(fit_combined)
 stanplot(fit_combined, type = "trace")
 
 y <- amr$n_amr_events
-yrep <- posterior_predict(fit_combined, nsamples = 500) # dim 240000 post-warmup samples, 200 observations
+yrep <- posterior_predict(fit_combined, nsamples = 500) 
 yord <- order(y)
 yrep <- yrep[,yord]
 y <- y[yord]
@@ -238,7 +238,7 @@ p_pois_ribbon <-
   geom_line(aes(x = x, y = med), color = "green") +
   geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 1) +
-  labs(y = "Event Count if Reported", x = "", main = "Logistic Model (zi)") +
+  labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
   theme_minimal()
 
 p_pois_me <- me_combined %>% 
@@ -253,7 +253,7 @@ p_pois_me <- me_combined %>%
 
 gridExtra::grid.arrange(p_pois_ribbon, p_pois_me)
 
-ggsave(plot = gridExtra::grid.arrange(p1, p2), filename = h("plots/compare_pois.png"), width = 22, height = 12)
+ggsave(plot = gridExtra::grid.arrange(p_pois_ribbon, p_pois_me), filename = h("plots/compare_pois.png"), width = 22, height = 12)
 
 ```
 
