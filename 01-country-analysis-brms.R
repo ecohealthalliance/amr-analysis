@@ -8,6 +8,7 @@ h <- here::here
 set.seed(101)
 source(h("R/functions.R"))
 
+
 # Read in data
 country_raw <- read_csv(h("country_level_amr.csv")) %>%
   dplyr::select(-continent, -region, -country, -english_spoken) %>%
@@ -17,7 +18,7 @@ country_raw <- read_csv(h("country_level_amr.csv")) %>%
             ~log(.)) %>%
   mutate(pubs_sum = log(pubs_sum + 0.1)) %>%
   rename_at(vars("livestock_consumption_kg_per_pcu", "livestock_pcu", "migrant_pop_perc", 
-                   "gdp_dollars", "pubs_sum" , "population"), ~paste0("ln_", .))
+                 "gdp_dollars", "pubs_sum" , "population"), ~paste0("ln_", .))
 
 # View correlation matrix
 # country_raw %>%
@@ -52,8 +53,7 @@ maxit <- 40
 # https://stefvanbuuren.name/fimd/sec-diagnostics.html
 
 ## with specified predictors
-country_mice <- mice(country_raw,
-                     m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"), predictorMatrix = pred_matrix) 
+country_mice <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500, blocks = c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"), predictorMatrix = pred_matrix) 
 
 write_rds(country_mice, h("model/mice-imputation.rds"))
 # plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
@@ -72,24 +72,6 @@ write_rds(country_mice, h("model/mice-imputation.rds"))
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html
 
-## Full model, combine = TRUE
-plan(multiprocess)
-fit_combined <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
-                                 ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                                  human_consumption_ddd + 
-                                  ln_gdp_dollars + offset(ln_population),
-                                zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population),
-                             data = country_mice,
-                             inits = "0", 
-                             iter = 4000,
-                             control = list(adapt_delta = 0.9),
-                             family = zero_inflated_poisson(),
-                             cores = getOption("mc.cores", 4L),
-                             combine = TRUE)
-write_rds(fit_combined, h("model/fit_combined.rds"))
-fit_combined_me <- marginal_effects(fit_combined)
-write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
-
 
 # Note about warning message
 
@@ -99,21 +81,31 @@ write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
 # brm_multiple combines the models into a single fitted model (see combine argument) 
 # so it's okay to make predictions from the model object, and I think specifying newdata would mean the warning does not apply
 
+
 ## Full model, combine = FALSE
-plan(multiprocess)
+plan(multiprocess, workers = floor(parallel::detectCores()/4))
 fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
-                                  ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                                  human_consumption_ddd + 
-                                  ln_gdp_dollars + offset(ln_population),
-                                zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population),
-                             data = country_mice,
-                        inits = "0", 
-                        iter = 4000,
-                        control = list(adapt_delta = 0.9),
-                        family = zero_inflated_poisson(),
-                        cores = getOption("mc.cores", 4L), 
-                        combine = FALSE)
+                               ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
+                               human_consumption_ddd + 
+                               ln_gdp_dollars + offset(ln_population),
+                             zi ~ ln_pubs_sum + ln_gdp_dollars + ln_population),
+                          data = country_mice,
+                          family = zero_inflated_poisson(),
+                          chains = 4,
+                          inits = "0", 
+                          iter = 2000,
+                          control = list(adapt_delta = 0.9),
+                          cores = 4,
+                          combine = FALSE)
+
 write_rds(fit_all, h("model/fit_all.rds"))
-fit_all_me <- map(fit_all, ~marginal_effects(.))
+fit_all_me <- furrr::future_map(fit_all, ~marginal_effects(.))
 write_rds(fit_all_me, h("model/fit_all_marginal_effects.rds"))
+
+
+fit_combined <- combine_models(mlist = fit_all, check_data = FALSE)
+plan(multiprocess, workers = floor(parallel::detectCores()))
+write_rds(fit_combined, h("model/fit_combined.rds"))
+fit_combined_me <- marginal_effects(fit_combined)
+write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
 
