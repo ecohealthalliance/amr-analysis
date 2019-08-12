@@ -13,6 +13,7 @@ library(tidyverse)
 library(brms)
 library(bayesplot)
 library(here)
+library(ggthemes)
 h <- here::here
 source(h("R/functions.R"))
 
@@ -99,7 +100,7 @@ ggplot(data = yall, aes(x = grp)) +
 
 ```
 
-```{r plots}
+```{r partial-effects}
 # partial effects - each model over data range
 me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
@@ -201,7 +202,7 @@ out_pois <- map_dfr(pois_vars, function(var){
   seqx <- seq(from = minx, to = maxx, length.out = 100)
   
   betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
-
+  
   X <- matrix(
     c(1, colMeans(as.matrix(raw[,c(pois_vars, "ln_population")]))),
     nrow = length(pois_vars) + 2, ncol = length(seqx),
@@ -254,6 +255,77 @@ p_pois_me <- me_combined %>%
 gridExtra::grid.arrange(p_pois_ribbon, p_pois_me)
 
 ggsave(plot = gridExtra::grid.arrange(p_pois_ribbon, p_pois_me), filename = h("plots/compare_pois.png"), width = 22, height = 12)
+
+```
+
+```{r country-predictions}
+amr <-   amr %>%
+  mutate(country = countrycode::countrycode(sourcevar = iso3c,
+                                            origin = "iso3c",
+                                            destination = "country.name"),
+         continent = countrycode::countrycode(sourcevar = iso3c,
+                                              origin = "iso3c",
+                                              destination = "continent"),
+  )
+
+
+amr_predict <- amr %>%
+  mutate(mod_predict = predict(fit_combined)[,1]) %>%
+  select(country, mod_predict, n_amr_events)
+
+betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
+colnames(betas)[ncol(betas)] <- "b_ln_population"
+beta_means <- apply(betas, 2, mean) %>%
+  enframe(name = "variable", value = "beta") %>%
+  mutate(variable = str_remove(variable, "b_"))
+intercept <- beta_means$beta[beta_means$variable=="Intercept"]
+
+amr_pois <- amr %>%
+  select(country, continent, pois_vars, ln_population) %>%
+  gather(key = "variable", value = "value", -country, -continent) %>%
+  left_join(beta_means) %>%
+  mutate(prod = value * beta)
+
+amr_pois_pred <- amr_pois %>%
+  group_by(country) %>%
+  mutate(total_pois_pred = exp(sum(prod) + intercept)) %>%
+  ungroup() %>%
+  left_join(amr_predict)
+
+# each country parts
+amr_pois_pred %>%
+  mutate(country= fct_reorder(country, total_pois_pred)) %>%
+  filter(variable != "ln_population") %>%
+  filter(n_amr_events >0) %>%
+  ggplot(data = ., aes(x = country, y = prod, fill = variable)) + 
+  geom_bar(stat = "identity") +
+  coord_flip()+
+  # facet_grid(continent ~ ., scales = "free") +
+  labs(x= "", y = "", fill = "") +
+  theme_fivethirtyeight() + 
+    scale_color_fivethirtyeight() +
+  theme(legend.position = "top")
+
+p_pred <- amr_pois_pred %>%
+  filter(n_amr_events == 0) %>%
+  mutate(country= fct_reorder(country, total_pois_pred)) %>%
+  select(country, continent, total_pois_pred, mod_predict ) %>%
+  gather(key = "prediction", value = "value", -country, -continent) %>%
+  ggplot(., aes(x = country, y = value, color = prediction)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0, 100)) +
+  facet_grid(continent ~ ., scales = "free")+
+  coord_flip() +
+  theme_fivethirtyeight() + 
+  scale_color_fivethirtyeight() +
+  theme(legend.position = "top")
+
+ggsave(plot = p_pred, filename = h("plots/zero_predictions.png"), width = 12, height = 22)
+
+# as interval - run with distribtions of betas
+# adapt above but x is instead country values
+
+
 
 ```
 

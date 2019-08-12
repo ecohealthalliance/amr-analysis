@@ -152,7 +152,7 @@ livestock <- raster('data/antimicrobial_use/mgabx_Log10p1.tif') # units are log1
 livestock$livestock_consumption_mg_per_px <- (10^livestock$mgabx_Log10p1)-1
 livestock$livestock_consumption_kg_per_px <- livestock$livestock_consumption_mg_per_px/1000000
 
-countries <- ne_countries(scale = "medium") # for extracting
+countries <- ne_countries(scale = "large") # for extracting
 
 livestock2 <- extract(x = livestock, y = countries, layer = 3, 
                       fun = sum, na.rm = TRUE, df = TRUE) # sum for kg for each country
