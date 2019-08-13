@@ -11,7 +11,7 @@ source(h("R/functions.R"))
 
 # Read in data
 country_raw <- read_csv(h("country_level_amr.csv")) %>%
-  dplyr::select(-continent, -region, -country, -english_spoken) %>%
+  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum) %>%
   drop_na(population, gdp_per_capita) %>% # remove if population or gdp data is unavailable (usually territories)
   mutate_at(vars(pubs_sum_per_capita, ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for pubs_sum_per_capita and ab_export NAs
   mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_pcu, livestock_pcu),
@@ -86,9 +86,9 @@ write_rds(country_mice, h("model/mice-imputation.rds"))
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
 fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
                              ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
-                             human_consumption_ddd + 
+                             human_consumption_ddd + english_spoken + 
                              ln_gdp_per_capita + offset(ln_population),
-                           zi ~ ln_pubs_sum_per_capita + ln_gdp_per_capita + ln_population),
+                           zi ~ ln_pubs_sum_per_capita + ln_gdp_per_capita + ln_population + english_spoken),
                         data = country_mice,
                         family = zero_inflated_poisson(),
                         chains = 4,
@@ -108,4 +108,3 @@ plan(multiprocess, workers = floor(parallel::detectCores()))
 write_rds(fit_combined, h("model/fit_combined.rds"))
 fit_combined_me <- marginal_effects(fit_combined)
 write_rds(fit_combined_me, h("model/fit_combined_marginal_effects.rds"))
-

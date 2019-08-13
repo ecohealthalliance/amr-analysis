@@ -166,7 +166,10 @@ livestock3 <- livestock2 %>%
          iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
   drop_na(iso3c) %>% 
   arrange(-livestock_consumption_kg_per_px) %>%
-  dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px)
+  dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px) %>% 
+  group_by(iso3c) %>% 
+  summarize(livestock_consumption_kg = sum(livestock_consumption_kg)) %>% # accounting for countries that were split up (SOM, CYP)
+  ungroup()
 
 # Read in json pcu data - scraped from https://resistancemap.cddep.org/AnimalUse.php - 07/29/2019
 pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
@@ -216,7 +219,7 @@ amr %<>%
          gdp_per_capita = gdp_dollars/population,
          pubs_sum_per_capita = pubs_sum/population
          ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars, -gdp_dollars, -pubs_sum)
+  dplyr::select(-ab_export_dollars, -ab_import_dollars)
 
 write_csv(amr, h("country_level_amr.csv"))
 
