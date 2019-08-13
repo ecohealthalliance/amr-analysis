@@ -266,18 +266,28 @@ colnames(betas)[ncol(betas)] <- "b_ln_population"
 X <- cbind("Intercept" = 1 , amr[,c(pois_vars, "ln_population")]) %>%
   as.matrix(.) %>%
   t()
-#X["ln_population",] <- 0 # set population to zero to calculate rate
 colnames(X) <- amr$iso3c
+X2 <- X
+X2["ln_population",] <- 0 # set population to zero to calculate rate
 
 # calc poisson predictions for each country for each beta sample
-assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
+#assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
 Y <- exp(betas %*% X)
+Y2 <- exp(betas %*% X2)
 
 # post process
 pois_predicts <- as_tibble(Y) %>% 
   mutate(samp = 1:nrow(Y)) %>% 
   gather("iso3c", "pois_predict", -samp) %>%
-  group_by(iso3c) %>%
+  mutate(v = "mean_pop")
+
+Y2 <- as_tibble(Y2) %>% 
+  mutate(samp = 1:nrow(Y2)) %>% 
+  gather("iso3c", "pois_predict", -samp) %>%
+  mutate(v = "zero_pop")
+
+pois_predicts <- bind_rows(pois_predicts, Y2) %>%
+  group_by(iso3c, v) %>%
   summarise(med = median(pois_predict),
             lo = quantile(pois_predict, .025),
             hi = quantile(pois_predict, .975)) %>%
@@ -292,7 +302,7 @@ pois_predicts <- as_tibble(Y) %>%
 
 # plot poisson predictions for countries with 0 events
 zero_predicts <- pois_predicts %>%
-  filter(n_amr_events==0) %>%
+  filter(n_amr_events==0, v == "mean_pop") %>%
   mutate(country= fct_reorder(country, med)) %>%
   ggplot(., aes(y = med, x= country)) +
   geom_errorbar(aes(ymin = lo, ymax = hi), color = "#FF2700",  width=0) +
@@ -305,6 +315,20 @@ zero_predicts <- pois_predicts %>%
 zero_predicts
 ggsave(plot = zero_predicts, filename = h("plots/zero_predictions.png"), width = 12, height = 22)
 
+# plot poisson predictions for countries with 0 events - per population
+zero_predicts_cor <- pois_predicts %>%
+  filter(n_amr_events==0, v == "zero_pop") %>%
+  mutate(country= fct_reorder(country, med)) %>%
+  ggplot(., aes(y = med, x= country)) +
+  geom_errorbar(aes(ymin = lo, ymax = hi), color = "#FF2700",  width=0) +
+  geom_point(color = "#FF2700") + 
+  facet_grid(continent ~ ., scales = "free") + 
+  coord_flip() +
+  theme_fivethirtyeight()
+
+zero_predicts_cor
+ggsave(plot = zero_predicts_cor, filename = h("plots/zero_predictions_pop_corrected.png"), width = 12, height = 22)
+
 # map pois predicts
 admin <- ne_countries(type='countries', scale = 'large') %>%
   st_as_sf() %>%
@@ -315,23 +339,40 @@ admin <- ne_countries(type='countries', scale = 'large') %>%
   select(name, iso3c)
 
 admin <- left_join(admin, pois_predicts, by = "iso3c") %>%
-  mutate(med = round(med, 0)) %>%
+  mutate(med = ifelse(v=="mean_pop", round(med, 0), signif(med, 3))) %>%
   rename("Zero-corrected Predicted AMR Events" = med) 
 
-pal <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`, na.color = "#e9e9f0")
+pal1 <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`[admin$v=="mean_pop"], na.color = "#e9e9f0")
 
-lf <- leaflet() %>%
+lf1 <- leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
-  #addFullscreenControl(position = "topright") %>%
-  addPolygons(data = admin, 
+  addFullscreenControl(position = "topright") %>%
+  addPolygons(data = admin %>% filter(v == "mean_pop"), 
               stroke = TRUE, color = "#46464a", weight = 1,
-              fill = TRUE, fillColor = ~pal(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
+              fill = TRUE, fillColor = ~pal1(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
               label = ~paste0(name, ": ", `Zero-corrected Predicted AMR Events`)) %>%
-  addLegend(data = admin, pal = pal, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright") 
+  addLegend(data = admin, pal = pal1, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright") %>%
+  addControl("Mean population")
 
-lf
+lf1
 
-htmlwidgets::saveWidget(lf, h("plots/map_predictions.html"))
+htmlwidgets::saveWidget(lf1, h("plots/map_predictions.html"))
+
+pal2 <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`[admin$v=="zero_pop"], na.color = "#e9e9f0")
+
+lf2 <- leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addFullscreenControl(position = "topright") %>%
+  addPolygons(data = admin %>% filter(v == "zero_pop"), 
+              stroke = TRUE, color = "#46464a", weight = 1,
+              fill = TRUE, fillColor = ~pal2(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
+              label = ~paste0(name, ": ", `Zero-corrected Predicted AMR Events`)) %>%
+  addLegend(data = admin %>% filter(v == "zero_pop"), pal = pal2, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright", labFormat = labelFormat(transform = function(x) 10000 * x)) %>%
+  addControl("Events per 10000")
+
+lf2
+htmlwidgets::saveWidget(lf2, h("plots/map_predictions_pop_corrected.html"))
+
 
 # get contribution of each variable to country total
 beta_means <- apply(betas, 2, mean) 
