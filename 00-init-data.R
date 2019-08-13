@@ -181,14 +181,29 @@ livestock3 <- livestock3 %>%
   mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
   filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) %>% # unclear if no livestock or no consumption
   dplyr::select(-livestock_consumption_kg)
+#-----------------Tourism data-----------------
+# 2015
+# World Tourism Organization (2019), Compendium of Tourism Statistics dataset [Electronic], UNWTO, Madrid, data updated on 11/01/2019.
+# Outbound tourism downloaded from https://www.e-unwto.org/doi/suppl/10.5555/unwtotfb0000290019952017201901
+tour_outbound <- readxl::read_xlsx(h("data/0000290019952017201901.xlsx"), sheet = 1, skip = 5) %>% 
+  dplyr::select(COUNTRY, tourism_outbound = `2015`) %>%
+  filter(tourism_outbound != "..")
+tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet = 1, skip = 5) %>%
+  dplyr::select(COUNTRY, tourism_inbound = `2015`) %>%
+  filter(tourism_inbound != "..")
 
+tourism <- full_join(tour_outbound, tour_inbound) %>%
+  mutate_at(vars("tourism_outbound", "tourism_inbound"), ~as.numeric(.)) %>%
+    mutate(iso3c = countrycode(sourcevar = COUNTRY,
+                             origin = "country.name",
+                             destination = "iso3c")) %>%
+      dplyr::select(-COUNTRY)
 #-----------------All countries-----------------
 all_countries <- map_data("world") %>%
   mutate(iso3c = countrycode(sourcevar = region,
                              origin = "country.name",
                              destination = "iso3c"))  %>%
   dplyr::select(iso3c) %>% na.omit() %>% distinct() 
-
 
 #-----------------All data-----------------
 amr <- all_countries %>%
@@ -200,6 +215,7 @@ amr <- all_countries %>%
   left_join(lang) %>%
   left_join(consumption) %>%
   left_join(livestock3) %>%
+  left_join(tourism) %>%
   #left_join(fao) %>%
   mutate(n_amr_events = ifelse(is.na(n_amr_events), 0 , n_amr_events),
          country = countrycode::countrycode(sourcevar = iso3c,
@@ -217,9 +233,11 @@ amr %<>%
   mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
          ab_import_perc = 100 * ab_import_dollars/gdp_dollars,
          gdp_per_capita = gdp_dollars/population,
+         tourism_outbound_per_capita = tourism_outbound/population,
+         tourism_inbound_per_capita = tourism_inbound/population,
          pubs_sum_per_capita = pubs_sum/population
          ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars)
+  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound)
 
 write_csv(amr, h("country_level_amr.csv"))
 

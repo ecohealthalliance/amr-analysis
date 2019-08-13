@@ -47,7 +47,8 @@ amr_tidy <- amr %>%
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
 zi_vars <- c("ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
-pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
+pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ln_tourism_inbound_per_capita",  "ln_tourism_outbound_per_capita",
+               "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
 
 ```
 
@@ -89,7 +90,7 @@ y_grped <- tibble(y) %>%
   mutate(n = n()) %>%
   ungroup() %>%
   mutate(grp = paste0(grp, " (n = ", n, ")")) %>%
-  select(-n)
+  dplyr::select(-n)
 
 y_grped_sum <- y_grped %>%
   group_by(grp) %>%
@@ -157,6 +158,9 @@ out_zi <- map_dfr(zi_vars, function(var){
     nrow = length(zi_vars) + 1, ncol = length(seqx),
   )
   rownames(X) <- c("Intercept", zi_vars)
+  
+  assertthat::assert_that(all(rownames(X) ==  gsub("^b_zi_", "", colnames(betas))))
+
   X[var, ] <- seqx
   Y <- plogis(betas %*% X)
   out <- as_tibble(Y) %>% 
@@ -206,12 +210,16 @@ out_pois <- map_dfr(pois_vars, function(var){
   seqx <- seq(from = minx, to = maxx, length.out = 100)
   
   betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
-  
+  colnames(betas)[ncol(betas)] <- "offset"
+
   X <- matrix(
     c(1, colMeans(as.matrix(amr[,c(pois_vars, "ln_population")]))),
     nrow = length(pois_vars) + 2, ncol = length(seqx),
   )
   rownames(X) <- c("Intercept", pois_vars, "offset") 
+  
+  assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
+
   X[var, ] <- seqx
   Y <- exp(betas %*% X)
   out <- as_tibble(Y) %>% 
@@ -271,7 +279,7 @@ X2 <- X
 X2["ln_population",] <- 0 # set population to zero to calculate rate
 
 # calc poisson predictions for each country for each beta sample
-#assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
+assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
 Y <- exp(betas %*% X)
 Y2 <- exp(betas %*% X2)
 

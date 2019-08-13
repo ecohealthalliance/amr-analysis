@@ -14,11 +14,11 @@ country_raw <- read_csv(h("country_level_amr.csv")) %>%
   dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum) %>%
   drop_na(population, gdp_per_capita) %>% # remove if population or gdp data is unavailable (usually territories)
   mutate_at(vars(pubs_sum_per_capita, ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for pubs_sum_per_capita and ab_export NAs
-  mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_pcu, livestock_pcu),
+  mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_pcu, livestock_pcu, tourism_outbound_per_capita, tourism_inbound_per_capita),
             ~log(.)) %>%
   mutate(pubs_sum_per_capita = log(pubs_sum_per_capita + 1e-07)) %>%
   rename_at(vars("livestock_consumption_kg_per_pcu", "livestock_pcu", "migrant_pop_perc", 
-                 "gdp_per_capita", "pubs_sum_per_capita" , "population"), ~paste0("ln_", .))
+                 "gdp_per_capita", "pubs_sum_per_capita" , "population", "tourism_outbound_per_capita", "tourism_inbound_per_capita"), ~paste0("ln_", .))
 
 # View correlation matrix
 # country_raw %>%
@@ -27,18 +27,6 @@ country_raw <- read_csv(h("country_level_amr.csv")) %>%
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(is.na(.)))
-
-# Specify predictors for imputation
-# Note that it might be best to include all variables: 
-# https://stefvanbuuren.name/fimd/sec-modelform.html#sec:predictors
-# Conditioning on all other data is often reasonable for small to medium datasets, containing up to, say, 20–30 variables, without derived variables, interactions effects and other complexities. As a general rule, using every bit of available information yields multiple imputations that have minimal bias and maximal efficiency (Meng 1994; Collins, Schafer, and Kam 2001). It is often beneficial to choose as large a number of predictors as possible. Including as many predictors as possible tends to make the MAR assumption more plausible, thus reducing the need to make special adjustments for MNAR mechanisms (Schafer 1997).
-# pred_matrix <- matrix(nrow = 4, ncol = ncol(country_raw), 
-#                       dimnames = list(c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"),
-#                                       colnames(country_raw)), data = 0)
-# pred_matrix["health_expend_perc", c("ln_gdp_per_capita", "ln_population")] <- 1
-# pred_matrix["human_consumption_ddd", c("ln_gdp_per_capita", "ln_population", "ab_export_perc", "ab_import_perc")] <- 1
-# pred_matrix["ln_livestock_consumption_kg_per_pcu", c("ln_gdp_per_capita", "ln_population", "ab_export_perc", "ab_import_perc", "ln_livestock_pcu", "human_consumption_ddd")] <- 1
-# pred_matrix["ln_livestock_pcu", c("ln_gdp_per_capita", "ln_population")] <- 1
 
 # Mice settings
 # helpful for setting parameters: https://stats.stackexchange.com/questions/219013/how-do-the-number-of-imputations-the-maximum-iterations-affect-accuracy-in-mul/219049
@@ -56,22 +44,9 @@ maxit <- 40
 country_mice <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500)#, blocks = c("health_expend_perc", "human_consumption_ddd", "ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu"), predictorMatrix = pred_matrix) 
 
 write_rds(country_mice, h("model/mice-imputation.rds"))
-# plot(country_mice) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
-# densityplot(country_mice)
-# stripplot(country_mice) # not working?
-# show_imputes(country_mice, m = m, raw = country_raw)
-
-## using full predictors
-#country_mice_full <- mice(country_raw, m=m, maxit=maxit, method='cart', seed=500)
-# plot(country_mice_full) # On convergence, the different streams should be freely intermingled with one another, without showing any definite trends. Convergence is diagnosed when the variance between different sequences is no larger than the variance within each individual sequence.
-# densityplot(country_mice_full)
-# stripplot(country_mice_full) # not working?
-# show_imputes(country_mice_full, m = m, raw = country_raw)
-
 
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html
-
 
 # Note about warning message
 
@@ -85,7 +60,8 @@ write_rds(country_mice, h("model/mice-imputation.rds"))
 ## Full model, combine = FALSE
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
 fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu + 
-                             ln_migrant_pop_perc + ab_export_perc + health_expend_perc + 
+                             ln_migrant_pop_perc + ln_tourism_inbound_per_capita + ln_tourism_outbound_per_capita +
+                             ab_export_perc + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 
                              ln_gdp_per_capita + offset(ln_population),
                            zi ~ ln_pubs_sum_per_capita + ln_gdp_per_capita + ln_population + english_spoken),
