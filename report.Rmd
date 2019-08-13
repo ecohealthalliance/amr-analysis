@@ -14,6 +14,14 @@ library(brms)
 library(bayesplot)
 library(here)
 library(ggthemes)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(countrycode)
+library(sf)
+library(leaflet)
+library(leaflet.extras)
+
+
 h <- here::here
 source(h("R/functions.R"))
 
@@ -248,7 +256,7 @@ ggsave(plot = p_pois_ribbon,
 ```{r country-predictions}
 amr_predict <- amr %>%
   mutate(mod_predict = predict(fit_combined)[,1]) %>%
-  select(country, mod_predict, n_amr_events)
+  select(iso3c, mod_predict, n_amr_events)
 
 # matrix of beta samples
 betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
@@ -258,25 +266,30 @@ colnames(betas)[ncol(betas)] <- "b_ln_population"
 X <- cbind("Intercept" = 1 , amr[,c(pois_vars, "ln_population")]) %>%
   as.matrix(.) %>%
   t()
-colnames(X) <- amr$country
+#X["ln_population",] <- 0 # set population to zero to calculate rate
+colnames(X) <- amr$iso3c
 
 # calc poisson predictions for each country for each beta sample
-#assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
+assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
 Y <- exp(betas %*% X)
 
 # post process
 pois_predicts <- as_tibble(Y) %>% 
   mutate(samp = 1:nrow(Y)) %>% 
-  gather("country", "pois_predict", -samp) %>%
-  group_by(country) %>%
+  gather("iso3c", "pois_predict", -samp) %>%
+  group_by(iso3c) %>%
   summarise(med = median(pois_predict),
             lo = quantile(pois_predict, .025),
             hi = quantile(pois_predict, .975)) %>%
   ungroup() %>%
   left_join(amr_predict) %>% # would need full model equation for distributions of predictions 
-  mutate(continent = countrycode::countrycode(sourcevar = country,
-                                              origin = "country.name",
-                                              destination = "continent"))
+  mutate(continent = countrycode(sourcevar = iso3c,
+                                              origin = "iso3c",
+                                              destination = "continent"),
+  country = countrycode(sourcevar = iso3c,
+                             origin = "iso3c",
+                             destination = "country.name"))
+
 # plot poisson predictions for countries with 0 events
 zero_predicts <- pois_predicts %>%
   filter(n_amr_events==0) %>%
@@ -292,13 +305,45 @@ zero_predicts <- pois_predicts %>%
 zero_predicts
 ggsave(plot = zero_predicts, filename = h("plots/zero_predictions.png"), width = 12, height = 22)
 
+# map pois predicts
+admin <- ne_countries(type='countries', scale = 'large') %>%
+  st_as_sf() %>%
+  mutate(iso3c = countrycode(sourcevar = name,
+                             origin = "country.name",
+                             destination = "iso3c"),
+         iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
+  select(name, iso3c)
+
+admin <- left_join(admin, pois_predicts, by = "iso3c") %>%
+  mutate(med = round(med, 0)) %>%
+  rename("Zero-corrected Predicted AMR Events" = med) 
+
+pal <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`, na.color = "#e9e9f0")
+
+lf <- leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  #addFullscreenControl(position = "topright") %>%
+  addPolygons(data = admin, 
+              stroke = TRUE, color = "#46464a", weight = 1,
+              fill = TRUE, fillColor = ~pal(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
+              label = ~paste0(name, ": ", `Zero-corrected Predicted AMR Events`)) %>%
+  addLegend(data = admin, pal = pal, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright") 
+
+lf
+
+htmlwidgets::saveWidget(lf, h("plots/map_predictions.html"))
+
 # get contribution of each variable to country total
 beta_means <- apply(betas, 2, mean) 
 Y_cont <- beta_means * X
 
 pois_cont <- as_tibble(Y_cont) %>% 
   mutate(var = rownames(Y_cont)) %>%
-  gather(key = "country", value = "value", -var)
+  gather(key = "iso3c", value = "value", -var) %>%
+  mutate(country = countrycode(sourcevar = iso3c,
+                             origin = "iso3c",
+                             destination = "country.name"))
+
 
 # plot contributions for non-zero countries
 nonzeros <- amr %>% filter(n_amr_events>0) %>% pull(country)
