@@ -185,10 +185,10 @@ livestock3 <- livestock3 %>%
 # 2015
 # World Tourism Organization (2019), Compendium of Tourism Statistics dataset [Electronic], UNWTO, Madrid, data updated on 11/01/2019.
 # Outbound tourism downloaded from https://www.e-unwto.org/doi/suppl/10.5555/unwtotfb0000290019952017201901
-tour_outbound <- readxl::read_xlsx(h("data/0000290019952017201901.xlsx"), sheet = 1, skip = 5) %>% 
+tour_outbound <- readxl::read_xlsx(h("data/0000290019952017201901.xlsx"), sheet = 1, skip = 5) %>% # Outbound tourism - Departures of visitors (overnight visitors -tourists- and same-day visitors -excursionists-)… Thousands
   dplyr::select(COUNTRY, tourism_outbound = `2015`) %>%
   filter(tourism_outbound != "..")
-tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet = 1, skip = 5) %>%
+tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet = 1, skip = 5) %>% # Inbound tourism - Arrivals of non-resident visitors (overnight visitors -tourists- and same-day visitors -excur… Thousands
   dplyr::select(COUNTRY, tourism_inbound = `2015`) %>%
   filter(tourism_inbound != "..")
 
@@ -233,8 +233,8 @@ amr %<>%
   mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
          ab_import_perc = 100 * ab_import_dollars/gdp_dollars,
          gdp_per_capita = gdp_dollars/population,
-         tourism_outbound_per_capita = tourism_outbound/population,
-         tourism_inbound_per_capita = tourism_inbound/population,
+         tourism_outbound_perc = 100 * (tourism_outbound*1000)/population,
+         tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
          pubs_sum_per_capita = pubs_sum/population
          ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound)
