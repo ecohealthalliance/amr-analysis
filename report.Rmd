@@ -47,9 +47,24 @@ amr_tidy <- amr %>%
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
 zi_vars <- c("ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
-pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ln_tourism_inbound_per_capita",  "ln_tourism_outbound_per_capita",
-               "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
+pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
 
+lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
+                  "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
+                  "ln_population" = "Population (ln scale)",
+                  "english_spoken" = "English Spoken", 
+                  "human_consumption_ddd" = "Human AB Consumption (DDD)", 
+                  "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
+                  "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
+                  "ab_export_perc" = "AB Exports (% GDP)", 
+                  "ln_gdp_per_capita" = "GDP (per capita; ln scale)", 
+                  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
+                  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
+                  "ln_pubs_sum_per_capita" = "Publication Bias Index (per capita; ln scale)")
+
+global_labeller <- labeller(
+  var = lookup_vars
+)
 ```
 
 ```{r sum}
@@ -139,9 +154,10 @@ me_all2_avg <- me_all2 %>%
 ggplot(me_all2, aes(x = value)) + 
   geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
   geom_line(data = me_all2_avg, aes(x = value, y = mean)) +
-  facet_wrap(. ~ var,  scales = "free") + 
+  facet_wrap(~var,  labeller = global_labeller, scales = "free") +
   labs(x = "", y = "Count AMR Events", title = "Partial Effects of Predictor Variables", caption = "Blue lines represent individual model iterations; black line is average model") +
-  theme_minimal() 
+  theme_bw() 
+
 ggsave(filename = h("plots/marginal_effects_multi.png"), width = 22, height = 12)
 
 # Get Zi partial effects
@@ -152,7 +168,7 @@ out_zi <- map_dfr(zi_vars, function(var){
   seqx <- seq(from = minx, to = maxx, length.out = 100)
   
   betas <- as.matrix(beta_samples[,grep("zi", colnames(beta_samples))])
-
+  
   X <- matrix(
     c(1, colMeans(as.matrix(amr[,zi_vars]))),
     nrow = length(zi_vars) + 1, ncol = length(seqx),
@@ -160,7 +176,7 @@ out_zi <- map_dfr(zi_vars, function(var){
   rownames(X) <- c("Intercept", zi_vars)
   
   assertthat::assert_that(all(rownames(X) ==  gsub("^b_zi_", "", colnames(betas))))
-
+  
   X[var, ] <- seqx
   Y <- plogis(betas %*% X)
   out <- as_tibble(Y) %>% 
@@ -183,7 +199,7 @@ p_zi_lines <-
   ggplot(data = out_zi) + 
   geom_line(aes(x = x, y = y, group = samp), color = "lightsalmon", alpha = 0.1) + #For lots of lines
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2) +
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
   theme_minimal()
 
@@ -192,7 +208,7 @@ p_zi_ribbon <-
   geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightsalmon", col = NA, alpha = 0.2) +
   geom_line(aes(x = x, y = med), color = "lightsalmon") +
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2) +
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
   theme_minimal()
 
@@ -211,7 +227,7 @@ out_pois <- map_dfr(pois_vars, function(var){
   
   betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
   colnames(betas)[ncol(betas)] <- "offset"
-
+  
   X <- matrix(
     c(1, colMeans(as.matrix(amr[,c(pois_vars, "ln_population")]))),
     nrow = length(pois_vars) + 2, ncol = length(seqx),
@@ -219,7 +235,7 @@ out_pois <- map_dfr(pois_vars, function(var){
   rownames(X) <- c("Intercept", pois_vars, "offset") 
   
   assertthat::assert_that(all(rownames(X) ==  gsub("^b_", "", colnames(betas))))
-
+  
   X[var, ] <- seqx
   Y <- exp(betas %*% X)
   out <- as_tibble(Y) %>% 
@@ -241,7 +257,7 @@ p_pois_lines <-
   ggplot(data = out_pois) + 
   geom_line(aes(x = x, y = y, group = samp), color = "chartreuse4", alpha = 0.1) + #For lots of lines
   geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2) +
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
   theme_minimal()
 
@@ -250,7 +266,7 @@ p_pois_ribbon <-
   geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "chartreuse4", col = NA, alpha = 0.2) +
   geom_line(aes(x = x, y = med), color = "chartreuse4") +
   geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2) +
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
   theme_minimal()
 
@@ -302,11 +318,11 @@ pois_predicts <- bind_rows(pois_predicts, Y2) %>%
   ungroup() %>%
   left_join(amr_predict) %>% # would need full model equation for distributions of predictions 
   mutate(continent = countrycode(sourcevar = iso3c,
-                                              origin = "iso3c",
-                                              destination = "continent"),
-  country = countrycode(sourcevar = iso3c,
-                             origin = "iso3c",
-                             destination = "country.name"))
+                                 origin = "iso3c",
+                                 destination = "continent"),
+         country = countrycode(sourcevar = iso3c,
+                               origin = "iso3c",
+                               destination = "country.name"))
 
 # plot poisson predictions for countries with 0 events
 zero_predicts <- pois_predicts %>%
@@ -317,8 +333,9 @@ zero_predicts <- pois_predicts %>%
   geom_point(color = "#FF2700") + 
   geom_point(aes(y = mod_predict), color = "#008FD5") +
   facet_grid(continent ~ ., scales = "free") + 
+  labs(x="", y="AMR Events") +
   coord_flip() +
-  theme_fivethirtyeight()
+  theme_bw()
 
 zero_predicts
 ggsave(plot = zero_predicts, filename = h("plots/zero_predictions.png"), width = 12, height = 22)
@@ -331,8 +348,9 @@ zero_predicts_cor <- pois_predicts %>%
   geom_errorbar(aes(ymin = lo, ymax = hi), color = "#FF2700",  width=0) +
   geom_point(color = "#FF2700") + 
   facet_grid(continent ~ ., scales = "free") + 
+  labs(x="", y="AMR Events") +
   coord_flip() +
-  theme_fivethirtyeight()
+  theme_bw()
 
 zero_predicts_cor
 ggsave(plot = zero_predicts_cor, filename = h("plots/zero_predictions_pop_corrected.png"), width = 12, height = 22)
@@ -390,8 +408,8 @@ pois_cont <- as_tibble(Y_cont) %>%
   mutate(var = rownames(Y_cont)) %>%
   gather(key = "iso3c", value = "value", -var) %>%
   mutate(country = countrycode(sourcevar = iso3c,
-                             origin = "iso3c",
-                             destination = "country.name"))
+                               origin = "iso3c",
+                               destination = "country.name"))
 
 
 # plot contributions for non-zero countries
