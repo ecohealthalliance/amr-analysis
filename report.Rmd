@@ -10,6 +10,7 @@ output:
 ```{r setup, include = FALSE, message = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width=20)
 library(tidyverse)
+library(httr)
 library(brms)
 library(bayesplot)
 library(here)
@@ -32,6 +33,16 @@ fit_combined <- read_rds(h("model/fit_combined.rds"))
 fit_all <- read_rds( h("model/fit_all.rds"))
 me_combined <- read_rds(h("model/fit_combined_marginal_effects.rds"))
 me_all <- read_rds(h("model/fit_all_marginal_effects.rds"))
+
+url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/events_db.csv"
+events <- GET(url_events, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
+events <- read_csv(content(events, "text")) 
+
+url_locs <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/locations.csv"
+locs <- GET(url_locs, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
+locs <- read_csv(content(locs, "text")) %>%
+  filter(study_id %in% events$study_id) %>%
+  filter(!is.na(study_location)) 
 
 amr <- amr %>% 
   select(-ab_import_perc) %>%
@@ -355,63 +366,15 @@ zero_predicts_cor <- pois_predicts %>%
 zero_predicts_cor
 ggsave(plot = zero_predicts_cor, filename = h("plots/zero_predictions_pop_corrected.png"), width = 12, height = 22)
 
-# map pois predicts
-admin <- ne_countries(type='countries', scale = 'large') %>%
-  st_as_sf() %>%
-  mutate(iso3c = countrycode(sourcevar = name,
-                             origin = "country.name",
-                             destination = "iso3c"),
-         iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
-  select(name, iso3c)
-
-admin <- left_join(admin, pois_predicts, by = "iso3c") %>%
-  mutate(med = ifelse(v=="mean_pop", round(med, 0), signif(med, 3))) %>%
-  rename("Zero-corrected Predicted AMR Events" = med) 
-
-pal1 <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`[admin$v=="mean_pop"], na.color = "#e9e9f0")
-
-lf1 <- leaflet() %>%
-  addProviderTiles("CartoDB.Positron") %>%
-  addFullscreenControl(position = "topright") %>%
-  addPolygons(data = admin %>% filter(v == "mean_pop"), 
-              stroke = TRUE, color = "#46464a", weight = 1,
-              fill = TRUE, fillColor = ~pal1(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
-              label = ~paste0(name, ": ", `Zero-corrected Predicted AMR Events`)) %>%
-  addLegend(data = admin, pal = pal1, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright") %>%
-  addControl("Mean population")
-
-lf1
-
-htmlwidgets::saveWidget(lf1, h("plots/map_predictions.html"))
-
-pal2 <- colorNumeric("OrRd", domain = admin$`Zero-corrected Predicted AMR Events`[admin$v=="zero_pop"], na.color = "#e9e9f0")
-
-lf2 <- leaflet() %>%
-  addProviderTiles("CartoDB.Positron") %>%
-  addFullscreenControl(position = "topright") %>%
-  addPolygons(data = admin %>% filter(v == "zero_pop"), 
-              stroke = TRUE, color = "#46464a", weight = 1,
-              fill = TRUE, fillColor = ~pal2(`Zero-corrected Predicted AMR Events`), fillOpacity = 0.9,
-              label = ~paste0(name, ": ", `Zero-corrected Predicted AMR Events`)) %>%
-  addLegend(data = admin %>% filter(v == "zero_pop"), pal = pal2, values = ~`Zero-corrected Predicted AMR Events`, position = "bottomright", labFormat = labelFormat(transform = function(x) 10000 * x)) %>%
-  addControl("Events per 10000")
-
-lf2
-htmlwidgets::saveWidget(lf2, h("plots/map_predictions_pop_corrected.html"))
-
-
 # get contribution of each variable to country total
 beta_means <- apply(betas, 2, mean) 
 Y_cont <- beta_means * X
-
 pois_cont <- as_tibble(Y_cont) %>% 
   mutate(var = rownames(Y_cont)) %>%
   gather(key = "iso3c", value = "value", -var) %>%
   mutate(country = countrycode(sourcevar = iso3c,
                                origin = "iso3c",
                                destination = "country.name"))
-
-
 # plot contributions for non-zero countries
 nonzeros <- amr %>% filter(n_amr_events>0) %>% pull(country)
 variable_cont <- pois_cont %>%
@@ -426,6 +389,59 @@ variable_cont <- pois_cont %>%
 variable_cont
 ggsave(plot = variable_cont, filename = h("plots/variable_contributions.png"), width = 12, height = 22)
 
+
+```
+
+```{r map}
+# map pois predicts
+admin <- ne_countries(type='countries', scale = 'large') %>%
+  st_as_sf() %>%
+  mutate(iso3c = countrycode(sourcevar = name,
+                             origin = "country.name",
+                             destination = "iso3c"),
+         iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
+  select(name, iso3c)
+
+admin <- left_join(admin, pois_predicts, by = "iso3c") %>%
+  mutate(med = ifelse(v=="mean_pop", round(med, 0), med*10000)) %>%
+  select(name, iso3c, v, "Reported AMR Events" = n_amr_events, "Predicted AMR Events" = med) 
+
+admin_mean <- admin %>%
+  filter(v == "mean_pop")
+
+pal1 <- colorNumeric("OrRd", domain = c(admin_mean$`Predicted AMR Events`, admin_mean$`Reported AMR Events`), na.color = "#e9e9f0")
+
+caption <- glue::glue(nrow(events), " AMR emergence events<br/>",
+                      n_distinct(events$study_country), " countries<br/>",
+                      n_distinct(events$drug_preferred_label), " antimicrobial drugs<br/>",
+                      n_distinct(events$bacteria_preferred_label), " resistant bacteria<br/>",
+                      str_sub(min(events$start_date), 1, 4), " - ",  str_sub(max(events$start_date), 1, 4))
+
+
+lf1 <- leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addFullscreenControl(position = "topright") %>%
+  addPolygons(data = admin_mean, 
+              stroke = TRUE, color = "#46464a", weight = 1,
+              fill = TRUE, fillColor = ~pal1(`Predicted AMR Events`), fillOpacity = 0.9,
+              label = ~paste0(name, ": ", `Predicted AMR Events`), group = "Predicted") %>%
+    addPolygons(data = admin_mean, 
+              stroke = TRUE, color = "#46464a", weight = 1,
+              fill = TRUE, fillColor = ~pal1(`Reported AMR Events`), fillOpacity = 0.9,
+              label = ~paste0(name, ": ", `Reported AMR Events`), group = "Reported") %>%
+    addCircleMarkers(data = locs,  radius = 3,
+                   lng = ~jitter(lon_study), lat = ~jitter(lat_study), 
+                   stroke = TRUE, color = "#210106", opacity = 1, weight = 1,
+                   fill = TRUE, fillColor = "#210106", fillOpacity = 0.5,
+                   label = ~study_location, group = "Reported") %>%
+  addLegend(data = admin_mean, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
+      addControl(caption) %>%
+      addLayersControl(baseGroups = c("Reported", "Predicted"), options = layersControlOptions(collapsed = FALSE), position = "bottomleft")  
+
+  lf1
+
+
+htmlwidgets::saveWidget(lf1, h("plots/map_predictions.html"))
 
 ```
 
