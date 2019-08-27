@@ -212,7 +212,7 @@ p_zi_lines <-
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
-  theme_minimal()
+  theme_bw()
 
 p_zi_ribbon <- 
   ggplot(data = out_zi_sum) +
@@ -221,7 +221,8 @@ p_zi_ribbon <-
   geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
-  theme_minimal()
+  theme_bw() + 
+  theme(strip.text.x = element_text(size = 16), axis.text = element_text(size = 14))
 
 
 p_zi_ribbon
@@ -270,7 +271,7 @@ p_pois_lines <-
   geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
-  theme_minimal()
+  theme_bw()
 
 p_pois_ribbon <- 
   ggplot(data = out_pois_sum) +
@@ -279,13 +280,14 @@ p_pois_ribbon <-
   geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
-  theme_minimal()
+  theme_bw() +
+    theme(strip.text.x = element_text(size = 16), axis.text = element_text(size = 14))
+
 
 p_pois_ribbon
 
 ggsave(plot = p_pois_ribbon,
-       filename = h("plots/pois_marginal_effects.png"), width = 22, height = 12)
-
+       filename = h("plots/pois_marginal_effects.png"), width = 25, height = 12)
 ```
 
 ```{r country-predictions}
@@ -383,7 +385,7 @@ variable_cont <- pois_cont %>%
   geom_bar(stat = "identity") +
   coord_flip()+
   labs(x= "", y = "", fill = "") +
-  theme_fivethirtyeight() + 
+  theme_bw() + 
   #scale_fill_economist() +
   theme(legend.position = "top")
 variable_cont
@@ -393,7 +395,7 @@ ggsave(plot = variable_cont, filename = h("plots/variable_contributions.png"), w
 ```
 
 ```{r map}
-# map pois predicts
+# map pois predicts 
 admin <- ne_countries(type='countries', scale = 'large') %>%
   st_as_sf() %>%
   mutate(iso3c = countrycode(sourcevar = name,
