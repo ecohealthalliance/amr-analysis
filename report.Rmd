@@ -58,15 +58,16 @@ amr_tidy <- amr %>%
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
 zi_vars <- c("ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
-pois_vars <- c("ln_livestock_consumption_kg_per_pcu", "ln_livestock_pcu", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
+pois_vars <- c("ln_livestock_consumption_kg_per_capita", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
 
 lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
                   "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
                   "ln_population" = "Population (ln scale)",
                   "english_spoken" = "English Spoken", 
                   "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-                  "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
-                  "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
+                  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (per capita; ln scale)",
+                  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
+                  # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
                   "ab_export_perc" = "AB Exports (% GDP)", 
                   "ln_gdp_per_capita" = "GDP (per capita; ln scale)", 
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 

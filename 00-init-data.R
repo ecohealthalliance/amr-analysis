@@ -179,8 +179,8 @@ pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
 livestock3 <- livestock3 %>%
   right_join(pcu) %>%
   mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
-  filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) %>% # unclear if no livestock or no consumption
-  dplyr::select(-livestock_consumption_kg)
+  filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) #%>% # unclear if no livestock or no consumption
+  #dplyr::select(-livestock_consumption_kg)
 #-----------------Tourism data-----------------
 # 2015
 # World Tourism Organization (2019), Compendium of Tourism Statistics dataset [Electronic], UNWTO, Madrid, data updated on 11/01/2019.
@@ -232,12 +232,13 @@ amr <- all_countries %>%
 amr %<>%
   mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
          ab_import_perc = 100 * ab_import_dollars/gdp_dollars,
+         livestock_consumption_kg_per_capita = livestock_consumption_kg/population,
          gdp_per_capita = gdp_dollars/population,
          tourism_outbound_perc = 100 * (tourism_outbound*1000)/population,
          tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
          pubs_sum_per_capita = pubs_sum/population
          ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound)
+  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_consumption_kg, -livestock_consumption_kg_per_pcu)
 
 write_csv(amr, h("country_level_amr.csv"))
 
