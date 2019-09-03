@@ -212,10 +212,10 @@ tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet =
 
 tourism <- full_join(tour_outbound, tour_inbound) %>%
   mutate_at(vars("tourism_outbound", "tourism_inbound"), ~as.numeric(.)) %>%
-    mutate(iso3c = countrycode(sourcevar = COUNTRY,
+  mutate(iso3c = countrycode(sourcevar = COUNTRY,
                              origin = "country.name",
                              destination = "iso3c")) %>%
-      dplyr::select(-COUNTRY)
+  dplyr::select(-COUNTRY)
 #-----------------All countries-----------------
 all_countries <- map_data("world") %>%
   mutate(iso3c = countrycode(sourcevar = region,
@@ -258,7 +258,7 @@ amr %<>%
          tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
          pubs_sum_per_capita = pubs_sum/population,
          promed_mentions_per_capita = promed_mentions/population
-         ) %>%
+  ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
 
 write_csv(amr, h("country_level_amr.csv"))

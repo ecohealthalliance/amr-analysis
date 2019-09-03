@@ -12,8 +12,8 @@ source(h("R/functions.R"))
 # Read in data
 country_raw <- read_csv(h("country_level_amr.csv")) %>%
   dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum, -promed_mentions, -pubs_sum_per_capita#,
-               # -livestock_consumption_kg, -livestock_consumption_kg_per_pcu, -livestock_pcu
-                ) %>%
+                # -livestock_consumption_kg, -livestock_consumption_kg_per_pcu, -livestock_pcu
+  ) %>%
   drop_na(population, gdp_per_capita) %>% # remove if population or gdp data is unavailable (usually territories)
   mutate_at(vars(ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for import/export NAs
   mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_capita, tourism_outbound_perc, tourism_inbound_perc, promed_mentions_per_capita),
