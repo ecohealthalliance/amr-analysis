@@ -22,7 +22,6 @@ library(sf)
 library(leaflet)
 library(leaflet.extras)
 
-
 h <- here::here
 source(h("R/functions.R"))
 
@@ -57,8 +56,8 @@ amr_tidy <- amr %>%
 
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
-zi_vars <- c("ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
-pois_vars <- c("ln_livestock_consumption_kg_per_capita", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_gdp_per_capita")
+zi_vars <- c("ln_promed_mentions_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
+pois_vars <- c("ln_livestock_consumption_kg_per_capita", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_promed_mentions_per_capita", "ln_gdp_per_capita")
 
 lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
                   "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
@@ -72,7 +71,8 @@ lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)",
                   "ln_gdp_per_capita" = "GDP (per capita; ln scale)", 
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
                   "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
-                  "ln_pubs_sum_per_capita" = "Publication Bias Index (per capita; ln scale)")
+                  "ln_pubs_sum_per_capita" = "Publication Bias Index (per capita; ln scale)",
+                  "ln_promed_mentions_per_capita" = "PubMed Mentions (per capita; ln scale)")
 
 global_labeller <- labeller(
   var = lookup_vars
@@ -98,7 +98,6 @@ ppc_dens_overlay(y, yrep) + scale_x_continuous(limits = c(0, 50)) + labs(title =
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
 
-
 int_dat <- ppc_intervals_data(y, yrep) 
 int_dat <- int_dat %>%
   filter(y_obs>0) %>%
@@ -109,7 +108,6 @@ p50 <- round(100*sum(int_dat$in_50)/nrow(int_dat))
 p90 <- round(100*sum(int_dat$in_90)/nrow(int_dat))
 
 ppc_intervals(y, yrep) + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
-
 
 y_grped <- tibble(y) %>%
   mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%

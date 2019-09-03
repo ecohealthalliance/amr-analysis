@@ -119,6 +119,12 @@ pubcrawl_weights <- read_csv(h("data/pubcrawler_country.csv")) %>% # generated b
   dplyr::select(-country) %>%
   na.omit()
 
+#-----------------GRITS ProMED-----------------
+promed_weights <- read_csv(h("data/promed_mentions.csv")) %>%
+  mutate(iso3c = countrycode(sourcevar = country_code,
+                             origin = "iso2c",
+                             destination = "iso3c")) %>%
+  dplyr::select(-country_code, promed_mentions = mentions)
 #-----------------Language by country-----------------
 lang <- read_csv(h("data/wikipedia-language-by-country.csv"), skip = 1) %>% # 3/18/19 from https://wikitable2csv.ggor.de/
   dplyr::select(Country, `Official language`) %>%
@@ -143,44 +149,56 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
          human_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   na.omit() %>%
   filter(iso3c != "na") 
+
+#-----------------Livestock Consumption data-----------------
+# 2010 
+# Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
+livestock <- read_csv(h("data/VanBoeckelEA_total_annual_sales.csv")) %>%
+  group_by(country) %>%
+  summarize(livestock_ab_sales_kg = mean(livestock_ab_sales_kg)) %>% # average multiple values by country (all are very close)
+  ungroup() %>%
+  mutate(iso3c = countrycode(sourcevar = country,
+                             origin = "country.name",
+                             destination = "iso3c")) %>%
+  dplyr::select(-country)
 #-----------------Livestock Consumption data-----------------
 # 2010 
 # Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
 # Future work may disaggregate by livestock type - cattle, chickens, pigss
 # Raster obtained via personal communication with authors
-livestock <- raster('data/antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
-livestock$livestock_consumption_mg_per_px <- (10^livestock$mgabx_Log10p1)-1
-livestock$livestock_consumption_kg_per_px <- livestock$livestock_consumption_mg_per_px/1000000
-
-countries <- ne_countries(scale = "large") # for extracting
-
-livestock2 <- extract(x = livestock, y = countries, layer = 3, 
-                      fun = sum, na.rm = TRUE, df = TRUE) # sum for kg for each country
-
-livestock3 <- livestock2 %>% 
-  mutate(country = countries$name,
-         iso_a3_eh = countries$iso_a3_eh,
-         iso3c = countrycode(sourcevar = country,
-                             origin = "country.name",
-                             destination = "iso3c"),
-         iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
-  drop_na(iso3c) %>% 
-  arrange(-livestock_consumption_kg_per_px) %>%
-  dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px) %>% 
-  group_by(iso3c) %>% 
-  summarize(livestock_consumption_kg = sum(livestock_consumption_kg)) %>% # accounting for countries that were split up (SOM, CYP)
-  ungroup()
-
-# Read in json pcu data - scraped from https://resistancemap.cddep.org/AnimalUse.php - 07/29/2019
-pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
-  mutate(livestock_consumption_kg_per_pcu = value/1000000) %>%
-  dplyr::select(iso3c = `iso-a3`, livestock_consumption_kg_per_pcu)
-
-livestock3 <- livestock3 %>%
-  right_join(pcu) %>%
-  mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
-  filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) #%>% # unclear if no livestock or no consumption
-  #dplyr::select(-livestock_consumption_kg)
+# livestock <- raster('data/antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
+# livestock$livestock_consumption_mg_per_px <- (10^livestock$mgabx_Log10p1)-1
+# livestock$livestock_consumption_kg_per_px <- livestock$livestock_consumption_mg_per_px/1000000
+# 
+# countries <- ne_countries(scale = "large") # for extracting
+# 
+# livestock2 <- extract(x = livestock, y = countries, layer = 3, 
+#                       fun = sum, na.rm = TRUE, df = TRUE) # sum for kg for each country
+# 
+# livestock3 <- livestock2 %>% 
+#   mutate(country = countries$name,
+#          iso_a3_eh = countries$iso_a3_eh,
+#          iso3c = countrycode(sourcevar = country,
+#                              origin = "country.name",
+#                              destination = "iso3c"),
+#          iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
+#   drop_na(iso3c) %>% 
+#   arrange(-livestock_consumption_kg_per_px) %>%
+#   dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px) %>% 
+#   group_by(iso3c) %>% 
+#   summarize(livestock_consumption_kg = sum(livestock_consumption_kg)) %>% # accounting for countries that were split up (SOM, CYP)
+#   ungroup()
+# 
+# # Read in json pcu data - scraped from https://resistancemap.cddep.org/AnimalUse.php - 07/29/2019
+# pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
+#   mutate(livestock_consumption_kg_per_pcu = value/1000000) %>%
+#   dplyr::select(iso3c = `iso-a3`, livestock_consumption_kg_per_pcu)
+# 
+# livestock3 <- livestock3 %>%
+#   right_join(pcu) %>%
+#   mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
+#   filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) #%>% # unclear if no livestock or no consumption
+#   #dplyr::select(-livestock_consumption_kg)
 #-----------------Tourism data-----------------
 # 2015
 # World Tourism Organization (2019), Compendium of Tourism Statistics dataset [Electronic], UNWTO, Madrid, data updated on 11/01/2019.
@@ -210,11 +228,13 @@ amr <- all_countries %>%
   left_join(events_by_country) %>%
   mutate(n_amr_events = replace_na(n_amr_events, 0)) %>%
   left_join(pubcrawl_weights) %>%
+  left_join(promed_weights) %>%
   left_join(wbd) %>%
   left_join(oec) %>%
   left_join(lang) %>%
   left_join(consumption) %>%
-  left_join(livestock3) %>%
+  left_join(livestock) %>%
+  #left_join(livestock3) %>%
   left_join(tourism) %>%
   #left_join(fao) %>%
   mutate(n_amr_events = ifelse(is.na(n_amr_events), 0 , n_amr_events),
@@ -232,13 +252,14 @@ amr <- all_countries %>%
 amr %<>%
   mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
          ab_import_perc = 100 * ab_import_dollars/gdp_dollars,
-         livestock_consumption_kg_per_capita = livestock_consumption_kg/population,
+         livestock_consumption_kg_per_capita = livestock_ab_sales_kg/population,
          gdp_per_capita = gdp_dollars/population,
          tourism_outbound_perc = 100 * (tourism_outbound*1000)/population,
          tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
-         pubs_sum_per_capita = pubs_sum/population
+         pubs_sum_per_capita = pubs_sum/population,
+         promed_mentions_per_capita = promed_mentions/population
          ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_consumption_kg, -livestock_consumption_kg_per_pcu)
+  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
 
 write_csv(amr, h("country_level_amr.csv"))
 
