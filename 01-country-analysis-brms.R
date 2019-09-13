@@ -10,25 +10,26 @@ source(h("R/functions.R"))
 
 
 # Read in data
-country_raw <- read_csv(h("country_level_amr.csv")) %>%
-  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum, -promed_mentions, -pubs_sum_per_capita#,
+country_raw <- read_csv(h("country-level-amr.csv")) %>%
+  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum, -promed_mentions#,
                 # -livestock_consumption_kg, -livestock_consumption_kg_per_pcu, -livestock_pcu
   ) %>%
   drop_na(population, gdp_per_capita) %>% # remove if population or gdp data is unavailable (usually territories)
   mutate_at(vars(ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for import/export NAs
   mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_capita, tourism_outbound_perc, tourism_inbound_perc, promed_mentions_per_capita),
             ~log(.)) %>%
-  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita",
+  mutate(pubs_sum_per_capita = log(pubs_sum_per_capita + 1e-07)) %>%
+  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita", "pubs_sum_per_capita",
                  "gdp_per_capita" , "population", "tourism_outbound_perc", "tourism_inbound_perc"), ~paste0("ln_", .))
 
-# View correlation matrix
+# View correlation matrix on raw data
 country_raw %>%
   dplyr::select(-iso3c) %>%
   PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
 
-par(mfrow=c(1,2))
-plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
-plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_perc)
+# par(mfrow=c(1,2))
+# plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
+# plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_perc)
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(is.na(.)))
@@ -51,6 +52,17 @@ plot(country_mice) # On convergence, the different streams should be freely inte
 show_imputes(country_mice, m = m, raw = country_raw)
 write_rds(country_mice, h("model/mice-imputation.rds"))
 
+imp <- complete(country_mice)
+
+imp %>%
+  dplyr::select(-iso3c) %>%
+  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
+
+imp %>%
+  dplyr::select(-iso3c) %>%
+  mutate_all(~rank(.)) %>%
+  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
+
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html
 
@@ -69,8 +81,8 @@ fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capit
                              ln_migrant_pop_perc + ln_tourism_inbound_perc + ln_tourism_outbound_perc +
                              ab_export_perc + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 
-                             ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
-                           zi ~ ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken),
+                             ln_pubs_sum_per_capita + ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
+                           zi ~ ln_pubs_sum_per_capita + ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken),
                         data = country_mice,
                         family = zero_inflated_poisson(),
                         chains = 4,

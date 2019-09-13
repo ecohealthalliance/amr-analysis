@@ -27,12 +27,27 @@ source(h("R/functions.R"))
 
 color_scheme_set("viridis") # for diagnostics
 
-amr <- read_rds(h("model/mice-imputation.rds")) %>% mice::complete(.)
+# data - raw and imputed
+amr_mice <- read_rds(h("model/mice-imputation.rds")) 
+
+amr_with_imputes <- amr_mice %>% 
+  mice::complete(.) %>% 
+  select(-ab_import_perc) %>%
+  mutate(country = countrycode::countrycode(sourcevar = iso3c,
+                                            origin = "iso3c",
+                                            destination = "country.name")  )
+amr_raw <- amr_mice$data %>%
+  select(-iso3c) %>%
+  gather(key ="var", value = "x") %>%
+  drop_na()
+
+# model results
 fit_combined <- read_rds(h("model/fit_combined.rds"))
 fit_all <- read_rds( h("model/fit_all.rds"))
 me_combined <- read_rds(h("model/fit_combined_marginal_effects.rds"))
 me_all <- read_rds(h("model/fit_all_marginal_effects.rds"))
 
+# event data
 url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/events_db.csv"
 events <- GET(url_events, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text")) 
@@ -43,21 +58,23 @@ locs <- read_csv(content(locs, "text")) %>%
   filter(study_id %in% events$study_id) %>%
   filter(!is.na(study_location)) 
 
-amr <- amr %>% 
-  select(-ab_import_perc) %>%
-  mutate(country = countrycode::countrycode(sourcevar = iso3c,
-                                            origin = "iso3c",
-                                            destination = "country.name")  )
-
-amr_tidy <- amr %>%
-  select(-iso3c, -country) %>%
-  gather(key ="var", value = "x")
-#means <- map_dbl(amr, ~mean(., na.rm = T))
-
+# get posterior samples of data
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
-zi_vars <- c("ln_promed_mentions_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
-pois_vars <- c("ln_livestock_consumption_kg_per_capita", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_promed_mentions_per_capita", "ln_gdp_per_capita")
+# get zi vars
+zi_vars <- beta_samples %>%
+  select(matches("zi_"), -b_zi_Intercept) %>%
+  colnames(.) %>%
+  gsub("^b_zi_", "", .)
+
+# get pois vars
+pois_vars <- beta_samples %>%
+  select(-matches("zi_"), -b_Intercept, -lp__) %>%
+  colnames(.)%>%
+  gsub("^b_", "", .)
+
+# zi_vars <- c("ln_promed_mentions_per_capita", "ln_pubs_sum_per_capita", "ln_gdp_per_capita", "ln_population", "english_spoken")
+# pois_vars <- c("ln_livestock_consumption_kg_per_capita", "ln_migrant_pop_perc", "ln_tourism_inbound_perc",  "ln_tourism_outbound_perc", "ab_export_perc", "health_expend_perc", "human_consumption_ddd", "english_spoken", "ln_pubs_sum_per_capita", "ln_promed_mentions_per_capita", "ln_gdp_per_capita")
 
 lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
                   "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
@@ -72,7 +89,7 @@ lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)",
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
                   "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
                   "ln_pubs_sum_per_capita" = "Publication Bias Index (per capita; ln scale)",
-                  "ln_promed_mentions_per_capita" = "PubMed Mentions (per capita; ln scale)")
+                  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita; ln scale)")
 
 global_labeller <- labeller(
   var = lookup_vars
@@ -87,13 +104,15 @@ summary(fit_combined)
 # Trace Plots
 stanplot(fit_combined, type = "trace")
 
-y <- amr$n_amr_events
+y <- amr_with_imputes$n_amr_events
 yrep <- posterior_predict(fit_combined, nsamples = 1000) 
 yord <- order(y)
 yrep <- yrep[,yord]
 y <- y[yord]
 
 ppc_dens_overlay(y, yrep) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay")
+
+ppc_hist(y, yrep)
 
 prop_zero <- function(x) mean(x == 0)
 ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
@@ -173,14 +192,14 @@ ggsave(filename = h("plots/marginal_effects_multi.png"), width = 22, height = 12
 # Get Zi partial effects
 out_zi <- map_dfr(zi_vars, function(var){
   
-  minx <- amr %>% pull(var) %>% min(., na.rm = T)
-  maxx <- amr %>% pull(var) %>% max(., na.rm = T)
+  minx <- amr_with_imputes %>% pull(var) %>% min(., na.rm = T)
+  maxx <- amr_with_imputes %>% pull(var) %>% max(., na.rm = T)
   seqx <- seq(from = minx, to = maxx, length.out = 100)
   
   betas <- as.matrix(beta_samples[,grep("zi", colnames(beta_samples))])
   
   X <- matrix(
-    c(1, colMeans(as.matrix(amr[,zi_vars]))),
+    c(1, colMeans(as.matrix(amr_with_imputes[,zi_vars]))),
     nrow = length(zi_vars) + 1, ncol = length(seqx),
   )
   rownames(X) <- c("Intercept", zi_vars)
@@ -208,7 +227,7 @@ out_zi_sum <- out_zi %>%
 p_zi_lines <- 
   ggplot(data = out_zi) + 
   geom_line(aes(x = x, y = y, group = samp), color = "lightsalmon", alpha = 0.1) + #For lots of lines
-  geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
+  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
   theme_bw()
@@ -217,7 +236,7 @@ p_zi_ribbon <-
   ggplot(data = out_zi_sum) +
   geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightsalmon", col = NA, alpha = 0.2) +
   geom_line(aes(x = x, y = med), color = "lightsalmon") +
-  geom_rug(data = filter(amr_tidy, var %in% zi_vars), mapping = aes(x = x)) + 
+  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
   theme_bw() + 
@@ -232,15 +251,15 @@ ggsave(plot = p_zi_ribbon,
 # Get Pois partial effects
 out_pois <- map_dfr(pois_vars, function(var){
   
-  minx <- amr %>% pull(var) %>% min(., na.rm = T)
-  maxx <- amr %>% pull(var) %>% max(., na.rm = T)
+  minx <- amr_with_imputes %>% pull(var) %>% min(., na.rm = T)
+  maxx <- amr_with_imputes %>% pull(var) %>% max(., na.rm = T)
   seqx <- seq(from = minx, to = maxx, length.out = 100)
   
   betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
   colnames(betas)[ncol(betas)] <- "offset"
   
   X <- matrix(
-    c(1, colMeans(as.matrix(amr[,c(pois_vars, "ln_population")]))),
+    c(1, colMeans(as.matrix(amr_with_imputes[,c(pois_vars, "ln_population")]))),
     nrow = length(pois_vars) + 2, ncol = length(seqx),
   )
   rownames(X) <- c("Intercept", pois_vars, "offset") 
@@ -267,7 +286,7 @@ out_pois_sum <- out_pois %>%
 p_pois_lines <-  
   ggplot(data = out_pois) + 
   geom_line(aes(x = x, y = y, group = samp), color = "chartreuse4", alpha = 0.1) + #For lots of lines
-  geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
+  geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
   theme_bw()
@@ -276,8 +295,8 @@ p_pois_ribbon <-
   ggplot(data = out_pois_sum) +
   geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "chartreuse4", col = NA, alpha = 0.2) +
   geom_line(aes(x = x, y = med), color = "chartreuse4") +
-  geom_rug(data = filter(amr_tidy, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
+  geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
+  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 3, labeller = global_labeller) +
   labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
   theme_bw() +
     theme(strip.text.x = element_text(size = 16), axis.text = element_text(size = 14))
@@ -290,7 +309,7 @@ ggsave(plot = p_pois_ribbon,
 ```
 
 ```{r country-predictions}
-amr_predict <- amr %>%
+amr_predict <- amr_with_imputes %>%
   mutate(mod_predict = predict(fit_combined)[,1]) %>%
   select(iso3c, mod_predict, n_amr_events)
 
@@ -299,10 +318,10 @@ betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))
 colnames(betas)[ncol(betas)] <- "b_ln_population"
 
 # matrix of data by country
-X <- cbind("Intercept" = 1 , amr[,c(pois_vars, "ln_population")]) %>%
+X <- cbind("Intercept" = 1 , amr_with_imputes[,c(pois_vars, "ln_population")]) %>%
   as.matrix(.) %>%
   t()
-colnames(X) <- amr$iso3c
+colnames(X) <- amr_with_imputes$iso3c
 X2 <- X
 X2["ln_population",] <- 0 # set population to zero to calculate rate
 
@@ -377,7 +396,7 @@ pois_cont <- as_tibble(Y_cont) %>%
                                origin = "iso3c",
                                destination = "country.name"))
 # plot contributions for non-zero countries
-nonzeros <- amr %>% filter(n_amr_events>0) %>% pull(country)
+nonzeros <- amr_with_imputes %>% filter(n_amr_events>0) %>% pull(country)
 variable_cont <- pois_cont %>%
   filter(country %in% nonzeros, var != "Intercept") %>%
   ggplot(data = ., aes(x = country, y = value, fill = var)) + 

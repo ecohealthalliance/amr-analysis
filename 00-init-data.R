@@ -261,6 +261,6 @@ amr %<>%
   ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
 
-write_csv(amr, h("country_level_amr.csv"))
+write_csv(amr, h("country-level-amr.csv"))
 
 
