@@ -3,18 +3,14 @@ library(brms)
 library(here)
 library(mice)
 library(future)
-library(htmltools)
-library(webshot)    
-library(formattable)
 
 h <- here::here
 
 set.seed(101)
 source(h("R/functions.R"))
 
-
 # Read in data
-country_raw <- read_csv(h("country-level-amr.csv")) %>%
+country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum, -promed_mentions, -tourism_outbound_perc#,
                 # -livestock_consumption_kg, -livestock_consumption_kg_per_pcu, -livestock_pcu
   ) %>%
@@ -26,51 +22,7 @@ country_raw <- read_csv(h("country-level-amr.csv")) %>%
   rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita", "pubs_sum_per_capita",
                  "gdp_per_capita" , "population", "tourism_inbound_perc"), ~paste0("ln_", .))
 
-# Sum stats
-export_formattable <- function(f, file, width = "100%", height = NULL, 
-                               background = "white", delay = 0.2)
-{
-  w <- as.htmlwidget(f, width = width, height = height)
-  path <- html_print(w, background = background, viewer = NULL)
-  url <- paste0("file:///", gsub("\\\\", "/", normalizePath(path)))
-  webshot(url,
-          file = file,
-          selector = ".formattable_widget",
-          delay = delay)
-}
-sstats <- read_csv(h("country-level-amr.csv")) %>%
-  filter(iso3c %in% country_raw$iso3c) %>%
-  select_if(is.numeric) %>%
-  gather() %>%
-  group_by(key) %>%
-  summarize(`Mean (SD)` = paste0(formatC(mean(value, na.rm = T), format = "e", digits = 1), " (", formatC(sd(value, na.rm = T), format = "e", digits = 1), ")"),
-            Maximum = formatC(max(value, na.rm = T), format = "e", digits = 1),
-            Minumum = formatC(min(value, na.rm = T), format = "e", digits = 1),
-            `Countries with available data` = length(value[!is.na(value)])
-  ) %>%
-  mutate(key = factor(key, levels = c("gdp_dollars", "health_expend_perc", "ab_export_perc", 
-                                      "population", "migrant_pop_perc", "tourism_inbound_perc",
-                                      "human_consumption_ddd", "livestock_consumption_kg_per_capita"), 
-                      labels = c("GDP", "Health Expenditure", "Antibiotic Exports", 
-                                 "Population", "Migrant population", "Tourism", "Human Antibiotic Consumption",
-                                 "Livestock Antibiotic Consumptiom"))) %>%
-  drop_na(key) %>%
-  arrange(key) %>%
-  mutate(`Measurement units` = c("US dollars per capita", "% GDP", "% GDP", "Count", "% Population", 
-                                 "% Population", "Defined Daily Dose (DDD)", "Kg per capita"), 
-         #TODO confirm these:
-         `Source` = c("World Bank", "World Health Organization", "Observatory of Economic Complexity", "World Bank", "United Nations",
-                      "World Tourism Organization", "IQVIA MIDAS", "VanBoeckel et al. 2015")) %>%
-  select(" " = key, `Measurement units`, everything()) 
-
-sstats_tbl <- formattable(sstats, 
-                          align =c("l","c","c","c","c","c","r"), 
-                          list(`Indicator Name` = formatter(
-                            "span", style = ~ style(color = "grey",font.weight = "bold")) 
-                          ))
-
-export_formattable(sstats_tbl, h("plots", "parameter_summary.png"))
-
+write_csv(country_raw, h("data/country-level-amr-transformed.csv")) 
 
 # View correlation matrix on raw data
 country_raw %>%
