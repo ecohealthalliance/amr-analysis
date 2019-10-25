@@ -127,10 +127,12 @@ lang <- lang %>%
   drop_na(iso3c)
 
 #-----------------Human Consumption data-----------------
-# 2014
-# From IQVIA MIDAS, as provided in Collignon EA 2018 supp data via personal correspondence 
+# 2014 as stated (https://www.thelancet.com/action/showPdf?pii=S2542-5196%2818%2930186-4)
+# From IQVIA MIDAS via ResistanceMap from the Center For Disease Dynamics, Economics & Policy, as provided in Collignon EA 2018 supp data via personal correspondence 
 # Values are Total defined daily dose (DDD) per capita
 # Defined Daily Dose (DDD): The assumed average maintenance dose per day for a drug used for its main indication in adults.
+# there are three fields with human consumption data.  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)` has the most available.
+
 consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[2].xlsx")) %>%
   dplyr::select(`International Organization for Standardization (ISO)*`, 
                 `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
