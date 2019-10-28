@@ -1,13 +1,15 @@
-key,label,Measurement Units,Source,Citation,Year,Control variable
-n_amr_events,AMR emergence events,Count,Mendelsohn et al. ,,1998 - 2017,
-population ,Population,Count,World Bank,https://data.worldbank.org/indicator/SP.POP.TOTL,2015,*
-gdp_per_capita ,GDP,US dollars per capita ,World Bank,https://data.worldbank.org/indicator/NY.GDP.MKTP.CD ,2015,*
-english_spoken,English spoken in country,Yes/No,CIA World Factbook,https://www.cia.gov/library/publications/the-world-factbook/fields/402.html,2019,*
-pubs_sum_per_capita,PubCrawler publication bias index,per capita,Allen et al. 2017,https://www.nature.com/articles/s41467-017-00923-8,,*
-promed_mentions_per_capita ,ProMED mentions,per capita,?,add,,*
-health_expend_perc ,Health expenditure,% GDP ,World Health Organization via World Bank,https://data.worldbank.org/indicator/SH.XPD.CHEX.GD.ZS,2015,
-ab_export_perc ,Antibiotic exports,% GDP,Observatory of Economic Complexity,https://oec.world/en/visualize/tree_map/hs92/export/show/all/2941/2015/,2015,
-migrant_pop_perc ,Migrant population,% Population ,United Nations Population Division via World Bank,https://data.worldbank.org/indicator/SM.POP.TOTL.ZS,2015,
-tourism_inbound_perc,Tourism (inbound),% Population ,World Tourism Organization,https://www.e-unwto.org/toc/unwtotfb/current,2015,
-human_consumption_ddd ,Human antibiotic consumption,Defined Daily Dose (DDD) ,IQVIA MIDAS,https://resistancemap.cddep.org/AntibioticUse.php,2014,
-livestock_consumption_kg_per_capita,Livestock antibiotic consumption,Kg per capita,Van Boeckel et al. 2015,https://www.pnas.org/content/112/18/5649,2010,
+key,label,Measurement Units,Source,Citation,Year,Control variable,Note
+n_amr_events,AMR emergence events,Count,Mendelsohn et al. ,,1998 - 2017,,
+population ,Population,Count,World Bank,https://data.worldbank.org/indicator/SP.POP.TOTL,2015,*,Country residents regardless of legal status or citizenship
+gdp_per_capita ,GDP,US dollars per capita ,World Bank,https://data.worldbank.org/indicator/NY.GDP.MKTP.CD ,2015,*,Dollar figures are converted from domestic currencies using single year official exchange rates
+english_spoken,English spoken in country,Yes/No,CIA World Factbook,https://www.cia.gov/library/publications/the-world-factbook/fields/402.html,2019,*,"Any country where English is widely spoken, even if not official language"
+pubs_sum_per_capita,PubCrawler publication bias index,per capita,Allen et al. 2017,https://www.nature.com/articles/s41467-017-00923-8,,*,Estimated relative reporting effort in each country based on location mentions in PubMed Central Open Access Subset (PMCOAS)
+promed_mentions_per_capita ,ProMED mentions,per capita,?,add,,*,
+health_expend_perc ,Health expenditure,% GDP ,World Health Organization via World Bank,https://data.worldbank.org/indicator/SH.XPD.CHEX.GD.ZS,2015,,Healthcare goods and services consumed during each year. 
+ab_export_perc ,Antibiotic exports,% GDP,Observatory of Economic Complexity,https://oec.world/en/visualize/tree_map/hs92/export/show/all/2941/2015/,2015,,Data comes from the United Nations Statistical Division (COMTRADE)
+ab_import_perc ,Antibiotic imports1,% GDP,https://oec.world/en/visualize/tree_map/hs92/import/show/all/2941/2015/,https://oec.world/en/visualize/tree_map/hs92/export/show/all/2941/2015/,2015,,Data comes from the United Nations Statistical Division (COMTRADE)
+migrant_pop_perc ,Migrant population,% Population ,United Nations Population Division via World Bank,https://data.worldbank.org/indicator/SM.POP.TOTL.ZS,2015,,"Number of people born in a country other than that in which they live, including refugees."
+tourism_inbound_perc,Tourism (inbound),% Population ,World Tourism Organization,https://www.e-unwto.org/toc/unwtotfb/current,2015,,Data compiled from administrative records and/or border surveys
+tourism_outbound_perc,Tourism (outbound),% Population ,World Tourism Organization,https://www.e-unwto.org/toc/unwtotfb/current,2015,,Data compiled from administrative records and/or border surveys
+human_consumption_ddd ,Human antibiotic consumption,Defined Daily Dose (DDD) ,IQVIA MIDAS,https://resistancemap.cddep.org/AntibioticUse.php,2014,,Data compiled from industry sources
+livestock_consumption_kg_per_capita,Livestock antibiotic consumption,Kg per capita,Van Boeckel et al. 2015,https://www.pnas.org/content/112/18/5649,2010,,"Country-reported antibiotic sales for cattle, chickens, pigs"

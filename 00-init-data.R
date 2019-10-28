@@ -60,7 +60,6 @@ wbd %<>%
          health_expend_perc = SH.XPD.CHEX.GD.ZS,
          iso3c = countryiso3code)
 
-
 #-----------------Observatory of Economic Complexity------------
 # 2015
 # Visualization: https://atlas.media.mit.edu/en/visualize/tree_map/hs92/export/show/all/2941/2015/
@@ -97,16 +96,18 @@ pubcrawl_weights <- read_csv(h("data/pubcrawler_country.csv")) %>% # generated b
          iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
                              destination = "iso3c")) %>%
+  drop_na(iso3c) %>% # federal republic of yugoslavia, netherland antilles
   filter(!(iso3c == "MRT" & pubs_sum==0)) %>%
-  dplyr::select(-country) %>%
-  drop_na(iso3c) # federal republic of yugoslavia, netherland antilles
+  dplyr::select(-country) 
 
 #-----------------GRITS ProMED-----------------
 promed_weights <- read_csv(h("data/promed_mentions.csv")) %>%
   mutate(iso3c = countrycode(sourcevar = country_code,
                              origin = "iso2c",
-                             destination = "iso3c")) %>%
-  dplyr::select(-country_code, promed_mentions = mentions)
+                             destination = "iso3c")) %>% 
+  drop_na(iso3c) %>% # netherland antilles, Serbia and Montenegro, Kosovo, Yugoslavia
+  dplyr::select(-country_code, promed_mentions = mentions) 
+
 #-----------------Language by country-----------------
 # CIA World Factbook https://www.cia.gov/library/publications/the-world-factbook/fields/402.html
 lang <- read_csv(h("data/cia-world-factbook-language.csv"), col_names = "info") %>%
@@ -124,7 +125,7 @@ lang <- lang %>%
                              origin = "country.name",
                              destination = "iso3c")) %>%
   dplyr::select(iso3c, english_spoken) %>%
-  drop_na(iso3c)
+  drop_na(iso3c) # Akrotiri, Dhekelia, Eswatini, European Union, Kosovo, Saint Martin, Virgin Islands, World
 
 #-----------------Human Consumption data-----------------
 # 2014 as stated (https://www.thelancet.com/action/showPdf?pii=S2542-5196%2818%2930186-4)
@@ -138,8 +139,8 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
                 `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   rename(iso3c = `International Organization for Standardization (ISO)*`, 
          human_consumption_ddd =  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
-  na.omit() %>%
-  filter(iso3c != "na") 
+  filter(iso3c != "na") %>%
+  drop_na(iso3c, human_consumption_ddd)
 
 #-----------------Livestock Consumption data-----------------
 # 2010 
@@ -168,13 +169,15 @@ tourism <- full_join(tour_outbound, tour_inbound) %>%
   mutate(iso3c = countrycode(sourcevar = COUNTRY,
                              origin = "country.name",
                              destination = "iso3c")) %>%
-  dplyr::select(-COUNTRY)
+  dplyr::select(-COUNTRY) %>%
+  drop_na(iso3c)
+
 #-----------------All countries-----------------
 all_countries <- map_data("world") %>%
   mutate(iso3c = countrycode(sourcevar = region,
                              origin = "country.name",
                              destination = "iso3c"))  %>%
-  dplyr::select(iso3c) %>% na.omit() %>% distinct() 
+  dplyr::select(iso3c) %>% drop_na() %>% distinct() 
 
 #-----------------All data-----------------
 amr <- all_countries %>%
@@ -201,6 +204,11 @@ amr <- all_countries %>%
                                               origin = "iso3c",
                                               destination = "continent"))
 
+# make sure no event or consumption data lost
+setdiff(events$iso3c, amr$iso3c)
+setdiff(consumption$iso3c, amr$iso3c)
+setdiff(livestock$iso3c, amr$iso3c)
+
 # Post process
 amr %<>%
   mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
@@ -215,5 +223,3 @@ amr %<>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
 
 write_csv(amr, h("data/country-level-amr.csv"))
-
-
