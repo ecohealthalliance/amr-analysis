@@ -170,6 +170,9 @@ ggplot(data = yall, aes(x = grp)) +
 
 ```{r partial-effects}
 # Partial effects - each model over data range
+# Y = Marginal effects for continuous variables measure the instantaneous rate of change - they provide a
+# good approximation to the amount of change in Y that will be produced by a 1-unit change in Xk.
+
 me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
     mutate(iteration = y) 
@@ -184,8 +187,8 @@ ggplot(me_all2, aes(x = value)) +
   geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
   geom_line(data = me_all2_avg, aes(x = value, y = mean)) +
   facet_wrap(~var,  labeller = global_labeller, scales = "free") +
-  labs(x = "", y = "Count AMR Events", title = "Partial Effects of Predictor Variables", caption = "Blue lines represent individual model iterations; black line is average model") +
-  theme_bw() 
+  labs(x = "", y = "Additive Change in AMR Emergence Event Count", title = "", caption = "Blue lines represent individual model iterations; black line is average model") +
+  theme_minimal() 
 
 ggsave(filename = h("plots/marginal_effects_multi.png"), width = 22, height = 12)
 
@@ -217,6 +220,10 @@ out_zi <- map_dfr(zi_vars, function(var){
   return(out)
 })
 
+# reverse axis
+out_zi <- out_zi %>% mutate(y = 1-y)
+
+# summarize
 out_zi_sum <- out_zi %>% 
   group_by(x, var) %>% 
   summarise(med = median(y),
@@ -224,29 +231,27 @@ out_zi_sum <- out_zi %>%
             hi = quantile(y, .975)) %>%
   ungroup()
 
+labs <- out_zi_sum %>% 
+  group_by(var) %>% 
+  summarize(x = quantile(x, 0.5)) %>%
+  mutate(y = 0.9)
+
 p_zi_lines <- 
-  ggplot(data = out_zi) + 
-  geom_line(aes(x = x, y = y, group = samp), color = "lightsalmon", alpha = 0.1) + #For lots of lines
+  ggplot() + 
+  geom_line(data = out_zi, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
+  geom_line(data = out_zi_sum, aes(x = x, y = med), color = "black") +
   geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
-  labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
-  theme_bw()
-
-p_zi_ribbon <- 
-  ggplot(data = out_zi_sum) +
-  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightsalmon", col = NA, alpha = 0.2) +
-  geom_line(aes(x = x, y = med), color = "lightsalmon") +
-  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  ncol = 2, labeller = global_labeller) +
-  labs(y = "Logisitic Prob of No Response", x = "", main = "Logistic Model (zi)") +
-  theme_bw() + 
-  theme(strip.text.x = element_text(size = 16), axis.text = element_text(size = 14))
+  # geom_text(data = labs, aes(x = x, y = y, label = var)) +
+  facet_wrap(var ~ ., scales = "free_x", drop = FALSE,  ncol = 2, labeller = global_labeller) +
+  labs(y = "Logisitic Prob. of Non-zero Outcome\n", x = "", main = "") +
+  theme_few() +
+  theme(strip.text.x = element_text(size = 14), 
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 14))
 
 
-p_zi_ribbon
-
-ggsave(plot = p_zi_ribbon, 
-       filename = h("plots/zi_marginal_effects.png"), width = 22, height = 12)
+ggsave(plot = p_zi_lines, 
+       filename = h("plots/zi_marginal_effects.png"), width = 12.5, height = 12)
 
 # Get Pois partial effects
 out_pois <- map_dfr(pois_vars, function(var){
@@ -284,27 +289,18 @@ out_pois_sum <- out_pois %>%
             hi = quantile(y, .975))
 
 p_pois_lines <-  
-  ggplot(data = out_pois) + 
-  geom_line(aes(x = x, y = y, group = samp), color = "chartreuse4", alpha = 0.1) + #For lots of lines
+  ggplot() + 
+  geom_line(data = out_pois, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
+  geom_line(data = out_pois_sum, aes(x = x, y = med), color = "black") +
   geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 2, labeller = global_labeller) +
-  labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
-  theme_bw()
-
-p_pois_ribbon <- 
-  ggplot(data = out_pois_sum) +
-  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "chartreuse4", col = NA, alpha = 0.2) +
-  geom_line(aes(x = x, y = med), color = "chartreuse4") +
-  geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = NA_real_)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 3, labeller = global_labeller) +
-  labs(y = "Event Count if Reported", x = "", main = "Poisson Model (zi)") +
-  theme_bw() +
-    theme(strip.text.x = element_text(size = 16), axis.text = element_text(size = 14))
+  labs(y = "AMR Emergence Event Count\n", x = "", main = "Poisson Model (zi)") +
+  theme_few() +
+  theme(strip.text.x = element_text(size = 14), 
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 14))
 
-
-p_pois_ribbon
-
-ggsave(plot = p_pois_ribbon,
+ggsave(plot = p_pois_lines,
        filename = h("plots/pois_marginal_effects.png"), width = 25, height = 12)
 ```
 
@@ -445,20 +441,20 @@ lf1 <- leaflet() %>%
               stroke = TRUE, color = "#46464a", weight = 1,
               fill = TRUE, fillColor = ~pal1(`Predicted AMR Events`), fillOpacity = 0.9,
               label = ~paste0(name, ": ", `Predicted AMR Events`), group = "Predicted") %>%
-    addPolygons(data = admin_mean, 
+  addPolygons(data = admin_mean, 
               stroke = TRUE, color = "#46464a", weight = 1,
               fill = TRUE, fillColor = ~pal1(`Reported AMR Events`), fillOpacity = 0.9,
               label = ~paste0(name, ": ", `Reported AMR Events`), group = "Reported") %>%
-    addCircleMarkers(data = locs,  radius = 3,
+  addCircleMarkers(data = locs,  radius = 3,
                    lng = ~jitter(lon_study), lat = ~jitter(lat_study), 
                    stroke = TRUE, color = "#210106", opacity = 1, weight = 1,
                    fill = TRUE, fillColor = "#210106", fillOpacity = 0.5,
                    label = ~study_location, group = "Reported") %>%
   addLegend(data = admin_mean, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
-      addControl(caption) %>%
-      addLayersControl(baseGroups = c("Reported", "Predicted"), options = layersControlOptions(collapsed = FALSE), position = "bottomleft")  
+  addControl(caption) %>%
+  addLayersControl(baseGroups = c("Reported", "Predicted"), options = layersControlOptions(collapsed = FALSE), position = "bottomleft")  
 
-  lf1
+lf1
 
 
 htmlwidgets::saveWidget(lf1, h("plots/map_predictions.html"))
