@@ -27,7 +27,7 @@ write_csv(country_raw, h("data/country-level-amr-transformed.csv"))
 # View correlation matrix on raw data
 country_raw %>%
   dplyr::select(-iso3c) %>%
-  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
+  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19, method = "spearman")
 
 # par(mfrow=c(1,2))
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
@@ -58,12 +58,8 @@ imp <- complete(country_mice)
 
 imp %>%
   dplyr::select(-iso3c) %>%
-  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
+  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19, method = "spearman")
 
-imp %>%
-  dplyr::select(-iso3c) %>%
-  mutate_all(~rank(.)) %>%
-  PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19)
 
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html
