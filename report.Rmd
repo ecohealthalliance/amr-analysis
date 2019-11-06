@@ -88,7 +88,7 @@ lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)",
                   "ln_gdp_per_capita" = "GDP (per capita; ln scale)", 
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
                   "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
-                  "ln_pubs_sum_per_capita" = "Publication Bias Index (per capita; ln scale)",
+                  "ln_pubs_sum_per_capita" = "PubCrawler Publication Bias Index (per capita; ln scale)",
                   "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita; ln scale)")
 
 global_labeller <- labeller(

@@ -223,3 +223,11 @@ amr %<>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
 
 write_csv(amr, h("data/country-level-amr.csv"))
+
+# summary
+amr %>%
+  gather(key = "param", value = "value", -iso3c) %>%
+  filter(!param %in% c("english_spoken", "country", "region", "continent")) %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(param) %>%
+  filter(value == max(value, na.rm =T) ) %>% ungroup() 
