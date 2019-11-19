@@ -24,7 +24,7 @@ amr_mice <- read_rds(h("model/mice-imputation.rds"))
 
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
-  select(-ab_import_per_capita) %>%
+  select(-ln_ab_import_per_capita) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name"))
@@ -58,7 +58,7 @@ lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)",
                   "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita; ln scale)",
                   # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
                   # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
-                  "ab_export_per_capita" = "AB Exports (dollars per capita)", 
+                  "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
                   "ln_gdp_per_capita" = "GDP (dollars per capita; ln scale)", 
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
                   "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",

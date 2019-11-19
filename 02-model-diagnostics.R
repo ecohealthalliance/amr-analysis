@@ -13,7 +13,7 @@ amr_mice <- read_rds(h("model/mice-imputation.rds"))
 
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
-  select(-ab_import_per_capita) %>%
+  select(-ln_ab_import_per_capita) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name")  )
@@ -95,3 +95,4 @@ ggplot(data = yall, aes(x = grp)) +
   labs(title = "Observations versus Predictions(grouped by intervals)", caption = "dark line = 50% probability; faded line = 90% probability; points are medians", x = "", y = "", color = "", fill = "")
 
 ggsave(filename = h("plots/diagnostics/intervals_grouped.png"), width = 6)
+

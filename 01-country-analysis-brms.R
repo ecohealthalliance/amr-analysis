@@ -11,16 +11,33 @@ source(h("R/functions.R"))
 
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
-  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubs_sum, -promed_mentions, 
-                # -livestock_consumption_kg, -livestock_consumption_kg_per_pcu, -livestock_pcu
-  ) %>%
-  drop_na(population, gdp_per_capita) %>% # remove if population or gdp data is unavailable (usually territories)
-  mutate_at(vars(ab_export_perc, ab_import_perc), ~replace_na(., 0)) %>% # assume 0 for import/export NAs
-  mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_capita, tourism_inbound_perc, tourism_outbound_perc, promed_mentions_per_capita),
+  # remove cols not using
+  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubcrawl, -promed_mentions) %>%
+  # remove rows if population or gdp data is unavailable (usually territories)
+  drop_na(population, gdp_per_capita) %>% 
+  # replace NAs and 0s with 1/2 min
+  mutate_at(vars(pubcrawl_per_capita, promed_mentions_per_capita), 
+            ~ifelse(is.na(.)|.==0,
+                    0.5*min(.[.>0], na.rm = TRUE),
+                    .)) %>% 
+  # replace NAs and 0s with mean (not doing this to import_per_capita because it only goes into tree impute model)
+  mutate_at(vars(ab_export_per_capita), 
+            ~ifelse(is.na(.)|.==0,
+                    mean(., na.rm = TRUE),
+                    .)) %>%
+  # log transform values
+  mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_capita, tourism_inbound_perc, tourism_outbound_perc, 
+                 promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
             ~log(.)) %>%
-  mutate(pubs_sum_per_capita = log(pubs_sum_per_capita + 1e-07)) %>%
-  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita", "pubs_sum_per_capita",
-                 "gdp_per_capita" , "population", "tourism_inbound_perc", "tourism_outbound_perc"), ~paste0("ln_", .))
+  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita", "pubcrawl_per_capita",
+                 "gdp_per_capita" , "population", "tourism_inbound_perc", "tourism_outbound_perc", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
+
+country_raw %>%
+  select(-iso3c, -n_amr_events, -english_spoken) %>%
+  gather() %>%
+  ggplot(aes(x = value)) +
+  geom_histogram() + 
+  facet_wrap(key~., scales = "free")
 
 write_csv(country_raw, h("data/country-level-amr-transformed.csv")) 
 
@@ -34,7 +51,8 @@ country_raw %>%
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_perc)
 
 # Which parameters have NAs
-map_int(country_raw, ~sum(is.na(.)))
+map_int(country_raw, ~sum(!is.na(.)))
+map_lgl(country_raw, ~any(is.infinite(.))) # confirm no infinite values
 
 # Mice settings
 # helpful for setting parameters: https://stats.stackexchange.com/questions/219013/how-do-the-number-of-imputations-the-maximum-iterations-affect-accuracy-in-mul/219049
@@ -77,10 +95,10 @@ imp %>%
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
 fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capita + 
                              ln_migrant_pop_perc + ln_tourism_inbound_perc + ln_tourism_outbound_perc +
-                             ab_export_perc + health_expend_perc + 
+                             ln_ab_export_per_capita + ab_export_bin + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 
-                             ln_pubs_sum_per_capita + ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
-                           zi ~ ln_pubs_sum_per_capita + ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken),
+                             ln_pubcrawl_per_capita + ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
+                           zi ~ ln_pubcrawl_per_capita + ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken),
                         data = country_mice,
                         family = zero_inflated_poisson(),
                         chains = 4,
