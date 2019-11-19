@@ -15,16 +15,9 @@ events <- GET(url, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))
 
 #-----------------Country-wide data-----------------
-# Get iso3c codes for countries
-
-events %<>%
-  mutate(study_country = recode(study_country, "england" = "united kingdom")) %>%
-  mutate(iso3c = countrycode(sourcevar = study_country,
-                             origin = "country.name",
-                             destination = "iso3c"))
-
 # Summarize counts
 events_by_country <- events %>%
+  rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
   ungroup() 
@@ -98,7 +91,7 @@ pubcrawl_weights <- read_csv(h("data/pubcrawler_country.csv")) %>% # generated b
                              destination = "iso3c")) %>%
   drop_na(iso3c) %>% # federal republic of yugoslavia, netherland antilles
   filter(!(iso3c == "MRT" & pubs_sum==0)) %>%
-  dplyr::select(-country) 
+  dplyr::select(-country, pubcrawl = pubs_sum) 
 
 #-----------------GRITS ProMED-----------------
 promed_weights <- read_csv(h("data/promed_mentions.csv")) %>%
@@ -125,8 +118,8 @@ lang <- lang %>%
                              origin = "country.name",
                              destination = "iso3c")) %>%
   dplyr::select(iso3c, english_spoken) %>%
-  drop_na(iso3c) # Akrotiri, Dhekelia, Eswatini, European Union, Kosovo, Saint Martin, Virgin Islands, World
-
+  drop_na(iso3c) %>% # Akrotiri, Dhekelia, Eswatini, European Union, Kosovo, Saint Martin, Virgin Islands, World
+  distinct()
 #-----------------Human Consumption data-----------------
 # 2014 as stated (https://www.thelancet.com/action/showPdf?pii=S2542-5196%2818%2930186-4)
 # From IQVIA MIDAS via ResistanceMap from the Center For Disease Dynamics, Economics & Policy, as provided in Collignon EA 2018 supp data via personal correspondence 
@@ -209,15 +202,18 @@ setdiff(events$iso3c, amr$iso3c)
 setdiff(consumption$iso3c, amr$iso3c)
 setdiff(livestock$iso3c, amr$iso3c)
 
+# check for dupes
+amr %>% janitor::get_dupes(iso3c)
+
 # Post process
 amr %<>%
-  mutate(ab_export_perc = 100 * ab_export_dollars/gdp_dollars,
-         ab_import_perc = 100 * ab_import_dollars/gdp_dollars,
+  mutate(ab_export_per_capita = ab_export_dollars/population,
+         ab_import_per_capita = ab_import_dollars/population,
          livestock_consumption_kg_per_capita = livestock_ab_sales_kg/population,
          gdp_per_capita = gdp_dollars/population,
          tourism_outbound_perc = 100 * (tourism_outbound*1000)/population,
          tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
-         pubs_sum_per_capita = pubs_sum/population,
+         pubcrawl_per_capita = pubcrawl/population,
          promed_mentions_per_capita = promed_mentions/population
   ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
