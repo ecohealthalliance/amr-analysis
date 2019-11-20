@@ -245,7 +245,7 @@ amr <- all_countries %>%
 # make sure no event or consumption data lost
 setdiff(events$iso3c, amr$iso3c)
 setdiff(consumption$iso3c, amr$iso3c)
-setdiff(livestock$iso3c, amr$iso3c)
+setdiff(livestock_sales$iso3c, amr$iso3c)
 
 # check for dupes
 amr %>% janitor::get_dupes(iso3c)
