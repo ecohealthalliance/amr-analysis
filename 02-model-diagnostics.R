@@ -13,7 +13,7 @@ amr_mice <- read_rds(h("model/mice-imputation.rds"))
 
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
-  select(-ln_ab_import_per_capita) %>%
+  select(-ln_ab_import_per_capita, -ln_livestock_pcu) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name")  )

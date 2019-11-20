@@ -8,6 +8,7 @@ library(sf)
 library(leaflet)
 library(leaflet.extras)
 library(httr)
+library(sjPlot)
 set.seed(101)
 
 h <- here::here
@@ -24,7 +25,7 @@ amr_mice <- read_rds(h("model/mice-imputation.rds"))
 
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
-  select(-ln_ab_import_per_capita) %>%
+  select(-ln_ab_import_per_capita, -ln_livestock_pcu) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name"))
@@ -53,12 +54,13 @@ pois_vars <- beta_samples %>%
 lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
                   "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
                   "ln_population" = "Population (ln scale)",
-                  "english_spoken" = "English Spoken", 
+                  "english_spoken" = "English Spoken (yes/no)", 
                   "human_consumption_ddd" = "Human AB Consumption (DDD)", 
                   "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita; ln scale)",
                   # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
                   # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
                   "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
+                  "ab_export_bin" = "AB Exported (yes/no)",
                   "ln_gdp_per_capita" = "GDP (dollars per capita; ln scale)", 
                   "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
                   "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
@@ -82,8 +84,35 @@ locs <- read_csv(content(locs, "text")) %>%
 
 # Coefficients ------------------------------------------------------------
 summary(fit_combined)
-
 # dot plot
+coefs <- get_model_data(fit_combined, type = "est") %>%
+  distinct() %>%
+  mutate(term = as.character(term)) %>%
+  mutate(term = lookup_vars[term]) %>%
+  mutate(term = fct_reorder(term, estimate)) %>%
+  mutate(est = round(estimate, 2)) %>%
+  mutate(predictor = !(1 >= conf.low & 1 <= conf.high)) %>%
+  mutate(lab = ifelse(predictor, paste0(est, "*"), est))
+
+ggplot(coefs, aes(x = term, y = estimate)) + 
+  geom_hline(yintercept = 1, color = "gray60") +
+  geom_segment(aes(y = conf.low, yend = conf.high, xend = term), color = "cornflowerblue") +
+  geom_point(aes(color = group), show.legend = FALSE) +
+  geom_text(aes(label = lab), nudge_x = 0.25) +
+  scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
+  labs(x = "", y = "Incidence Rate Ratio") +
+  coord_flip() +
+  theme_bw() +
+  theme(axis.text = element_text(color = "black"))
+
+ggsave(filename = h("plots/dot_plot.png"), width = 8)
+
+# plot_model(fit_combined, 
+#            type = "est", 
+#            title = "",
+#            show.values = TRUE
+# ) 
+
 
 
 # Marginal effects --------------------------------------------------------
@@ -139,25 +168,25 @@ out_zi <- map_dfr(zi_vars, function(var){
 # reverse axis
 out_zi <- out_zi %>% mutate(y = 1-y)
 
+# labels for x axis
+out_zi <- out_zi %>% 
+  mutate(x_trans = ifelse(grepl("ln_", var), exp(x), x))
+
 # summarize
 out_zi_sum <- out_zi %>% 
-  group_by(x, var) %>% 
+  group_by(x, x_trans, var) %>% 
   summarise(med = median(y),
             lo = quantile(y, .025),
             hi = quantile(y, .975)) %>%
   ungroup()
 
-labs <- out_zi_sum %>% 
-  group_by(var) %>% 
-  summarize(x = quantile(x, 0.5)) %>%
-  mutate(y = 0.9)
-
 p_zi_lines <- 
   ggplot() + 
   geom_line(data = out_zi, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
-  geom_line(data = out_zi_sum, aes(x = x, y = med), color = "black") +
-  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) + 
-  # geom_text(data = labs, aes(x = x, y = y, label = var)) +
+  geom_line(data = out_zi_sum, aes(x = x, y = med), color = "cornflowerblue", size = 1.5) +
+  geom_line(data = out_zi_sum, aes(x = x, y = lo), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
+  geom_line(data = out_zi_sum, aes(x = x, y = hi), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
+  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) +
   facet_wrap(var ~ ., scales = "free_x", drop = FALSE,  ncol = 2, labeller = global_labeller) +
   labs(y = "Logisitic Prob. of Non-zero Outcome\n", x = "", main = "") +
   theme_few() +
@@ -207,7 +236,9 @@ out_pois_sum <- out_pois %>%
 p_pois_lines <-  
   ggplot() + 
   geom_line(data = out_pois, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
-  geom_line(data = out_pois_sum, aes(x = x, y = med), color = "black") +
+  geom_line(data = out_pois_sum, aes(x = x, y = med), color = "cornflowerblue", size = 1.5) +
+  geom_line(data = out_pois_sum, aes(x = x, y = lo), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
+  geom_line(data = out_pois_sum, aes(x = x, y = hi), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
   geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
   facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 3, labeller = global_labeller) +
   labs(y = "AMR Emergence Event Count\n", x = "", main = "Poisson Model (zi)") +
