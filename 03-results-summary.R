@@ -51,21 +51,31 @@ pois_vars <- beta_samples %>%
   gsub("^b_", "", .)
 
 # labelling for plots
-lookup_vars <- c( "health_expend_perc" ="Health Expenditure (% GDP)", 
-                  "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
-                  "ln_population" = "Population (ln scale)",
-                  "english_spoken" = "English Spoken (yes/no)", 
-                  "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-                  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita; ln scale)",
-                  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
-                  # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
-                  "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
-                  "ab_export_bin" = "AB Exported (yes/no)",
-                  "ln_gdp_per_capita" = "GDP (dollars per capita; ln scale)", 
-                  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
-                  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
-                  "ln_pubcrawl_per_capita" = "PubCrawler Publication Bias Index (per capita; ln scale)",
-                  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita; ln scale)")
+lookup_vars <- c(
+  # consumption vars
+  "human_consumption_ddd" = "Human AB Consumption (DDD)", 
+  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita; ln scale)",
+  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
+  # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
+  
+  # production
+  "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
+  "ab_export_bin" = "AB Exported (yes/no)",
+  
+  # population movement
+  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
+  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
+  "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
+  
+  # economic activity
+  "health_expend_perc" ="Health Expenditure (% GDP)", 
+  "ln_gdp_per_capita" = "GDP (dollars per capita; ln scale)", 
+  
+  # surveillance 
+  "ln_population" = "Population (ln scale)",
+  "english_spoken" = "English Spoken (yes/no)", 
+  "ln_pubcrawl_per_capita" = "PubCrawler Publication Bias Index (per capita; ln scale)",
+  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita; ln scale)")
 
 global_labeller <- labeller(
   var = lookup_vars
@@ -82,21 +92,29 @@ locs <- read_csv(content(locs, "text")) %>%
   filter(study_id %in% events$study_id) %>%
   filter(!is.na(study_location)) 
 
-# Coefficients ------------------------------------------------------------
+# Summary and Coefficients ------------------------------------------------------------
 summary(fit_combined)
+
+brms::bayes_R2(fit_combined, summary = TRUE)
+
 # dot plot
 coefs <- get_model_data(fit_combined, type = "est") %>%
   distinct() %>%
-  mutate(term = as.character(term)) %>%
-  mutate(term = lookup_vars[term]) %>%
-  mutate(term = fct_reorder(term, estimate)) %>%
+  mutate(term_clean = as.character(term)) %>%
+  mutate(term_clean = lookup_vars[term_clean]) %>%
+  mutate(term_clean = fct_reorder(term_clean, estimate)) %>%
   mutate(est = round(estimate, 2)) %>%
   mutate(predictor = !(1 >= conf.low & 1 <= conf.high)) %>%
   mutate(lab = ifelse(predictor, paste0(est, "*"), est))
 
-ggplot(coefs, aes(x = term, y = estimate)) + 
+predictors <- coefs %>%
+  filter(predictor) %>%
+  mutate(lab = "*") %>%
+  select(term, lab)
+
+ggplot(coefs, aes(x = term_clean, y = estimate)) + 
   geom_hline(yintercept = 1, color = "gray60") +
-  geom_segment(aes(y = conf.low, yend = conf.high, xend = term), color = "cornflowerblue") +
+  geom_segment(aes(y = conf.low, yend = conf.high, xend = term_clean), color = "cornflowerblue") +
   geom_point(aes(color = group), show.legend = FALSE) +
   geom_text(aes(label = lab), nudge_x = 0.25) +
   scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
@@ -107,33 +125,39 @@ ggplot(coefs, aes(x = term, y = estimate)) +
 
 ggsave(filename = h("plots/dot_plot.png"), width = 8)
 
-# plot_model(fit_combined, 
-#            type = "est", 
-#            title = "",
-#            show.values = TRUE
-# ) 
-
-
-
 # Marginal effects --------------------------------------------------------
 me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
     mutate(iteration = y) 
-})
+}) %>%
+  mutate(var = factor(var, levels = names(lookup_vars)))
 
 me_all2_avg <- me_all2 %>%
   group_by(value, var) %>%
   summarize(mean = mean(estimate__)) %>%
   ungroup() 
 
+predictors <- me_all2_avg %>%
+  group_by(var) %>%
+  summarize(xval = 0.9 * max(value),
+            yval = 0.9 * max(mean)) %>%
+  ungroup() %>%
+  right_join(predictors, by = c("var" = "term")) %>%
+  mutate(var = factor(var, levels = names(lookup_vars)))
+
 ggplot(me_all2, aes(x = value)) + 
   geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
   geom_line(data = me_all2_avg, aes(x = value, y = mean)) +
-  facet_wrap(~var,  labeller = global_labeller, scales = "free") +
-  labs(x = "", y = "Additive Change in AMR Emergence Event Count", title = "", caption = "Blue lines represent individual model iterations; black line is average model") +
-  theme_minimal() 
+  geom_text(data=predictors, aes(label = lab, x = Inf, y = Inf),
+            hjust = 2, vjust = 1.5, size = 14) +
+  facet_wrap(~var,  labeller = global_labeller, scales = "free", ncol = 2) +
+  labs(x = "", y = "Additive Change in AMR Emergence Event Count\n", title = "") +
+  theme_minimal() +
+  theme(axis.title.y = element_text(hjust = 1, size = 14),
+        strip.text = element_text(size = 14),
+        axis.text = element_text(size = 11))
 
-ggsave(filename = h("plots/marginal_effects_multi.png"), width = 22, height = 12)
+ggsave(filename = h("plots/marginal_effects_multi.png"), width = 12, height = 20)
 
 # Zi logistic model ---------------------------------------------------------------
 
@@ -256,6 +280,14 @@ amr_predict <- amr_with_imputes %>%
   mutate(mod_predict = predict(fit_combined)[,1]) %>%
   select(iso3c, mod_predict, n_amr_events)
 
+# get means
+# amr_means <- colMeans(as.matrix(amr_with_imputes[,unique(c(zi_vars, pois_vars))])) %>%
+#   enframe() %>%
+#   pivot_wider(names_from = name, values_from = value)
+# predict(fit_combined, newdata = amr_means) 
+# amr_means$ln_gdp_per_capita <- log(exp(amr_means$ln_gdp_per_capita) * 2)
+# predict(fit_combined, newdata = amr_means) 
+
 # matrix of beta samples
 betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
 colnames(betas)[ncol(betas)] <- "b_ln_population"
@@ -299,11 +331,12 @@ pois_predicts <- bind_rows(pois_predicts, Y2) %>%
                                destination = "country.name"))
 
 # view largest differences
-pois_predicts %>%
+test = pois_predicts %>%
   filter(v == "mean_pop") %>%
   mutate(diff = med - n_amr_events) %>%
-  arrange(-diff)
+  arrange(-diff) %>%
 
+mean(test$diff)
 
 # Map predictions ---------------------------------------------------------
 
