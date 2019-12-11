@@ -354,7 +354,11 @@ admin <- left_join(admin, pois_predicts, by = "iso3c") %>%
   select(name, iso3c, v, "Reported AMR Events" = n_amr_events, "Predicted AMR Events" = med) 
 
 admin_mean <- admin %>%
-  filter(v == "mean_pop")
+  filter(is.na(v) | v == "mean_pop") %>% 
+  select(-v) %>%
+  gather(-name, -iso3c, -geometry, key = "key", value = "value") %>%
+  mutate(key = factor(key, levels = c("Reported AMR Events", "Predicted AMR Events"), labels = c("Reported", "Predicted"))) %>%
+  filter(name != "Antarctica")
 
 pal1 <- colorNumeric("OrRd", domain = c(admin_mean$`Predicted AMR Events`, admin_mean$`Reported AMR Events`), na.color = "#e9e9f0")
 
@@ -364,15 +368,29 @@ caption <- glue::glue(nrow(events), " AMR emergence events<br/>",
                       n_distinct(events$bacteria), " resistant bacteria<br/>",
                       str_sub(min(events$start_date), 1, 4), " - ",  str_sub(max(events$start_date), 1, 4))
 
+ggplot(admin_mean) + 
+  geom_sf(aes(fill = value), color = "transparent") +
+  facet_wrap(key~., strip.position="top", ncol = 1) +
+  scale_fill_viridis_c(option = "plasma", alpha = 0.8) +
+  #scale_fill_gradient(high = "#E34A33", low = "#b0a390")  +
+  labs(fill = "AMR Emergence Count") +
+  theme_map() +
+  theme(strip.background = element_blank(), strip.text = element_text(size = 14), 
+        legend.title = element_text(size = 14), legend.text = element_text(size = 11))
+
+ggsave(filename = h("plots/map_predictions.png"), width = 12, height = 8)
+
+admin_mean2 <- admin %>%
+  filter(v == "mean_pop")
 
 lf1 <- leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
   addFullscreenControl(position = "topright") %>%
-  addPolygons(data = admin_mean, 
+  addPolygons(data = admin_mean2, 
               stroke = TRUE, color = "#46464a", weight = 1,
               fill = TRUE, fillColor = ~pal1(`Predicted AMR Events`), fillOpacity = 0.9,
               label = ~paste0(name, ": ", `Predicted AMR Events`), group = "Predicted") %>%
-  addPolygons(data = admin_mean, 
+  addPolygons(data = admin_mean2, 
               stroke = TRUE, color = "#46464a", weight = 1,
               fill = TRUE, fillColor = ~pal1(`Reported AMR Events`), fillOpacity = 0.9,
               label = ~paste0(name, ": ", `Reported AMR Events`), group = "Reported") %>%
@@ -381,10 +399,10 @@ lf1 <- leaflet() %>%
                    stroke = TRUE, color = "#210106", opacity = 1, weight = 1,
                    fill = TRUE, fillColor = "#210106", fillOpacity = 0.5,
                    label = ~study_location, group = "Reported") %>%
-  addLegend(data = admin_mean, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
+  addLegend(data = admin_mean2, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
   addControl(caption) %>%
   addLayersControl(baseGroups = c("Reported", "Predicted"), options = layersControlOptions(collapsed = FALSE), position = "bottomleft")  
 
 lf1
 
-htmlwidgets::saveWidget(lf1, h("plots/map_predictions.html"))
+htmlwidgets::saveWidget(lf1, h("plots/map_predictions_interactive.html"))
