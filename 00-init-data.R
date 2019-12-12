@@ -243,7 +243,7 @@ amr <- all_countries %>%
                                               destination = "continent"))
 
 # make sure no event or consumption data lost
-setdiff(events$iso3c, amr$iso3c)
+setdiff(events$study_iso3c, amr$iso3c)
 setdiff(consumption$iso3c, amr$iso3c)
 setdiff(livestock_sales$iso3c, amr$iso3c)
 
@@ -272,3 +272,4 @@ amr %>%
   mutate(value = as.numeric(value)) %>%
   group_by(param) %>%
   filter(value == max(value, na.rm =T) ) %>% ungroup() 
+
