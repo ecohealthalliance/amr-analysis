@@ -331,12 +331,29 @@ pois_predicts <- bind_rows(pois_predicts, Y2) %>%
                                destination = "country.name"))
 
 # view largest differences
-test = pois_predicts %>%
+diffs <- pois_predicts %>%
   filter(v == "mean_pop") %>%
   mutate(diff = med - n_amr_events) %>%
-  arrange(-diff) %>%
+  arrange(-diff) 
 
-mean(test$diff)
+mean(diffs$diff)
+
+# slope graph
+diffs %>%
+  select(country, n_amr_events, med, diff) %>%
+  mutate(increase = diff > 0) %>%
+  select(-diff) %>%
+  gather(-country, -increase, key = "key", value = "value") %>%
+  mutate(key = factor(key, levels = c("n_amr_events", "med"), labels = c("Reported", "Predicted"))) %>%
+  ggplot(., aes(x = key, y = value, group = country, color = increase)) +
+  geom_point(alpha = 0.2) + 
+  geom_line(alpha = 0.2) +
+  scale_x_discrete(expand = c(0.1, 0.1))+
+  scale_color_manual(values = c(`TRUE` = "coral1", `FALSE` = "darkorchid")) +
+  labs(x = "", y = "AMR Emergence Events")  +
+  theme_minimal() +
+  theme(legend.position ="none", panel.grid = element_blank())
+
 
 # Map predictions ---------------------------------------------------------
 
