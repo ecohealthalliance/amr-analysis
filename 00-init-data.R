@@ -11,12 +11,14 @@ library(rnaturalearth)
 h <- here::here
 
 url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/events_db.csv"
-events <- GET(url, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
+events <- GET(url, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))
 
 #-----------------Country-wide data-----------------
 # Summarize counts
 events_by_country <- events %>%
+  mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
+  filter(start_year >= 2006) %>%
   rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
