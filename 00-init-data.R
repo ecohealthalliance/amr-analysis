@@ -10,7 +10,7 @@ library(rnaturalearth)
 
 h <- here::here
 
-url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/events_db.csv"
+url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/events-db.csv"
 events <- GET(url, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))
 

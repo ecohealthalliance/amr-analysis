@@ -82,11 +82,11 @@ global_labeller <- labeller(
 )
 
 # event info
-url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/events_db.csv"
+url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/events-db.csv"
 events <- GET(url_events, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text")) 
 
-url_locs <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data/locations.csv"
+url_locs <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/locations.csv"
 locs <- GET(url_locs, authenticate("emmamendelsohn", Sys.getenv("GITHUB_PAT")))
 locs <- read_csv(content(locs, "text")) %>%
   filter(study_id %in% events$study_id) %>%
