@@ -18,7 +18,7 @@ events <- read_csv(content(events, "text"))
 # Summarize counts
 events_by_country <- events %>%
   mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
-  filter(start_year >= 2006) %>%
+  filter(start_year >= 2006) %>% # removes promed mentions prior to 2006
   rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
@@ -215,11 +215,10 @@ tourism <- full_join(tour_outbound, tour_inbound) %>%
   drop_na(iso3c)
 
 #-----------------All countries-----------------
-all_countries <- map_data("world") %>%
-  mutate(iso3c = countrycode(sourcevar = region,
+all_countries <- read_csv(h("data", "country-list.csv")) %>%
+    mutate(iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
-                             destination = "iso3c"))  %>%
-  dplyr::select(iso3c) %>% drop_na() %>% distinct() 
+                             destination = "iso3c"))  
 
 #-----------------All data-----------------
 amr <- all_countries %>%
@@ -233,16 +232,7 @@ amr <- all_countries %>%
   left_join(livestock_sales) %>%
   left_join(livestock_consumption_country) %>%
   left_join(tourism) %>%
-  mutate(n_amr_events = replace_na(n_amr_events, 0),
-         country = countrycode::countrycode(sourcevar = iso3c,
-                                            origin = "iso3c",
-                                            destination = "country.name"), 
-         region = countrycode::countrycode(sourcevar = iso3c,
-                                           origin = "iso3c",
-                                           destination = "region"), 
-         continent = countrycode::countrycode(sourcevar = iso3c,
-                                              origin = "iso3c",
-                                              destination = "continent"))
+  mutate(n_amr_events = replace_na(n_amr_events, 0))
 
 # make sure no event or consumption data lost
 setdiff(events$study_iso3c, amr$iso3c)

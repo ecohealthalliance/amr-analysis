@@ -12,8 +12,8 @@ source(h("R/functions.R"))
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   # remove cols not using
-  dplyr::select(-continent, -region, -country, -gdp_dollars, -pubcrawl, -promed_mentions) %>%
-  # remove rows if population or gdp data is unavailable (usually territories)
+  dplyr::select(-country, -gdp_dollars, -pubcrawl, -promed_mentions) %>%
+  # remove rows if population or gdp data is unavailable
   drop_na(population, gdp_per_capita) %>% 
   # replace NAs and 0s with 1/2 min
   mutate_at(vars(pubcrawl_per_capita, promed_mentions_per_capita), 
@@ -101,6 +101,7 @@ fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capit
                            zi ~ ln_pubcrawl_per_capita + ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken),
                         data = country_mice,
                         family = zero_inflated_poisson(),
+                        set_prior("student_t(3,0,10)", class = "b"),
                         chains = 4,
                         inits = "0", 
                         iter = 2000,
