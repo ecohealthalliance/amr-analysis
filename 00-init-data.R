@@ -10,7 +10,7 @@ library(rnaturalearth)
 
 h <- here::here
 
-url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/events-db.csv"
+url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/events-db.csv"
 events <- GET(url, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))
 
@@ -115,10 +115,11 @@ lang <- read_csv(h("data/cia-world-factbook-language.csv"), col_names = "info") 
 lang <- lang %>% 
   filter(desc == "country") %>% 
   dplyr::select(country = info) %>%
+  mutate(country = str_replace(country, "Eswatini", "Swaziland")) %>%
   bind_cols(lang %>% 
               filter(desc == "language") %>%
               dplyr::select(language = info)) %>%
-  mutate(english_spoken = str_detect(language, "English"),
+  mutate(english_spoken = as.numeric(str_detect(language, "English")),
          iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
                              destination = "iso3c")) %>%
@@ -208,6 +209,7 @@ tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet =
 
 tourism <- full_join(tour_outbound, tour_inbound) %>%
   mutate_at(vars("tourism_outbound", "tourism_inbound"), ~as.numeric(.)) %>%
+  mutate(COUNTRY = str_replace(COUNTRY, "Eswatini", "Swaziland")) %>%
   mutate(iso3c = countrycode(sourcevar = COUNTRY,
                              origin = "country.name",
                              destination = "iso3c")) %>%

@@ -151,8 +151,6 @@ predictors <- me_all2_avg %>%
   mutate(var = factor(var, levels = names(lookup_vars)))
 
 
-#TODO WHY IS TOURISM MORE THAN 100%
-#TODO RUG
 me_plots <- map(names(lookup_vars), function(lv){
   
   p <- ggplot(data = filter(me_all2, var == lv), aes(x = value_backtrans)) + 
@@ -174,13 +172,10 @@ me_plots <- map(names(lookup_vars), function(lv){
     p <- p + scale_x_log10()
   }
   
-  if(lv == "ln_pubcrawl_per_capita"){
+  if(lv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
     p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
   }
-  
-  if(lv == "ln_gdp_per_capita"){
-    p <- p +  scale_x_continuous(labels = scales::comma)
-  }
+
   if(lv %in% predictors$var){
     p <- p +
       geom_text(data = predictors %>% filter(var == lv), aes(label = lab, x = Inf, y = Inf),
