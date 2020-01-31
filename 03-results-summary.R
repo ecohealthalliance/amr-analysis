@@ -9,6 +9,7 @@ library(leaflet)
 library(leaflet.extras)
 library(httr)
 library(sjPlot)
+library(cowplot)
 set.seed(101)
 
 h <- here::here
@@ -33,8 +34,9 @@ amr_with_imputes <- amr_mice %>%
 amr_raw <- amr_mice$data %>%
   select(-iso3c) %>%
   gather(key ="var", value = "x") %>%
-  drop_na()
-
+  drop_na() %>%
+  mutate(x_backtrans = ifelse(str_detect(var, "ln_"), exp(x), x))
+  
 # get posterior samples of data
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
@@ -54,35 +56,35 @@ pois_vars <- beta_samples %>%
 lookup_vars <- c(
   # consumption vars
   "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita; ln scale)",
-  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU; ln scale)",
-  # "ln_livestock_pcu" = "Livestock Population (PCU; ln scale)", 
+  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
+  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
+  # "ln_livestock_pcu" = "Livestock Population (PCU)", 
   
   # production
   "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
   "ab_export_bin" = "AB Exported (yes/no)",
   
   # population movement
-  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop; ln scale)", 
-  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop; ln scale)",
-  "ln_migrant_pop_perc" = "Migrant Population (% Pop.; ln scale)",  
+  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop)", 
+  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop)",
+  "ln_migrant_pop_perc" = "Migrant Population (% Pop.)",  
   
   # economic activity
   "health_expend_perc" ="Health Expenditure (% GDP)", 
-  "ln_gdp_per_capita" = "GDP (dollars per capita; ln scale)", 
+  "ln_gdp_per_capita" = "GDP (dollars per capita)", 
   
   # surveillance 
   "ln_population" = "Population (ln scale)",
   "english_spoken" = "English Spoken (yes/no)", 
-  "ln_pubcrawl_per_capita" = "PubCrawler Publication Bias Index (per capita; ln scale)",
-  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita; ln scale)")
+  "ln_pubcrawl_per_capita" = "Publication Bias Index (per capita)",
+  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita)")
 
 global_labeller <- labeller(
   var = lookup_vars
 )
 
 # event info
-url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/events-db.csv"
+url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/events-db.csv"
 events <- GET(url_events, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text"))  %>%
   mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
@@ -109,7 +111,7 @@ coefs <- get_model_data(fit_combined, type = "est") %>%
   mutate(predictor = !(1 >= conf.low & 1 <= conf.high)) %>%
   mutate(lab = ifelse(predictor, paste0(est, "*"), est))
 
-predictors <- coefs %>%
+predictor_terms <- coefs %>%
   filter(predictor) %>%
   mutate(lab = "*") %>%
   select(term, lab)
@@ -132,34 +134,70 @@ me_all2 <- imap_dfr(me_all, function(x, y){
   get_me_dat(x) %>%
     mutate(iteration = y) 
 }) %>%
-  mutate(var = factor(var, levels = names(lookup_vars)))
+  mutate(value_backtrans = ifelse(str_detect(var, "ln_"), exp(value), value)) %>%
+  mutate(var = factor(var, levels = names(lookup_vars))) 
 
 me_all2_avg <- me_all2 %>%
-  group_by(value, var) %>%
+  group_by(value_backtrans, var) %>%
   summarize(mean = mean(estimate__)) %>%
   ungroup() 
 
 predictors <- me_all2_avg %>%
   group_by(var) %>%
-  summarize(xval = 0.9 * max(value),
+  summarize(xval = 0.9 * max(value_backtrans),
             yval = 0.9 * max(mean)) %>%
   ungroup() %>%
-  right_join(predictors, by = c("var" = "term")) %>%
+  right_join(predictor_terms, by = c("var" = "term")) %>%
   mutate(var = factor(var, levels = names(lookup_vars)))
 
-ggplot(me_all2, aes(x = value)) + 
-  geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
-  geom_line(data = me_all2_avg, aes(x = value, y = mean)) +
-  geom_text(data=predictors, aes(label = lab, x = Inf, y = Inf),
-            hjust = 2, vjust = 1.5, size = 14) +
-  facet_wrap(~var,  labeller = global_labeller, scales = "free", ncol = 2) +
-  labs(x = "", y = "Additive Change in AMR Emergence Event Count\n", title = "") +
-  theme_minimal() +
-  theme(axis.title.y = element_text(hjust = 1, size = 14),
-        strip.text = element_text(size = 14),
-        axis.text = element_text(size = 11))
 
-ggsave(filename = h("plots/marginal_effects_multi.png"), width = 12, height = 20)
+#TODO WHY IS TOURISM MORE THAN 100%
+#TODO RUG
+me_plots <- map(names(lookup_vars), function(lv){
+  
+  p <- ggplot(data = filter(me_all2, var == lv), aes(x = value_backtrans)) + 
+    geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
+    geom_line(data = filter(me_all2_avg, var == lv), aes(x = value_backtrans, y = mean)) +
+    geom_rug(data = filter(amr_raw, var ==lv), mapping = aes(x = x_backtrans)) +
+    scale_y_continuous(limits = c(0, 10)) +
+    labs(title = lookup_vars[lv], y = "", x="") +
+    theme_foundation(base_size = 14, base_family =  "sans") + 
+    theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
+          title = element_text(size = rel(1.1), face = "bold"), 
+          axis.text = element_text( size = rel(1)), 
+          axis.ticks.y = element_blank(),
+          axis.line = element_blank(), 
+          panel.grid.major = element_line(colour = "gray50", linetype = 3), 
+          panel.grid.minor = element_blank()
+    )
+  if(lv == "ln_population"){
+    p <- p + scale_x_log10()
+  }
+  
+  if(lv == "ln_pubcrawl_per_capita"){
+    p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+  }
+  
+  if(lv == "ln_gdp_per_capita"){
+    p <- p +  scale_x_continuous(labels = scales::comma)
+  }
+  if(lv %in% predictors$var){
+    p <- p +
+      geom_text(data = predictors %>% filter(var == lv), aes(label = lab, x = Inf, y = Inf),
+                hjust = 2, vjust = 1.5, size = 14) 
+  }
+  return(p)
+  
+})
+
+plot_grid(plotlist=me_plots, 
+          ncol = 2) #+
+  # draw_label("Additive Change in AMR Emergence Event Count",
+  #            fontface = "bold",
+  #            x=0, y=0.87, vjust=1.4, angle=90, size = 16)
+
+
+ggsave(filename = h("plots/marginal_effects_multi.png"), width = 14, height = 21)
 
 # Zi logistic model ---------------------------------------------------------------
 
