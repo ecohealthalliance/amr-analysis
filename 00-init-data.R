@@ -48,9 +48,9 @@ wbd <- map_df(indicator, function(x){
 wbd %<>%
   drop_na(value) %>%
   spread(key = param, value = value) %>%
-  mutate(SM.POP.TOTL = 100 * SM.POP.TOTL/SP.POP.TOTL) %>% #calc migrant % of population
+  mutate(SM.POP.TOTL = SM.POP.TOTL/SP.POP.TOTL) %>% #calc migrant % of population
   rename(population = SP.POP.TOTL,
-         migrant_pop_perc = SM.POP.TOTL,
+         migrant_pop_per_capita = SM.POP.TOTL,
          gdp_dollars = NY.GDP.MKTP.CD,
          health_expend_perc = SH.XPD.CHEX.GD.ZS,
          iso3c = countryiso3code)
@@ -250,8 +250,8 @@ amr %<>%
          ab_import_per_capita = ab_import_dollars/population,
          livestock_consumption_kg_per_capita = livestock_ab_sales_kg/population,
          gdp_per_capita = gdp_dollars/population,
-         tourism_outbound_perc = 100 * (tourism_outbound*1000)/population,
-         tourism_inbound_perc = 100 * (tourism_inbound*1000)/population,
+         tourism_outbound_per_capita = (tourism_outbound*1000)/population,
+         tourism_inbound_per_capita = (tourism_inbound*1000)/population,
          pubcrawl_per_capita = pubcrawl/population,
          promed_mentions_per_capita = promed_mentions/population
   ) %>%

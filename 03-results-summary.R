@@ -19,28 +19,26 @@ source(h("R/functions.R"))
 
 # model results
 fit_combined <- read_rds(h("model/fit_combined.rds"))
-me_all <- read_rds(h("model/fit_all_marginal_effects.rds"))
+marg_effects <- read_rds(h("model/fit_all_marginal_effects.rds"))
 
 # data - raw and imputed
 amr_mice <- read_rds(h("model/mice-imputation.rds")) 
-
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
   select(-ln_ab_import_per_capita, -ln_livestock_pcu) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name"))
-
 amr_raw <- amr_mice$data %>%
   select(-iso3c) %>%
   gather(key ="var", value = "x") %>%
   drop_na() %>%
   mutate(x_backtrans = ifelse(str_detect(var, "ln_"), exp(x), x))
-  
+
 # get posterior samples of data
 beta_samples <- posterior_samples(fit_combined, subset = sample(nsamples(fit_combined), 500, replace = F)) 
 
-# get zi vars
+# get zi vars (from logisitic regression)
 zi_vars <- beta_samples %>%
   select(matches("zi_"), -b_zi_Intercept) %>%
   colnames(.) %>%
@@ -65,9 +63,9 @@ lookup_vars <- c(
   "ab_export_bin" = "AB Exported (yes/no)",
   
   # population movement
-  "ln_tourism_outbound_perc" = "Tourism - Outbound (% Pop)", 
-  "ln_tourism_inbound_perc"  = "Tourism - Inbound (% Pop)",
-  "ln_migrant_pop_perc" = "Migrant Population (% Pop.)",  
+  "ln_tourism_outbound_per_capita" = "Tourism - Outbound (per capita)", 
+  "ln_tourism_inbound_per_capita"  = "Tourism - Inbound (per capita)",
+  "ln_migrant_pop_per_capita" = "Migrant Population (per capita.)",  
   
   # economic activity
   "health_expend_perc" ="Health Expenditure (% GDP)", 
@@ -97,11 +95,11 @@ locs <- read_csv(content(locs, "text")) %>%
   filter(!is.na(study_location)) 
 
 # Summary and Coefficients ------------------------------------------------------------
-summary(fit_combined)
 
+summary(fit_combined)
 brms::bayes_R2(fit_combined, summary = TRUE)
 
-# dot plot
+# odds ratio data
 coefs <- get_model_data(fit_combined, type = "est") %>%
   distinct() %>%
   mutate(term_clean = as.character(term)) %>%
@@ -111,18 +109,20 @@ coefs <- get_model_data(fit_combined, type = "est") %>%
   mutate(predictor = !(1 >= conf.low & 1 <= conf.high)) %>%
   mutate(lab = ifelse(predictor, paste0(est, "*"), est))
 
+# which terms are consistent predictors
 predictor_terms <- coefs %>%
   filter(predictor) %>%
   mutate(lab = "*") %>%
   select(term, lab)
 
+# coefficient dot plots
 ggplot(coefs, aes(x = term_clean, y = estimate)) + 
   geom_hline(yintercept = 1, color = "gray60") +
   geom_segment(aes(y = conf.low, yend = conf.high, xend = term_clean), color = "cornflowerblue") +
   geom_point(aes(color = group), show.legend = FALSE) +
   geom_text(aes(label = lab), nudge_x = 0.25) +
   scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
-  labs(x = "", y = "Incidence Rate Ratio") +
+  labs(x = "", y = "Odds Ratio") +
   coord_flip() +
   theme_bw() +
   theme(axis.text = element_text(color = "black"))
@@ -130,19 +130,19 @@ ggplot(coefs, aes(x = term_clean, y = estimate)) +
 ggsave(filename = h("plots/dot_plot.png"), width = 8)
 
 # Marginal effects --------------------------------------------------------
-me_all2 <- imap_dfr(me_all, function(x, y){
+marg_effects_data <- imap_dfr(marg_effects, function(x, y){
   get_me_dat(x) %>%
     mutate(iteration = y) 
 }) %>%
   mutate(value_backtrans = ifelse(str_detect(var, "ln_"), exp(value), value)) %>%
   mutate(var = factor(var, levels = names(lookup_vars))) 
 
-me_all2_avg <- me_all2 %>%
+marg_effects_avg <- marg_effects_data %>%
   group_by(value_backtrans, var) %>%
   summarize(mean = mean(estimate__)) %>%
   ungroup() 
 
-predictors <- me_all2_avg %>%
+predictors <- marg_effects_avg %>%
   group_by(var) %>%
   summarize(xval = 0.9 * max(value_backtrans),
             yval = 0.9 * max(mean)) %>%
@@ -150,12 +150,10 @@ predictors <- me_all2_avg %>%
   right_join(predictor_terms, by = c("var" = "term")) %>%
   mutate(var = factor(var, levels = names(lookup_vars)))
 
-
 me_plots <- map(names(lookup_vars), function(lv){
-  
-  p <- ggplot(data = filter(me_all2, var == lv), aes(x = value_backtrans)) + 
+  p <- ggplot(data = filter(marg_effects_data, var == lv), aes(x = value_backtrans)) + 
     geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
-    geom_line(data = filter(me_all2_avg, var == lv), aes(x = value_backtrans, y = mean)) +
+    geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean)) +
     geom_rug(data = filter(amr_raw, var ==lv), mapping = aes(x = x_backtrans)) +
     scale_y_continuous(limits = c(0, 10)) +
     labs(title = lookup_vars[lv], y = "", x="") +
@@ -163,7 +161,7 @@ me_plots <- map(names(lookup_vars), function(lv){
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
           title = element_text(size = rel(1.1), face = "bold"), 
           axis.text = element_text( size = rel(1)), 
-          axis.ticks.y = element_blank(),
+          axis.ticks = element_blank(),
           axis.line = element_blank(), 
           panel.grid.major = element_line(colour = "gray50", linetype = 3), 
           panel.grid.minor = element_blank()
@@ -171,26 +169,22 @@ me_plots <- map(names(lookup_vars), function(lv){
   if(lv == "ln_population"){
     p <- p + scale_x_log10()
   }
-  
   if(lv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
     p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
   }
-
   if(lv %in% predictors$var){
     p <- p +
       geom_text(data = predictors %>% filter(var == lv), aes(label = lab, x = Inf, y = Inf),
                 hjust = 2, vjust = 1.5, size = 14) 
   }
   return(p)
-  
 })
 
 plot_grid(plotlist=me_plots, 
           ncol = 2) #+
-  # draw_label("Additive Change in AMR Emergence Event Count",
-  #            fontface = "bold",
-  #            x=0, y=0.87, vjust=1.4, angle=90, size = 16)
-
+# draw_label("Additive Change in AMR Emergence Event Count",
+#            fontface = "bold",
+#            x=0, y=0.87, vjust=1.4, angle=90, size = 16)
 
 ggsave(filename = h("plots/marginal_effects_multi.png"), width = 14, height = 21)
 
@@ -315,15 +309,20 @@ amr_predict <- amr_with_imputes %>%
   mutate(mod_predict = predict(fit_combined)[,1]) %>%
   select(iso3c, mod_predict, n_amr_events)
 
-# get means
-# amr_means <- colMeans(as.matrix(amr_with_imputes[,unique(c(zi_vars, pois_vars))])) %>%
-#   enframe() %>%
-#   pivot_wider(names_from = name, values_from = value)
-# predict(fit_combined, newdata = amr_means) 
-# amr_means$ln_gdp_per_capita <- log(exp(amr_means$ln_gdp_per_capita) * 2)
-# predict(fit_combined, newdata = amr_means) 
+# get means and predict doubling for each vars
+amr_means <- colMeans(as.matrix(amr_with_imputes[,unique(c(zi_vars, pois_vars))])) %>%
+  enframe() %>%
+  pivot_wider(names_from = name, values_from = value)
+mean_estimate <- predict(fit_combined, newdata = amr_means, summary = TRUE)
 
-# matrix of beta samples
+imap(amr_means, function(x, y){
+  dbl_estimate <- amr_means %>%
+    mutate(!!y := ifelse(str_detect(y, "ln_"), log(exp(x) * 2), x * 2)) %>%
+    predict(fit_combined, newdata = .)
+  dbl_estimate[1]/mean_estimate[1]
+})
+
+# matrix of beta samples 
 betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
 colnames(betas)[ncol(betas)] <- "b_ln_population"
 
@@ -365,30 +364,48 @@ pois_predicts <- bind_rows(pois_predicts, Y2) %>%
                                origin = "iso3c",
                                destination = "country.name"))
 
-# view largest differences
+# view largest differences between predicted and acctual
 diffs <- pois_predicts %>%
   filter(v == "mean_pop") %>%
   mutate(diff = med - n_amr_events) %>%
-  arrange(-diff) 
+  mutate(country_lab = paste0(country, " (", round(lo, 0), " - ", round(hi,0), ")")) %>%
+  arrange(-abs(diff))
 
 mean(diffs$diff)
 
-# slope graph
-diffs %>%
-  select(country, n_amr_events, med, diff) %>%
+diffs_reshape <- diffs %>%
+  select(country_lab, n_amr_events, med, diff) %>%
   mutate(increase = diff > 0) %>%
-  select(-diff) %>%
-  gather(-country, -increase, key = "key", value = "value") %>%
-  mutate(key = factor(key, levels = c("n_amr_events", "med"), labels = c("Reported", "Predicted"))) %>%
-  ggplot(., aes(x = key, y = value, group = country, color = increase)) +
-  geom_point(alpha = 0.2) + 
-  geom_line(alpha = 0.2) +
-  scale_x_discrete(expand = c(0.1, 0.1))+
-  scale_color_manual(values = c(`TRUE` = "coral1", `FALSE` = "darkorchid")) +
-  labs(x = "", y = "AMR Emergence Events")  +
-  theme_minimal() +
-  theme(legend.position ="none", panel.grid = element_blank())
+  mutate(top_10 = row_number() <= 10) %>%
+  gather(-country_lab, -increase, -top_10, -diff, key = "key", value = "value") %>%
+  mutate(key = factor(key, levels = c("n_amr_events", "med"), labels = c("Reported", "Predicted"))) 
 
+diffs_reshape_top10 <- diffs_reshape %>% filter(top_10==TRUE)
+
+# slope graph
+ggplot() +
+  geom_line(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray50", alpha = 0.2) +
+  geom_point(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray50", alpha = 0.2) +
+  geom_line(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab, color = increase)) +
+  geom_point(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab, color = increase)) +
+  geom_text(data = filter(diffs_reshape_top10, key == "Predicted", ), aes(label = country_lab, x = key, y = value),
+            hjust = "outward", nudge_x = 0.01) +
+  scale_x_discrete(expand = c(0.1, 0,0 ,0.5))+
+  scale_color_manual(values = c(`TRUE` = "coral1",
+                                `FALSE` = "darkorchid")) +
+  labs(x = "", y = "", title = "Reported and predicted counts of AMR emergence events")  +
+  theme_foundation(base_size = 12, base_family =  "sans") + 
+  theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
+        title = element_text(size = rel(1), face = "bold"), 
+        axis.text = element_text( size = rel(1)), 
+        axis.ticks = element_blank(),
+        axis.line = element_blank(), 
+        legend.position ="none",
+        panel.grid.major =  element_blank(), 
+        panel.grid.minor = element_blank())
+
+
+ggsave(filename = h("plots/slope_graph.png"), width = 8, height = 8)
 
 # Map predictions ---------------------------------------------------------
 

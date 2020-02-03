@@ -26,11 +26,11 @@ country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
                     mean(., na.rm = TRUE),
                     .)) %>%
   # log transform values
-  mutate_at(vars(gdp_per_capita, migrant_pop_perc, population, livestock_consumption_kg_per_capita, tourism_inbound_perc, tourism_outbound_perc, 
+  mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_capita, tourism_inbound_per_capita, tourism_outbound_per_capita, 
                  promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
             ~log(.)) %>%
-  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_perc", "promed_mentions_per_capita", "pubcrawl_per_capita",
-                 "gdp_per_capita" , "population", "tourism_inbound_perc", "tourism_outbound_perc", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
+  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
+                 "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
 
 country_raw %>%
   select(-iso3c, -n_amr_events, -english_spoken) %>%
@@ -48,7 +48,7 @@ country_raw %>%
 
 # par(mfrow=c(1,2))
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
-# plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_perc)
+# plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_per_capita)
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(!is.na(.)))
@@ -94,7 +94,7 @@ imp %>%
 ## Full model, combine = FALSE
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
 fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capita + 
-                             ln_migrant_pop_perc + ln_tourism_inbound_perc + ln_tourism_outbound_perc +
+                             ln_migrant_pop_per_capita + ln_tourism_inbound_per_capita + ln_tourism_outbound_per_capita +
                              ln_ab_export_per_capita + ab_export_bin + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 
                              ln_pubcrawl_per_capita + ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
