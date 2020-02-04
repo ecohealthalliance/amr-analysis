@@ -9,22 +9,44 @@ h <- here::here
 set.seed(101)
 source(h("R/functions.R"))
 
+
+# Data --------------------------------------------------------------------
+
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   # remove cols not using
   dplyr::select(-country, -gdp_dollars, -pubcrawl, -promed_mentions) %>%
   # remove rows if population or gdp data is unavailable
-  drop_na(population, gdp_per_capita) %>% 
-  # replace NAs and 0s with 1/2 min
+  drop_na(population, gdp_per_capita) 
+
+# Which parameters have NAs
+map_int(country_raw, ~sum(!is.na(.)))
+country_raw %>% 
+  filter(pubcrawl_per_capita==0 | is.na(pubcrawl_per_capita)) %>%
+  nrow()
+country_raw %>% 
+  filter(promed_mentions_per_capita==0 | is.na( promed_mentions_per_capita)) %>%
+  nrow()
+country_raw %>% 
+  filter(ab_export_per_capita==0 | is.na( ab_export_per_capita)) %>%
+  nrow()
+
+# NA handling
+country_raw <- country_raw %>%
+  # amr events - assume 0 for NA
+  mutate(n_amr_events = replace_na(n_amr_events, 0)) %>%
+  # pubcrawler and promed - replace NAs and 0s with 1/2 min
   mutate_at(vars(pubcrawl_per_capita, promed_mentions_per_capita), 
             ~ifelse(is.na(.)|.==0,
                     0.5*min(.[.>0], na.rm = TRUE),
                     .)) %>% 
-  # replace NAs and 0s with mean (not doing this to import_per_capita because it only goes into tree impute model)
+  # ab exports - replace NAs and 0s with mean (not doing this to import_per_capita because it only goes into tree impute model)
   mutate_at(vars(ab_export_per_capita), 
             ~ifelse(is.na(.)|.==0,
                     mean(., na.rm = TRUE),
                     .)) %>%
+  # amr imports - assume 0 for NA (only being used in MICE)
+  mutate(ab_import_per_capita = replace_na(ab_import_per_capita, 0)) %>%
   # log transform values
   mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_capita, tourism_inbound_per_capita, tourism_outbound_per_capita, 
                  promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
@@ -32,6 +54,7 @@ country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
                  "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
 
+# view histograms
 country_raw %>%
   select(-iso3c, -n_amr_events, -english_spoken) %>%
   gather() %>%
@@ -42,17 +65,15 @@ country_raw %>%
 write_csv(country_raw, h("data/country-level-amr-transformed.csv")) 
 
 # View correlation matrix on raw data
-country_raw %>%
-  dplyr::select(-iso3c) %>%
+cormat <- country_raw %>%
+  dplyr::select(-iso3c, -ln_livestock_pcu, -ln_ab_import_per_capita, -ab_export_bin, -english_spoken) %>%
   PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19, method = "spearman")
-
 # par(mfrow=c(1,2))
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_per_capita)
 
-# Which parameters have NAs
-map_int(country_raw, ~sum(!is.na(.)))
-map_lgl(country_raw, ~any(is.infinite(.))) # confirm no infinite values
+
+# Imputation --------------------------------------------------------------
 
 # Mice settings
 # helpful for setting parameters: https://stats.stackexchange.com/questions/219013/how-do-the-number-of-imputations-the-maximum-iterations-affect-accuracy-in-mul/219049
@@ -78,6 +99,8 @@ imp %>%
   dplyr::select(-iso3c) %>%
   PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19, method = "spearman")
 
+
+# Model with brms ---------------------------------------------------------
 
 # Model Runs
 # Useful checks: https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html

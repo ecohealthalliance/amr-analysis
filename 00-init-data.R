@@ -12,13 +12,13 @@ h <- here::here
 
 url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/events-db.csv"
 events <- GET(url, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
-events <- read_csv(content(events, "text"))
-
+events <- read_csv(content(events, "text")) %>%
+  mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
+  filter(start_year >= 2006) # removes promed mentions prior to 2006
+  
 #-----------------Country-wide data-----------------
 # Summarize counts
 events_by_country <- events %>%
-  mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
-  filter(start_year >= 2006) %>% # removes promed mentions prior to 2006
   rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
@@ -233,8 +233,7 @@ amr <- all_countries %>%
   left_join(consumption) %>%
   left_join(livestock_sales) %>%
   left_join(livestock_consumption_country) %>%
-  left_join(tourism) %>%
-  mutate(n_amr_events = replace_na(n_amr_events, 0))
+  left_join(tourism)
 
 # make sure no event or consumption data lost
 setdiff(events$study_iso3c, amr$iso3c)

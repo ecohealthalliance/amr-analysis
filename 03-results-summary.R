@@ -87,6 +87,7 @@ events <- GET(url_events, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv
 events <- read_csv(content(events, "text"))  %>%
   mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
   filter(start_year >= 2006) # removes promed mentions prior to 2006
+n_distinct(events$study_id)
 
 url_locs <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/data-processed/locations.csv"
 locs <- GET(url_locs, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
@@ -155,7 +156,9 @@ me_plots <- map(names(lookup_vars), function(lv){
     geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
     geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean)) +
     geom_rug(data = filter(amr_raw, var ==lv), mapping = aes(x = x_backtrans)) +
-    scale_y_continuous(limits = c(0, 10)) +
+    scale_y_continuous(limits = c(0, 10), 
+                       breaks = c(0, 2.5, 5, 7.5, 10), 
+                       labels = c("0", "", "5", "", "10")) +
     labs(title = lookup_vars[lv], y = "", x="") +
     theme_foundation(base_size = 14, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
@@ -372,6 +375,7 @@ diffs <- pois_predicts %>%
   arrange(-abs(diff))
 
 mean(diffs$diff)
+diffs %>% filter(diff > 0) %>% nrow()
 
 diffs_reshape <- diffs %>%
   select(country_lab, n_amr_events, med, diff) %>%
@@ -383,17 +387,17 @@ diffs_reshape <- diffs %>%
 diffs_reshape_top10 <- diffs_reshape %>% filter(top_10==TRUE)
 
 # slope graph
-ggplot() +
-  geom_line(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray50", alpha = 0.2) +
-  geom_point(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray50", alpha = 0.2) +
-  geom_line(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab, color = increase)) +
-  geom_point(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab, color = increase)) +
+slope_graph <- ggplot() +
+  geom_line(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray40", alpha = 0.2) +
+  geom_point(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray40", alpha = 0.2) +
+  geom_line(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
+  geom_point(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
   geom_text(data = filter(diffs_reshape_top10, key == "Predicted", ), aes(label = country_lab, x = key, y = value),
-            hjust = "outward", nudge_x = 0.01) +
+            hjust = "outward", nudge_x = 0.02) +
   scale_x_discrete(expand = c(0.1, 0,0 ,0.5))+
-  scale_color_manual(values = c(`TRUE` = "coral1",
-                                `FALSE` = "darkorchid")) +
-  labs(x = "", y = "", title = "Reported and predicted counts of AMR emergence events")  +
+  # scale_color_manual(values = c(`TRUE` = "hotpink",
+  #                               `FALSE` = "blue")) +
+  labs(x = "", y = "", title = "")  +
   theme_foundation(base_size = 12, base_family =  "sans") + 
   theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
         title = element_text(size = rel(1), face = "bold"), 
@@ -405,7 +409,7 @@ ggplot() +
         panel.grid.minor = element_blank())
 
 
-ggsave(filename = h("plots/slope_graph.png"), width = 8, height = 8)
+ggsave(slope_graph, filename = h("plots/slope_graph.png"), width = 8, height = 8)
 
 # Map predictions ---------------------------------------------------------
 
@@ -437,17 +441,32 @@ caption <- glue::glue(nrow(events), " AMR emergence events<br/>",
                       n_distinct(events$bacteria), " resistant bacteria<br/>",
                       str_sub(min(events$start_date), 1, 4), " - ",  str_sub(max(events$start_date), 1, 4))
 
-ggplot(admin_mean) + 
+map_predictions <- ggplot(admin_mean) + 
   geom_sf(aes(fill = value), color = "transparent") +
   facet_wrap(key~., strip.position="top", ncol = 1) +
   scale_fill_viridis_c(option = "plasma", alpha = 0.8) +
-  #scale_fill_gradient(high = "#E34A33", low = "#b0a390")  +
   labs(fill = "AMR Emergence Count") +
-  theme_map() +
-  theme(strip.background = element_blank(), strip.text = element_text(size = 14), 
-        legend.title = element_text(size = 14), legend.text = element_text(size = 11))
+  theme_foundation(base_size = 14, base_family =  "sans") + 
+  coord_sf() +
+  theme(strip.background = element_blank(), 
+        strip.text = element_text(size = rel(1)), 
+        rect = element_rect(fill = "white", linetype = 0, colour = NA),
+        #title = element_text(size = rel(1.1), face = "bold"), 
+        axis.text = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.line = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        legend.position = "none")
+        # legend.title = element_text(size = rel(0.9)),
+        # legend.text = element_text(size = rel(0,8)), 
+        # legend.position = "left")
 
-ggsave(filename = h("plots/map_predictions.png"), width = 12, height = 8)
+ggsave(map_predictions, filename = h("plots/map_predictions.png"), width = 12, height = 8)
+
+plot_combined <- plot_grid(map_predictions, slope_graph, labels = "AUTO")
+ggsave(plot_combined, filename = h("plots/map_and_slope.png"), width = 14, height = 8)
+
 
 admin_mean2 <- admin %>%
   filter(v == "mean_pop")
