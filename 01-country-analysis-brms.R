@@ -11,7 +11,6 @@ source(h("R/functions.R"))
 
 
 # Data --------------------------------------------------------------------
-
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   # remove cols not using
@@ -45,14 +44,15 @@ country_raw <- country_raw %>%
             ~ifelse(is.na(.)|.==0,
                     mean(., na.rm = TRUE),
                     .)) %>%
-  # amr imports - assume 0 for NA (only being used in MICE)
-  mutate(ab_import_per_capita = replace_na(ab_import_per_capita, 0)) %>%
   # log transform values
   mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_capita, tourism_inbound_per_capita, tourism_outbound_per_capita, 
                  promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
             ~log(.)) %>%
   rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
                  "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
+
+map_int(country_raw, ~sum(!is.na(.)))
+map_lgl(country_raw, ~any(is.infinite(.))) # confirm no infinite values
 
 # view histograms
 country_raw %>%
@@ -65,13 +65,12 @@ country_raw %>%
 write_csv(country_raw, h("data/country-level-amr-transformed.csv")) 
 
 # View correlation matrix on raw data
-cormat <- country_raw %>%
+country_raw %>%
   dplyr::select(-iso3c, -ln_livestock_pcu, -ln_ab_import_per_capita, -ab_export_bin, -english_spoken) %>%
   PerformanceAnalytics::chart.Correlation(., histogram = TRUE, pch = 19, method = "spearman")
 # par(mfrow=c(1,2))
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_gdp_per_capita)
 # plot(country_raw$ln_livestock_consumption_kg_per_capita, country_raw$ln_migrant_pop_per_capita)
-
 
 # Imputation --------------------------------------------------------------
 
