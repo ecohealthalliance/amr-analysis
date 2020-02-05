@@ -17,7 +17,6 @@ amr_with_imputes <- amr_mice %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name")  )
-
 # Generate posterior predictions
 y <- amr_with_imputes$n_amr_events
 yrep <- posterior_predict(fit_combined, nsamples = 1000) 
@@ -26,22 +25,33 @@ yrep <- yrep[,yord]
 y <- y[yord]
 
 # Trace Plots
-stanplot(fit_combined, type = "trace")
+params <- mcmc_trace_data(fit_combined)$parameter %>% as.character() %>% unique()
+params_abbr <- str_remove_all(params, "_per_capita|_perc|_kg|_ddd")
+names(params_abbr) <- params
+global_labeller <- labeller(
+  parameter = params_abbr
+)
+trace_plot <- mcmc_trace(fit_combined, facet_args = list(labeller = global_labeller)) + facet_text(size = 8) 
+cowplot::plot_grid(plotlist = list(trace_plot), labels = c("A"))
 ggsave(filename = h("plots/diagnostics/trace.png"), width = 15, height = 15)
 
-# Density overlay plots
-ppc_dens_overlay(y, yrep) + scale_x_continuous(limits = c(0, 50)) + labs(title = "Density Overlay")
-ggsave(filename = h("plots/diagnostics/density.png"))
-
-
 # Histograms...doesn't work
-ppc_hist(y, yrep)
+test = as.array(fit_combined)[,1,1:2]
+dimnames(test)
+hist_plot <- mcmc_rank_hist(test, n_bins = 40)
+ggsave(hist_plot, filename = h("plots/diagnostics/histogram.png"), width = 15, height = 15)
+
+# Density overlay plots
+dens_plot <- ppc_dens_overlay(y, yrep) + 
+  scale_y_continuous(limits = c(0, 1)) +
+  scale_x_continuous(limits = c(0, 50))
+ggsave(dens_plot, filename = h("plots/diagnostics/density.png"))
+
 
 # Proportion zero plots
 prop_zero <- function(x) mean(x == 0)
-ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005) + labs(title = "Proportion Zeros")
-ggsave(filename = h("plots/diagnostics/prop_zero.png"))
-
+zero_plot <- ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005)
+ggsave(zero_plot, filename = h("plots/diagnostics/prop_zero.png"))
 
 # Interval plots
 int_dat <- ppc_intervals_data(y, yrep) 
@@ -53,8 +63,8 @@ int_dat <- int_dat %>%
 p50 <- round(100*sum(int_dat$in_50)/nrow(int_dat))
 p90 <- round(100*sum(int_dat$in_90)/nrow(int_dat))
 
-ppc_intervals(y, yrep) + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
-ggsave(filename = h("plots/diagnostics/intervals.png"), width = 6)
+interval_plot <- ppc_intervals(y, yrep)# + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
+ggsave(interval_plot, filename = h("plots/diagnostics/intervals.png"), width = 6)
 
 y_grped <- tibble(y) %>%
   mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%
@@ -96,3 +106,7 @@ ggplot(data = yall, aes(x = grp)) +
 
 ggsave(filename = h("plots/diagnostics/intervals_grouped.png"), width = 6)
 
+# all plots
+all_plots <- list(dens_plot, interval_plot, zero_plot)
+cowplot::plot_grid(plotlist=all_plots, labels = c("B", "C", "D"), nrow = 1)
+ggsave(filename = h("plots/diagnostics/all.png"), width = 12, height= 4)

@@ -50,37 +50,6 @@ pois_vars <- beta_samples %>%
   colnames(.)%>%
   gsub("^b_", "", .)
 
-# labelling for plots
-lookup_vars <- c(
-  # consumption vars
-  "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
-  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
-  # "ln_livestock_pcu" = "Livestock Population (PCU)", 
-  
-  # production
-  "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
-  "ab_export_bin" = "AB Exported (yes/no)",
-  
-  # population movement
-  "ln_tourism_outbound_per_capita" = "Tourism - Outbound (per capita)", 
-  "ln_tourism_inbound_per_capita"  = "Tourism - Inbound (per capita)",
-  "ln_migrant_pop_per_capita" = "Migrant Population (per capita.)",  
-  
-  # economic activity
-  "health_expend_perc" ="Health Expenditure (% GDP)", 
-  "ln_gdp_per_capita" = "GDP (dollars per capita)", 
-  
-  # surveillance 
-  "ln_population" = "Population (ln scale)",
-  "english_spoken" = "English Spoken (yes/no)", 
-  "ln_pubcrawl_per_capita" = "Publication Bias Index (per capita)",
-  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita)")
-
-global_labeller <- labeller(
-  var = lookup_vars
-)
-
 # event info
 url_events <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/events-db.csv"
 events <- GET(url_events, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
@@ -154,15 +123,15 @@ predictors <- marg_effects_avg %>%
 me_plots <- map(names(lookup_vars), function(lv){
   p <- ggplot(data = filter(marg_effects_data, var == lv), aes(x = value_backtrans)) + 
     geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
-    geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean)) +
+    geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean), size = 1.25) +
     geom_rug(data = filter(amr_raw, var ==lv), mapping = aes(x = x_backtrans)) +
     scale_y_continuous(limits = c(0, 10), 
                        breaks = c(0, 2.5, 5, 7.5, 10), 
                        labels = c("0", "", "5", "", "10")) +
     labs(title = lookup_vars[lv], y = "", x="") +
-    theme_foundation(base_size = 14, base_family =  "sans") + 
+    theme_foundation(base_size = 12, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
-          title = element_text(size = rel(1.1), face = "bold"), 
+          title = element_text(size = rel(1.1)), 
           axis.text = element_text( size = rel(1)), 
           axis.ticks = element_blank(),
           axis.line = element_blank(), 
@@ -184,12 +153,8 @@ me_plots <- map(names(lookup_vars), function(lv){
 })
 
 plot_grid(plotlist=me_plots, 
-          ncol = 2) #+
-# draw_label("Additive Change in AMR Emergence Event Count",
-#            fontface = "bold",
-#            x=0, y=0.87, vjust=1.4, angle=90, size = 16)
-
-ggsave(filename = h("plots/marginal_effects_multi.png"), width = 14, height = 21)
+          ncol = 2) 
+ggsave(filename = h("plots/marginal_effects_multi.png"), width = 10, height = 21)
 
 # Zi logistic model ---------------------------------------------------------------
 
@@ -226,35 +191,51 @@ out_zi <- out_zi %>% mutate(y = 1-y)
 
 # labels for x axis
 out_zi <- out_zi %>% 
-  mutate(x_trans = ifelse(grepl("ln_", var), exp(x), x))
+  mutate(x_backtrans = ifelse(grepl("ln_", var), exp(x), x))
 
 # summarize
 out_zi_sum <- out_zi %>% 
-  group_by(x, x_trans, var) %>% 
+  group_by(x, x_backtrans, var) %>% 
   summarise(med = median(y),
             lo = quantile(y, .025),
             hi = quantile(y, .975)) %>%
   ungroup()
 
-p_zi_lines <- 
-  ggplot() + 
-  geom_line(data = out_zi, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
-  geom_line(data = out_zi_sum, aes(x = x, y = med), color = "cornflowerblue", size = 1.5) +
-  geom_line(data = out_zi_sum, aes(x = x, y = lo), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
-  geom_line(data = out_zi_sum, aes(x = x, y = hi), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
-  geom_rug(data = filter(amr_raw, var %in% zi_vars), mapping = aes(x = x)) +
-  facet_wrap(var ~ ., scales = "free_x", drop = FALSE,  ncol = 2, labeller = global_labeller) +
-  labs(y = "Logisitic Prob. of Non-zero Outcome\n", x = "", main = "") +
-  theme_few() +
-  theme(strip.text.x = element_text(size = 14), 
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 14))
+zi_plots <- map(zi_vars, function(zv){
+  p <-   ggplot() + 
+    geom_line(data = filter(out_zi, var==zv), aes(x = x_backtrans, y = y, group = samp), color = "gray60", size=.5, alpha = 0.2) + #For lots of lines
+    geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = med), size = 1) +
+    geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = lo),  size = 0.5, alpha = 0.8) +
+    geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = hi),  size = 0.5, alpha = 0.8) +
+    geom_rug(data = filter(amr_raw, var==zv), mapping = aes(x = x_backtrans)) +
+    scale_y_continuous(limits = c(0,1)) +
+    labs(y = "", x = "", title = lookup_vars[zv]) +
+    theme_foundation(base_size = 10, base_family =  "sans") + 
+    theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
+          title = element_text(size = rel(1)), 
+          axis.text = element_text( size = rel(1)), 
+          axis.ticks = element_blank(),
+          axis.line = element_blank(), 
+          panel.grid.major = element_line(colour = "gray50", linetype = 3), 
+          panel.grid.minor = element_blank()
+    )
+          
+  if(zv == "ln_population"){
+    p <- p + scale_x_log10()
+  }
+  if(zv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
+    p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+  }
+  return(p)
+})
 
-ggsave(plot = p_zi_lines, 
-       filename = h("plots/zi_partial_effects.png"), width = 12.5, height = 12)
+plot_grid(plotlist=zi_plots, 
+          ncol = 3) 
+ggsave(filename = h("plots/zi_partial_effects.png"), width = 12, height = 6)
 
 # Poisson model ---------------------------------------------------------------
 
+# Get poisson partial effects
 out_pois <- map_dfr(pois_vars, function(var){
   
   minx <- amr_with_imputes %>% pull(var) %>% min(., na.rm = T)
@@ -283,28 +264,50 @@ out_pois <- map_dfr(pois_vars, function(var){
   return(out)
 })
 
+# labels for x axis
+out_pois <- out_pois %>% 
+  mutate(x_backtrans = ifelse(grepl("ln_", var), exp(x), x))
+
+# summarize
 out_pois_sum <- out_pois %>% 
-  group_by(x, var) %>% 
+  group_by(x, x_backtrans, var) %>% 
   summarise(med = median(y),
             lo = quantile(y, .025),
             hi = quantile(y, .975))
 
-p_pois_lines <-  
-  ggplot() + 
-  geom_line(data = out_pois, aes(x = x, y = y, group = samp), color = "gray60", alpha = 0.1) + #For lots of lines
-  geom_line(data = out_pois_sum, aes(x = x, y = med), color = "cornflowerblue", size = 1.5) +
-  geom_line(data = out_pois_sum, aes(x = x, y = lo), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
-  geom_line(data = out_pois_sum, aes(x = x, y = hi), color = "cornflowerblue", size = 0.5, alpha = 0.8) +
-  geom_rug(data = filter(amr_raw, var %in% pois_vars), mapping = aes(x = x, y = 0)) + 
-  facet_wrap(var ~ ., scales = "free", drop = FALSE,  nrow = 3, labeller = global_labeller) +
-  labs(y = "AMR Emergence Event Count\n", x = "", main = "Poisson Model (zi)") +
-  theme_few() +
-  theme(strip.text.x = element_text(size = 14), 
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 14))
+pois_plots <- map(pois_vars, function(pv){
+  p <-   ggplot() + 
+    geom_line(data = filter(out_pois, var==pv), aes(x = x_backtrans, y = y, group = samp), color = "gray60", size=.5, alpha = 0.2) + #For lots of lines
+    geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = med), size = 1) +
+    geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = lo),  size = 0.5, alpha = 0.8) +
+    geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = hi),  size = 0.5, alpha = 0.8) +
+    geom_rug(data = filter(amr_raw, var==pv), mapping = aes(x = x_backtrans)) +
+    # scale_y_continuous(limits = c(0, 10), 
+    #                    breaks = c(0, 2.5, 5, 7.5, 10), 
+    #                    labels = c("0", "", "5", "", "10")) +
+    labs(y = "", x = "", title = lookup_vars[pv]) +
+    theme_foundation(base_size = 10, base_family =  "sans") + 
+    theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
+          title = element_text(size = rel(1)), 
+          axis.text = element_text( size = rel(1)), 
+          axis.ticks = element_blank(),
+          axis.line = element_blank(), 
+          panel.grid.major = element_line(colour = "gray50", linetype = 3), 
+          panel.grid.minor = element_blank()
+    )
+  
+  if(pv == "ln_population"){
+    p <- p + scale_x_log10()
+  }
+  if(pv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
+    p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+  }
+  return(p)
+})
 
-ggsave(plot = p_pois_lines,
-       filename = h("plots/pois_partial_effects.png"), width = 25, height = 12)
+plot_grid(plotlist=pois_plots, 
+          ncol = 3) 
+ggsave(filename = h("plots/pois_partial_effects.png"), width = 12, height = 12)
 
 
 # Generate predictions --------------------------------------------
