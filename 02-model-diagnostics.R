@@ -13,7 +13,7 @@ amr_mice <- read_rds(h("model/mice-imputation.rds"))
 
 amr_with_imputes <- amr_mice %>% 
   mice::complete(.) %>% 
-  select(-ln_ab_import_per_capita, -ln_livestock_pcu) %>%
+  #select(-ln_ab_import_per_capita, -ln_livestock_pcu) %>%
   mutate(country = countrycode::countrycode(sourcevar = iso3c,
                                             origin = "iso3c",
                                             destination = "country.name")  )
@@ -39,19 +39,15 @@ ggsave(filename = h("plots/diagnostics/trace.png"), width = 15, height = 15)
 test = as.array(fit_combined)[,1,1:2]
 dimnames(test)
 hist_plot <- mcmc_rank_hist(test, n_bins = 40)
-ggsave(hist_plot, filename = h("plots/diagnostics/histogram.png"), width = 15, height = 15)
 
 # Density overlay plots
 dens_plot <- ppc_dens_overlay(y, yrep) + 
   scale_y_continuous(limits = c(0, 1)) +
   scale_x_continuous(limits = c(0, 50))
-ggsave(dens_plot, filename = h("plots/diagnostics/density.png"))
-
 
 # Proportion zero plots
 prop_zero <- function(x) mean(x == 0)
 zero_plot <- ppc_stat(y, yrep, stat = "prop_zero", binwidth = 0.005)
-ggsave(zero_plot, filename = h("plots/diagnostics/prop_zero.png"))
 
 # Interval plots
 int_dat <- ppc_intervals_data(y, yrep) 
@@ -64,7 +60,6 @@ p50 <- round(100*sum(int_dat$in_50)/nrow(int_dat))
 p90 <- round(100*sum(int_dat$in_90)/nrow(int_dat))
 
 interval_plot <- ppc_intervals(y, yrep)# + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
-ggsave(interval_plot, filename = h("plots/diagnostics/intervals.png"), width = 6)
 
 y_grped <- tibble(y) %>%
   mutate(grp = cut(y, breaks = c(0,  1, 10, 20, 50, Inf), right = FALSE)) %>%

@@ -45,7 +45,7 @@ lookup_vars <- c(
   "ab_export_bin" = "AB Exported (yes/no)",
   
   # population movement
-  "ln_tourism_outbound_per_capita" = "Tourism - Outbound (per capita)", 
+  # "ln_tourism_outbound_per_capita" = "Tourism - Outbound (per capita)", 
   "ln_tourism_inbound_per_capita"  = "Tourism - Inbound (per capita)",
   "ln_migrant_pop_per_capita" = "Migrant Population (per capita)",  
   
