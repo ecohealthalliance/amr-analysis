@@ -13,10 +13,10 @@ source(h("R/functions.R"))
 # Data --------------------------------------------------------------------
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
-  # remove cols not using
-  dplyr::select(-country, -gdp_dollars, -pubcrawl, -promed_mentions) %>%
   # remove rows if population or gdp data is unavailable
-  drop_na(population, gdp_per_capita) 
+  drop_na(population, gdp_per_capita) %>%
+  # remove column not using
+  dplyr::select(-livestock_consumption_kg_per_pcu)
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(!is.na(.)))

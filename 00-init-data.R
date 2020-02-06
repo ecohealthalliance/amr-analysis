@@ -194,7 +194,7 @@ livestock_consumption_country %<>%
   right_join(pcu) %>%
   mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
   filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) %>% # unclear if no livestock or no consumption
-  dplyr::select(-livestock_consumption_kg, -livestock_consumption_kg_per_pcu)
+  dplyr::select(-livestock_consumption_kg)
 
 #-----------------Tourism data-----------------
 # 2015
@@ -254,8 +254,8 @@ amr %<>%
          pubcrawl_per_capita = pubcrawl/population,
          promed_mentions_per_capita = promed_mentions/population
   ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg)
-
+  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg, -country, -gdp_dollars, -pubcrawl, -promed_mentions)
+  
 write_csv(amr, h("data/country-level-amr.csv"))
 
 # summary
