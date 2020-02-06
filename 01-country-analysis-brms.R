@@ -16,7 +16,7 @@ country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   # remove rows if population or gdp data is unavailable
   drop_na(population, gdp_per_capita) %>%
   # remove column not using
-  dplyr::select(-livestock_consumption_kg_per_pcu)
+  dplyr::select(-livestock_consumption_kg_per_capita)
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(!is.na(.)))
@@ -45,10 +45,10 @@ country_raw <- country_raw %>%
                     mean(., na.rm = TRUE),
                     .)) %>%
   # log transform values
-  mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_capita, tourism_inbound_per_capita, tourism_outbound_per_capita, 
+  mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_pcu, tourism_inbound_per_capita, tourism_outbound_per_capita, 
                  promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
             ~log(.)) %>%
-  rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
+  rename_at(vars("livestock_consumption_kg_per_pcu", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
                  "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
 
 map_int(country_raw, ~sum(!is.na(.)))
@@ -115,7 +115,7 @@ imp %>%
 
 ## Full model, combine = FALSE
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
-fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capita + 
+fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu -
                              ln_migrant_pop_per_capita + ln_tourism_inbound_per_capita + ln_tourism_outbound_per_capita +
                              ln_ab_export_per_capita + ab_export_bin + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 

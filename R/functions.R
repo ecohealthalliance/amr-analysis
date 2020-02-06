@@ -36,9 +36,9 @@ show_imputes <- function(mice, m, raw){
 lookup_vars <- c(
   # consumption vars
   "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
-  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
-  # "ln_livestock_pcu" = "Livestock Population (PCU)", 
+  # "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
+   "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
+   "ln_livestock_pcu" = "Livestock Population (PCU)", 
   
   # production
   "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
