@@ -9,14 +9,14 @@ h <- here::here
 set.seed(101)
 source(h("R/functions.R"))
 
-
 # Data --------------------------------------------------------------------
 # Read in data
 country_raw <- read_csv(h("data/country-level-amr.csv")) %>%
   # remove rows if population or gdp data is unavailable
   drop_na(population, gdp_per_capita) %>%
   # remove column not using
-  dplyr::select(-livestock_consumption_kg_per_pcu)
+  dplyr::select(-livestock_consumption_kg_per_pcu) %>%
+  filter(iso3c != "USA")
 
 # Which parameters have NAs
 map_int(country_raw, ~sum(!is.na(.)))
