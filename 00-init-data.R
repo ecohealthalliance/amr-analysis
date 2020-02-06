@@ -17,12 +17,19 @@ events <- read_csv(content(events, "text")) %>%
   filter(start_year >= 2006) # removes promed mentions prior to 2006
   
 #-----------------Country-wide data-----------------
+# Filter for first global emergence
+events %<>%
+  group_by(bacteria, drug) %>%
+  filter(start_date == min(start_date)) %>%
+  ungroup()
+
 # Summarize counts
 events_by_country <- events %>%
   rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
   count(name = "n_amr_events") %>%
   ungroup() 
+
 #-----------------World Bank data-----------------
 # 2015
 # Population and GDP
