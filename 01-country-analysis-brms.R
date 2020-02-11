@@ -6,7 +6,6 @@ library(future)
 
 h <- here::here
 
-set.seed(101)
 source(h("R/functions.R"))
 
 
@@ -129,7 +128,8 @@ fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_capit
                         iter = 2000,
                         control = list(adapt_delta = 0.9),
                         cores = 4,
-                        combine = FALSE)
+                        combine = FALSE,
+                        seed = 500)
 
 write_rds(fit_all, h("model/fit_all.rds"))
 fit_all_me <- furrr::future_map(fit_all, ~marginal_effects(.))
