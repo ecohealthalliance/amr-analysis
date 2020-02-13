@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 report_files
+.drake
