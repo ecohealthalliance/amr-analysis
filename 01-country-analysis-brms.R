@@ -115,7 +115,7 @@ imp %>%
 
 ## Full model, combine = FALSE
 plan(multiprocess, workers = floor(parallel::detectCores()/4))
-fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu -
+fit_all <- brm_multiple(bf(n_amr_events ~  ln_livestock_consumption_kg_per_pcu + ln_livestock_pcu +
                              ln_migrant_pop_per_capita + ln_tourism_inbound_per_capita + ln_tourism_outbound_per_capita +
                              ln_ab_export_per_capita + ab_export_bin + health_expend_perc + 
                              human_consumption_ddd + english_spoken + 
