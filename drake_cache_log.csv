@@ -1,21 +1,25 @@
 hash,type,name
-671b86623756838b,target,all_marginal_effects
-2699294df99d3878,target,brm_model_combined
-11d96f02963904a5,target,brm_models
+247fb219aa11ea9c,target,all_marginal_effects
+4871643b114d19cb,target,brm_model_combined
+f00029e4a2ce6695,target,brm_models
 cd6d466c6bd57792,import,fit_brm_models
 f610721ad44ba5a0,import,generate_model_data
 e574ec3d0a52513b,import,generate_model_data_with_na
-20ce35518a2066c5,import,imputation_seed
+2a91c414d91c00e1,import,h
 1393aef18608c8be,import,impute_iterations
-b3246be3f741b2fb,target,imputed_data
+5d9ecc64a1ef1b99,target,imputed_data
+1ccefe75f20c2066,target,imputed_data_filled
 0a4dc977c5c5addb,import,imputed_sets
+2c5dec75539f6184,import,make_trace_plots
 f8d0fb22f1523690,target,model_data
 d5e2d01d1e9b7042,target,model_data_with_na
+8b754690a7278b5b,import,cowplot::plot_grid
 36f9439f5abf9401,import,dplyr::select
-50594a7186ad04e5,import,furrr::future_map
-d1ab99cba1c328de,import,rmarkdown::render
-0a40f1cfac543c92,import,file /home/noamross/projects/amr-analysis/data/country-level-amr.csv
-1e8b3efe76caf71b,import,file /home/noamross/projects/amr-analysis/quantities.Rmd
-68f97138c109fab9,target,file quantities.html
-3a28801d791f3298,target,quantities_doc
+07dbeb2781c435e4,import,mice::complete
+0a40f1cfac543c92,import,file /home/emmamendelsohn/amr-analysis/data/country-level-amr.csv
+accb6dfe0c6c000e,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace.png
+1e8b3efe76caf71b,import,file /home/emmamendelsohn/amr-analysis/quantities.Rmd
+56e6bfe6e7672910,target,file quantities.html
+3e51b8002bf95d2a,target,quantities_doc
 20ce35518a2066c5,import,seed
+c85d88fc56f4e042,target,trace_plots
