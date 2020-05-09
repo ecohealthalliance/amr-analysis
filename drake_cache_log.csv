@@ -1,45 +1,84 @@
 hash,type,name
-cbf77292742201b8,target,all_marginal_effects
-9de3940a8cfc4b13,target,beta_samples
-ff2e9d4183461b8c,target,brm_model_combined
-433fd3b19b08e23c,target,brm_models
+183522b9db7795ea,target,all_marginal_effects
+6483a4ee25d0caea,import,amr_raw
+8e8822a4d56b34de,target,beta_samples
+4bd306584b8af027,target,brm_model_combined
+28df102d213207db,target,brm_models
 a236f57ad4d41f10,import,coefficient_dot_plots
 c85d88fc56f4e042,target,dot_plot
+1b38fb8f2876e627,target,events
 cd6d466c6bd57792,import,fit_brm_models
 192c6aaf6009c985,import,fit_combined
 3d54d3af6028cf9b,import,generate_model_data
 10e6e1062a3cd32f,import,generate_model_data_with_na
 3d55e27072fffa8d,import,get_coefficients
 0b89203d969053bd,import,get_consistent_predictors
+1de158c3e1d31686,import,get_events
+ec59e8c945f7f825,import,get_model_predictions
+64bef3c31bcf7ad8,import,get_pois_vars
+f377106f1bf22dd6,import,get_zi_vars
 1393aef18608c8be,import,impute_iterations
-d3e65d805f0f837d,target,imputed_data
+29fe0f0ae452e031,target,imputed_data
+88ad07c88b4669fa,target,imputed_data_complete
 1ccefe75f20c2066,target,imputed_data_filled
 0a4dc977c5c5addb,import,imputed_sets
 6867b671e216d447,import,lookup_vars
 e16b3de38fddab7e,import,make_posterior_plots
 2c5dec75539f6184,import,make_trace_plots
+c85d88fc56f4e042,target,map_and_slope
 c85d88fc56f4e042,target,marginal_effects_plot
-e25744340ef24dd3,target,model_coefficients
-f8d0fb22f1523690,target,model_data
-d5e2d01d1e9b7042,target,model_data_with_na
+05bbd45c313d5eae,target,model_coefficients
+d5a49f772326b497,target,model_data
+835c66f61eccd12e,target,model_data_long
+3b1e1ee332caddc7,target,model_data_with_na
+d5020f159c85eb08,target,model_predictions
+64abcb25f0d00888,import,assertthat::assert_that
+30ca16e0bb42d0dc,import,brms::bayes_R2
+ae992d36169c5528,import,countrycode::countrycode
 8b754690a7278b5b,import,cowplot::plot_grid
 36f9439f5abf9401,import,dplyr::select
 07dbeb2781c435e4,import,mice::complete
 13058d19857449ef,import,sjPlot::get_model_data
-0a40f1cfac543c92,import,file /Users/emmamendelsohn/r_projects/amr-analysis/data/country-level-amr.csv
-26ea0f1b9fd9208f,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/marginal_effects_multi.png
-95b4769040e1b9db,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/diagnostics/posterior_all.png
-b5c250132bcb6c69,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/diagnostics/trace.png
-d488655654e67d9d,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/dot_plot.png
+6312f1b5ec2d3c73,import,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities.Rmd
+42f85695b5288fb6,target,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities.html
+538fa1c9ae794b61,import,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities_data.Rmd
+8027a2ab0bf431e8,target,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities_data.html
+39c3ce55898fc7df,import,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities_model.Rmd
+d6c07939119d0e4d,target,file /Users/emmamendelsohn/r_projects/amr-analysis/doc/quantities_model.html
+eca55db3a23e572f,import,file /Users/emmamendelsohn/r_projects/amr-analysis/data/country-level-amr.csv
+09ce7cc41f51c3dc,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/map_and_slope.png
+d183d5c5dbd53b84,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/map_predictions.png
+d0a5fd2eaa118b87,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/marginal_effects_multi.png
+3d676eeef021089f,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/diagnostics/posterior_all.png
+ab3aaf442c08857a,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/diagnostics/trace.png
+964a75c9f347f2d8,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/dot_plot.png
+29e6ae4c33e72da1,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/pois_partial_effects.png
+6d6b96162e2055c7,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/slope_graph.png
+027cd7358c329afc,target,file /Users/emmamendelsohn/r_projects/amr-analysis/plots/zi_partial_effects.png
 1e8b3efe76caf71b,import,file /Users/emmamendelsohn/r_projects/amr-analysis/quantities.Rmd
 000fb1cd91063e3a,target,file quantities.html
 6867b671e216d447,import,plot_labels
-3adb2c9b22c580e8,import,plot_marginal_effects
+049aca113822df8a,import,plot_map
+2307b36291b1444b,import,plot_marginal_effects
+2fd119b5b3cae674,import,plot_pois_partial_effects
 e16b3de38fddab7e,import,plot_posteriors
+926fe69cab1e6a85,import,plot_slope
 2c5dec75539f6184,import,plot_trace
+2d096c9c3e56758d,import,plot_zi_partial_effects
+c85d88fc56f4e042,target,pois_partial_effects_plot
+f0a7e8b36956e9b2,target,pois_vars
 c85d88fc56f4e042,target,posterior_plots
-97209e3b78b2fcbf,target,posterior_y
-12da4202b0e778a8,target,predictor_terms
-df1665c5afd6239b,target,quantities_doc
-20ce35518a2066c5,import,seed
+7fc6fc74eef6a4c4,target,posterior_y
+334d2605413d1696,target,predict_map
+30879c884ec0b669,target,predict_slope_plot
+dd4a41b18841acda,target,predictor_terms
+4733544f8998dfe5,target,quantities_data_doc
+4733544f8998dfe5,target,quantities_doc
+f5c302c456a20ca3,target,quantities_model_doc
+bc13996f404e6bef,target,r2
+3ca4f368abc1b097,import,rehape_model_data
+581c96f8ae00ff51,import,seed
 c85d88fc56f4e042,target,trace_plots
+838d7cbaaf2b4232,import,var
+c85d88fc56f4e042,target,zi_partial_effects_plot
+62fbe39b6ceb399e,target,zi_vars

@@ -1,5 +1,5 @@
 
-plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_terms, model_data){
+plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_terms, model_data_long){
   
   marg_effects_data <- imap_dfr(all_marginal_effects, function(me, iter){
     imap_dfr(me, function(x, y){
@@ -25,17 +25,12 @@ plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_t
     right_join(predictor_terms, by = c("var" = "term")) %>%
     mutate(var = factor(var, levels = names(plot_labels)))
   
-  amr_raw <- model_data %>%
-    select(-iso3c) %>%
-    gather(key ="var", value = "x") %>%
-    drop_na() %>%
-    mutate(x_backtrans = ifelse(str_detect(var, "ln_"), exp(x), x))
   
   me_plots <- map(names(plot_labels), function(lv){
     p <- ggplot(data = filter(marg_effects_data, var == lv), aes(x = value_backtrans)) + 
       geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
       geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean), size = 1.25) +
-      geom_rug(data = filter(amr_raw, var ==lv), mapping = aes(x = x_backtrans)) +
+      geom_rug(data = filter(model_data_long, var ==lv), mapping = aes(x = x_backtrans)) +
       scale_y_continuous(limits = c(0, 10), 
                          breaks = c(0, 2.5, 5, 7.5, 10), 
                          labels = c("0", "", "5", "", "10")) +

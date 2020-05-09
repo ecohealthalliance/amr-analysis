@@ -1,0 +1,38 @@
+---
+title: "Model Quantities"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(drake)
+library(tidyverse)
+library(brms)
+loadd(brm_model_combined, imputed_data_complete, zi_vars, pois_vars)
+```
+
+Bayesian R-squared
+```{r}
+bayes_R2(brm_model_combined, summary = TRUE)
+```
+
+get means and predict doubling for each vars
+```{r}
+  amr_means <- colMeans(as.matrix(imputed_data_complete[,unique(c(zi_vars, pois_vars))])) %>%
+    enframe() %>%
+    pivot_wider(names_from = name, values_from = value)
+
+mean_estimate <- predict(brm_model_combined, newdata = amr_means, summary = TRUE)
+
+imap(amr_means, function(x, y){
+    dbl_estimate <- amr_means %>%
+      mutate(!!y := ifelse(str_detect(y, "ln_"), log(exp(x) * 2), x * 2)) %>%
+      predict(brm_model_combined, newdata = .)
+    dbl_estimate[1]/mean_estimate[1]
+  })
+  
+```
+

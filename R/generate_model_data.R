@@ -30,3 +30,13 @@ generate_model_data <- function(model_data_with_na) {
     rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
                    "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
 }
+
+
+
+rehape_model_data <- function(model_data){
+  model_data %>%
+    select(-iso3c) %>%
+    gather(key ="var", value = "x") %>%
+    drop_na() %>%
+    mutate(x_backtrans = ifelse(str_detect(var, "ln_"), exp(x), x))
+}
