@@ -1,5 +1,5 @@
-get_coefficients <- function(brm_model_combined){
-  sjPlot::get_model_data(brm_model_combined, type = "est") %>%
+get_coefficients <- function(mod_comb){
+  sjPlot::get_model_data(mod_comb, type = "est") %>%
     distinct() %>%
     mutate(term_clean = as.character(term)) %>%
     mutate(term_clean = lookup_vars[term_clean]) %>%
@@ -16,7 +16,7 @@ get_consistent_predictors <- function(coefs){
     select(term, lab)
 } 
 
-coefficient_dot_plots <- function(coefs){
+plot_coefficients <- function(coefs){
   
   ggplot(coefs, aes(x = term_clean, y = estimate)) + 
     geom_hline(yintercept = 1, color = "gray60") +

@@ -1,6 +1,6 @@
-fit_brm_models <- function(imputed_data, seed, formula) {
-  models <- brm_multiple(formula,
-               data = imputed_data,
+fit_brm_model <- function(data_mice, seed, formula) {
+  brm_multiple(formula,
+               data = data_mice,
                family = zero_inflated_poisson(),
                set_prior("student_t(3,0,10)", class = "b"),
                chains = 4,

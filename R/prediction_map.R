@@ -10,8 +10,7 @@ plot_map <- function(map_data){
   
   pal1 <- colorNumeric("OrRd", domain = c(admin_mean$`Predicted AMR Events`, admin_mean$`Reported AMR Events`), na.color = "#e9e9f0")
   
-
-   ggplot(admin_mean) + 
+  ggplot(admin_mean) + 
     geom_sf(aes(fill = value), color = "transparent") +
     facet_wrap(key~., strip.position="top", ncol = 1) +
     scale_fill_viridis_c(option = "plasma", alpha = 0.8) +

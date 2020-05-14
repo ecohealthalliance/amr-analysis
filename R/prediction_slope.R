@@ -1,7 +1,7 @@
-plot_slope <- function(model_predictions){
+plot_slope <- function(predicts){
   
   # view largest differences between predicted and acctual
-  diffs <- model_predictions %>%
+  diffs <- predicts %>%
     filter(v == "mean_pop") %>%
     mutate(diff = med - n_amr_events) %>%
     mutate(country_lab = paste0(country, " (", round(lo, 0), " - ", round(hi,0), ")")) %>%

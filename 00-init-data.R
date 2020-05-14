@@ -14,14 +14,20 @@ url <- "https://raw.githubusercontent.com/ecohealthalliance/amr-db/master/events
 events <- GET(url, authenticate(Sys.getenv("GITHUB_USERNAME"), Sys.getenv("GITHUB_PAT")))
 events <- read_csv(content(events, "text")) %>%
   mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
-  filter(start_year >= 2006) # removes promed mentions prior to 2006
+  filter(start_year >= 2006) %>%  # removes promed mentions prior to 2006
+  rename(iso3c = study_iso3c)
   
 #-----------------Country-wide data-----------------
+# Mark first global emergence
+events %<>%
+  group_by(bacteria, drug) %>%
+  mutate(first_emergence = start_date == min(start_date)) %>%
+  ungroup()
+
 # Summarize counts
 events_by_country <- events %>%
-  rename(iso3c = study_iso3c) %>%
   group_by(iso3c) %>%
-  count(name = "n_amr_events") %>%
+  summarize(n_amr_events = n(), n_amr_first_events = sum(first_emergence)) %>%
   ungroup() 
 #-----------------World Bank data-----------------
 # 2015

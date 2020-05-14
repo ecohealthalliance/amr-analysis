@@ -1,7 +1,7 @@
 
-plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_terms, model_data_long){
+plot_marginal_effects <- function(marg_eff, plot_labels, consistent_preds, data_reshape){
   
-  marg_effects_data <- imap_dfr(all_marginal_effects, function(me, iter){
+  marg_effects_data <- imap_dfr(marg_eff, function(me, iter){
     imap_dfr(me, function(x, y){
       x %>% 
         select(value = y, cond__:upper__) %>%
@@ -22,7 +22,7 @@ plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_t
     summarize(xval = 0.9 * max(value_backtrans),
               yval = 0.9 * max(mean)) %>%
     ungroup() %>%
-    right_join(predictor_terms, by = c("var" = "term")) %>%
+    right_join(consistent_preds, by = c("var" = "term")) %>%
     mutate(var = factor(var, levels = names(plot_labels)))
   
   
@@ -30,7 +30,7 @@ plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_t
     p <- ggplot(data = filter(marg_effects_data, var == lv), aes(x = value_backtrans)) + 
       geom_line(aes(y = estimate__, group = iteration), color = "cornflowerblue", size=.5, alpha = 0.4) +
       geom_line(data = filter(marg_effects_avg, var == lv), aes(x = value_backtrans, y = mean), size = 1.25) +
-      geom_rug(data = filter(model_data_long, var ==lv), mapping = aes(x = x_backtrans)) +
+      geom_rug(data = filter(data_reshape, var ==lv), mapping = aes(x = x_backtrans)) +
       scale_y_continuous(limits = c(0, 10), 
                          breaks = c(0, 2.5, 5, 7.5, 10), 
                          labels = c("0", "", "5", "", "10")) +
@@ -59,5 +59,5 @@ plot_marginal_effects <- function(all_marginal_effects, plot_labels, predictor_t
   })
   
   cowplot::plot_grid(plotlist=me_plots, 
-            ncol = 2) 
+                     ncol = 2) 
 }

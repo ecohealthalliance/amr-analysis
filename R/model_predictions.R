@@ -1,14 +1,14 @@
-get_model_predictions <- function(imputed_data_complete, beta_samples, pois_vars){
+get_predictions <- function(data_mice_compl, betas, pois_vars){
   
   # matrix of beta samples
-  betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
+  betas <- cbind(as.matrix(betas[,c(grep("b_[^z]", colnames(betas)))]), 1)
   colnames(betas)[ncol(betas)] <- "b_ln_population"
   
   # matrix of data by country
-  X <- cbind("Intercept" = 1 , imputed_data_complete[,c(pois_vars, "ln_population")]) %>%
+  X <- cbind("Intercept" = 1 , data_mice_compl[,c(pois_vars, "ln_population")]) %>%
     as.matrix(.) %>%
     t()
-  colnames(X) <- imputed_data_complete$iso3c
+  colnames(X) <- data_mice_compl$iso3c
   X2 <- X
   X2["ln_population",] <- 0 # set population to zero to calculate rate
   
@@ -41,8 +41,8 @@ get_model_predictions <- function(imputed_data_complete, beta_samples, pois_vars
                                               origin = "iso3c",
                                               destination = "country.name"))
   
-  amr_events <- imputed_data_complete %>% 
-    select(iso3c, n_amr_events) 
+  amr_events <- data_mice_compl %>% 
+    dplyr::select(iso3c, n_amr_events) 
   
   pois_predicts <- left_join(pois_predicts, amr_events, by = "iso3c")
     
