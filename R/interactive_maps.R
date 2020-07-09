@@ -27,7 +27,7 @@ interactive_map <- function(events, locations, map_data){
                      stroke = TRUE, color = "#210106", opacity = 1, weight = 1,
                      fill = TRUE, fillColor = "#210106", fillOpacity = 0.5,
                      label = ~study_location, group = "Reported") %>%
-    addLegend(data = admin_mean, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
+    leaflet::addLegend(data = admin_mean, pal = pal1, values = ~`Predicted AMR Events`, position = "bottomright", title = "AMR Emergence Events") %>% 
    # addControl(caption) %>%
     addLayersControl(baseGroups = c("Reported", "Predicted"), options = layersControlOptions(collapsed = FALSE), position = "bottomleft")  
   

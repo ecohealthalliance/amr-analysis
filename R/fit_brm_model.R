@@ -9,5 +9,5 @@ fit_brm_model <- function(data_mice, seed, formula) {
                control = list(adapt_delta = 0.9),
                cores = 4,
                combine = FALSE,
-               seed = 500)
+               seed = seed)
 }

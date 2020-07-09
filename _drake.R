@@ -22,11 +22,13 @@ suppressPackageStartupMessages({
   library(ggthemes)
   library(rnaturalearth)
   library(rnaturalearthdata)
+  library(rnaturalearthhires)
   library(countrycode)
   library(sf)
   library(leaflet)
   library(leaflet.extras)
   library(httr)
+  library(PerformanceAnalytics)
 })
 h <- here::here
 pkgconfig::set_config("drake::strings_in_dots" = "literals")
@@ -42,6 +44,8 @@ set.seed(seed)
 #TODO add all scenarios - see backup - running into errors that didn't exist previously ???
 #TODO add labels to plots
 #TODO change seeds
+
+labs <- c("baseline", "global", "remove_us", "remove_outbound_tourism", "remove_livestock_biomass")
 
 plan <- drake_plan(
   
@@ -81,7 +85,7 @@ plan <- drake_plan(
   ),
   # use MICE to replace other NAs
   data_mice =  target(
-    mice::mice(data_trans, m = imputed_sets, maxit = impute_iterations, method = 'cart', seed = 500),
+    mice::mice(data_trans, m = imputed_sets, maxit = impute_iterations, method = 'cart', seed = seed),
     transform = map(data_trans, .id = FALSE)
   ),
   # extract completed MICE data
@@ -101,13 +105,13 @@ plan <- drake_plan(
   formula = target(
     formula,
     cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!remove_outbound_tourism_formula, !!remove_livestock_biomass_formula), .id = FALSE)),
+  
   mod_fit =  target(
     fit_brm_model(data_mice, 
                   seed = seed, 
                   formula),
     transform = map(data_mice, formula)
   ),
-  
   # get marginal effects on all model iterations
   marg_eff = target(
     furrr::future_map(mod_fit, ~brms::marginal_effects(.)),
@@ -145,14 +149,14 @@ plan <- drake_plan(
     ggsave(plot_trace(mod_comb),
            filename = file_out(!!h(paste0("plots/diagnostics/trace_", lab, ".png"))), 
            width = 15, height = 15),
-    transform = map(mod_comb, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(mod_comb, lab = !!labs, .id = FALSE)
   ),
   # other posterior plots
   post_plots = target(
     ggsave(plot_posteriors(data_trans, post_y),
            filename = file_out(!!h(paste0("plots/diagnostics/posterior_", lab, ".png"))),
            width = 12, height= 4),
-    transform = map(data_trans, post_y, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(data_trans, post_y, lab = !!labs, .id = FALSE)
   ),
   
   #### Model Summary ####
@@ -166,7 +170,7 @@ plan <- drake_plan(
     ggsave(plot_coefficients(coefs),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
            width = 6, height = 4),
-    transform = map(coefs,  lab = c("baseline", "global"), .id = FALSE)
+    transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?
   consistent_preds = target(
@@ -178,7 +182,7 @@ plan <- drake_plan(
     ggsave(plot_marginal_effects(marg_eff, plot_labels, consistent_preds, data_reshape),
            filename = file_out(!!h(paste0("plots/marginal_effects_multi_", lab, ".png"))),
            width = 10, height = 21),
-    transform = map(marg_eff, consistent_preds, data_reshape, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(marg_eff, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get model predictions
   predicts = target(
@@ -190,14 +194,14 @@ plan <- drake_plan(
     ggsave(plot_zi_partial_effects(betas, zi_vars, data_mice_compl, data_reshape),
            filename = file_out(!!h(paste0("plots/zi_partial_effects_", lab, ".png"))),
            width = 12, height = 6),
-    transform = map(betas, zi_vars, data_mice_compl, data_reshape, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(betas, zi_vars, data_mice_compl, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # generate partial effects plot - poisson vars
   pois_part_plot = target(
     ggsave(plot_pois_partial_effects(betas, pois_vars, data_mice_compl, data_reshape),
            filename = file_out(!!h(paste0("plots/pois_partial_effects_", lab, ".png"))),
            width = 12, height = 12),
-    transform = map(betas, pois_vars, data_mice_compl, data_reshape, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(betas, pois_vars, data_mice_compl, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get map data
   map_data = target(
@@ -209,7 +213,7 @@ plan <- drake_plan(
     ggsave(plot_grid(plot_map(map_data), plot_slope(predicts), labels = "AUTO"),
            filename = file_out(!!h(paste0("plots/map_and_slope_", lab, ".png"))),
            width = 14, height = 8),
-    transform = map(map_data, predicts, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(map_data, predicts, lab = !!labs, .id = FALSE)
   ),
   # for interactive map: get dataframe of AMR events
   events = get_events(),
@@ -219,7 +223,7 @@ plan <- drake_plan(
   predict_map_interactive = target(
     htmlwidgets::saveWidget(interactive_map(events, locations, map_data),
                             file = file_out(!!h(paste0("plots/map_predictions_interactive_", lab, ".html")))),
-    transform = map(map_data, lab = c("baseline", "global"), .id = FALSE)
+    transform = map(map_data, lab = !!labs, .id = FALSE)
   ),
   # model exploration markdown
   quantities_model_doc = render(knitr_in(!!h("doc/quantities_model.Rmd")), output_file = file_out(!!h("doc/quantities_model.html")))
@@ -237,7 +241,7 @@ config <- drake_config(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
 config
 
 drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
-            cache_log_file = "drake_cache_log.csv")
+           cache_log_file = "drake_cache_log.csv")
 
 
 
