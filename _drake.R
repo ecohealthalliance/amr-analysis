@@ -39,8 +39,9 @@ impute_iterations <- 40
 seed <- 101
 set.seed(seed)
 
-#TODO add all scenarios
+#TODO add all scenarios - see backup - running into errors that didn't exist previously ???
 #TODO add labels to plots
+#TODO change seeds
 
 plan <- drake_plan(
   
@@ -49,16 +50,29 @@ plan <- drake_plan(
   data = target(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
+  # 1
   data_baseline = target(
     split_data(data, "baseline")
   ),
+  # 2
   data_global = target(
     split_data(data, "global")
   ),
-  # use hueristics to replace some NAs, log transform vars
+  # 3
+  data_remove_us = target(
+    split_data(data, "remove_us")
+  ),
+  # 4
+  data_remove_outbound_tourism = target(
+    split_data(data, "remove_outbound_tourism")
+  ),
+  # 5
+  data_remove_livestock_biomass = target(
+    split_data(data, "remove_livestock_biomass")
+  ),  # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_baseline, data_global), .id = FALSE)
+    transform = cross(input_data = c(data_baseline, data_global, data_remove_us, data_remove_outbound_tourism, data_remove_livestock_biomass), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
@@ -72,7 +86,11 @@ plan <- drake_plan(
   ),
   # extract completed MICE data
   data_mice_compl = target(
-    mice::complete(data_mice),
+    mice::complete(data_mice, action = "long") %>% 
+      group_by(.id, iso3c) %>% 
+      summarize_all(mean) %>% 
+      ungroup()  %>% 
+      select(-.id),
     transform = map(data_mice, .id = FALSE)
   ),
   # data exploration markdown
@@ -80,17 +98,16 @@ plan <- drake_plan(
   
   #### Model Fitting ####
   # fit brm hurdle model
+  formula = target(
+    formula,
+    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!remove_outbound_tourism_formula, !!remove_livestock_biomass_formula), .id = FALSE)),
   mod_fit =  target(
     fit_brm_model(data_mice, 
                   seed = seed, 
-                  formula = bf(n_amr_events ~ ln_livestock_consumption_kg_per_capita +
-                                 ln_migrant_pop_per_capita + ln_tourism_inbound_per_capita + ln_tourism_outbound_per_capita +
-                                 ln_ab_export_per_capita + ab_export_bin + health_expend_perc +
-                                 human_consumption_ddd + english_spoken +
-                                 ln_pubcrawl_per_capita + ln_promed_mentions_per_capita + ln_gdp_per_capita + offset(ln_population),
-                               zi ~ ln_pubcrawl_per_capita + ln_promed_mentions_per_capita  + ln_gdp_per_capita + ln_population + english_spoken)),
-    transform = map(data_mice, .id = FALSE)
+                  formula),
+    transform = map(data_mice, formula)
   ),
+  
   # get marginal effects on all model iterations
   marg_eff = target(
     furrr::future_map(mod_fit, ~brms::marginal_effects(.)),
@@ -216,6 +233,11 @@ future::plan(multisession, workers = floor(parallel::detectCores()/4))
 # _drake.R must end with a call to drake_config().
 # The arguments to drake_config() are basically the same as those to make().
 config <- drake_config(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
-                       cache_log_file = "drake_cache_log.csv",)
+                       cache_log_file = "drake_cache_log.csv")
 config
+
+drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
+            cache_log_file = "drake_cache_log.csv")
+
+
 

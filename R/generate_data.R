@@ -2,17 +2,23 @@ init_data <- function(country_amr_file) {
   # Read in data
   read_csv(country_amr_file) %>%
     # remove rows if population or gdp data is unavailable
-    drop_na(population, gdp_per_capita) %>%
-    # remove column not using
-    dplyr::select(-livestock_consumption_kg_per_pcu)
+    drop_na(population, gdp_per_capita)
 }
 
 split_data <- function(data, model_scenario){
   switch(model_scenario, 
-         "baseline" = select(data, -n_amr_first_events),
+         "baseline" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu),
          "global" = data %>% 
-           select(-n_amr_events) %>% 
-           rename(n_amr_events = n_amr_first_events)
+           select(-n_amr_events, -livestock_consumption_kg_per_pcu) %>% 
+           rename(n_amr_events = n_amr_first_events),
+         "remove_us" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
+           filter(iso3c != "USA"),
+         "remove_outbound_tourism" = data %>%
+           select(-n_amr_first_events, -tourism_outbound_per_capita, -livestock_consumption_kg_per_pcu),
+         "remove_livestock_biomass" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_capita) 
   )
 }
 
@@ -33,11 +39,12 @@ transform_data <- function(split_data) {
                       .)) %>%
     mutate(ab_export_bin = replace_na(ab_export_bin, 0)) %>% 
     # log transform values
-    mutate_at(vars(gdp_per_capita, migrant_pop_per_capita, population, livestock_consumption_kg_per_capita, tourism_inbound_per_capita, tourism_outbound_per_capita, 
-                   promed_mentions_per_capita, pubcrawl_per_capita,  ab_export_per_capita, ab_import_per_capita, livestock_pcu),
+    mutate_at(vars(one_of("gdp_per_capita", "migrant_pop_per_capita", "population", "livestock_consumption_kg_per_capita", "tourism_inbound_per_capita", "tourism_outbound_per_capita", 
+                   "promed_mentions_per_capita", "pubcrawl_per_capita",  "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu", "livestock_consumption_kg_per_pcu")),
               ~log(.)) %>%
-    rename_at(vars("livestock_consumption_kg_per_capita", "migrant_pop_per_capita", "promed_mentions_per_capita", "pubcrawl_per_capita",
-                   "gdp_per_capita" , "population", "tourism_inbound_per_capita", "tourism_outbound_per_capita", "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu"), ~paste0("ln_", .))
+    rename_at(vars(one_of("gdp_per_capita", "migrant_pop_per_capita", "population", "livestock_consumption_kg_per_capita", "tourism_inbound_per_capita", "tourism_outbound_per_capita", 
+                          "promed_mentions_per_capita", "pubcrawl_per_capita",  "ab_export_per_capita", "ab_import_per_capita", "livestock_pcu", "livestock_consumption_kg_per_pcu")),
+              ~paste0("ln_", .))
 }
 
 
