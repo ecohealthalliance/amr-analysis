@@ -41,11 +41,9 @@ impute_iterations <- 40
 seed <- 101
 set.seed(seed)
 
-#TODO add all scenarios - see backup - running into errors that didn't exist previously ???
 #TODO add labels to plots
-#TODO change seeds
 
-labs <- c("baseline", "global", "remove_us", "remove_outbound_tourism", "remove_livestock_biomass")
+labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp_pop", "v4_full_impute")
 
 plan <- drake_plan(
   
@@ -55,25 +53,22 @@ plan <- drake_plan(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
   # 1
-  data_baseline = target(
-    split_data(data, "baseline")
+  data_v1_complete_only = target(
+    split_data(data, "v1_complete_only")
   ),
   # 2
-  data_global = target(
-    split_data(data, "global")
+  data_v2_human_or_animal = target(
+    split_data(data, "v2_human_or_animal")
   ),
   # 3
-  data_remove_us = target(
-    split_data(data, "remove_us")
+  data_v3_countries_in_range_gdp_pop = target(
+    split_data(data, "v3_countries_in_range_gdp_pop")
   ),
   # 4
-  data_remove_outbound_tourism = target(
-    split_data(data, "remove_outbound_tourism")
+  data_v4_full_impute = target(
+    split_data(data, "v4_full_impute")
   ),
-  # 5
-  data_remove_livestock_biomass = target(
-    split_data(data, "remove_livestock_biomass")
-  ),  # use hueristics to replace some NAs, log transform vars
+  # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
     transform = cross(input_data = c(data_baseline, data_global, data_remove_us, data_remove_outbound_tourism, data_remove_livestock_biomass), .id = FALSE)

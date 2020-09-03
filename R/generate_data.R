@@ -7,18 +7,25 @@ init_data <- function(country_amr_file) {
 
 split_data <- function(data, model_scenario){
   switch(model_scenario, 
-         "baseline" = data %>%
-           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu),
-         "global" = data %>% 
-           select(-n_amr_events, -livestock_consumption_kg_per_pcu) %>% 
-           rename(n_amr_events = n_amr_first_events),
-         "remove_us" = data %>%
+         "v1_complete_only" = data %>%
            select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
-           filter(iso3c != "USA"),
-         "remove_outbound_tourism" = data %>%
-           select(-n_amr_first_events, -tourism_outbound_per_capita, -livestock_consumption_kg_per_pcu),
-         "remove_livestock_biomass" = data %>%
-           select(-n_amr_first_events, -livestock_consumption_kg_per_capita) 
+           drop_na(human_consumption_ddd, livestock_consumption_kg_per_capita),
+         "v2_human_or_animal" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
+           filter(!(is.na(human_consumption_ddd) & is.na(livestock_consumption_kg_per_capita))),
+         "v3_countries_in_range_gdp_pop" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
+           mutate(max_gdp = max(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
+                  min_gdp = min(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
+                  max_pop = max(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
+                  min_pop = min(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
+           filter(gdp_per_capita <= max_gdp, 
+                  gdp_per_capita >= min_gdp,
+                  population <= max_pop,
+                  population >= min_pop) %>% 
+           select(-starts_with("min"), -starts_with("max")),
+         "v4_full_impute" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu)
   )
 }
 
