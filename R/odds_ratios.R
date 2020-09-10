@@ -16,24 +16,46 @@ get_consistent_predictors <- function(coefs){
     select(term, lab)
 } 
 
-plot_coefficients <- function(coefs){
+plot_coefficients <- function(coefs, lab){
   
+  var_order <- c('Population',
+                 'GDP (dollars per capita)', 
+                 'ProMed Mentions (per capita)', 
+                 'Publication Bias Index (per capita)',
+                 'English Spoken (yes/no)', 
+                 'Human AB Consumption (DDD)',
+                 'Livestock AB Consumption (kg per capita)', 
+                 'Health Expenditure (% GDP)', 
+                 'Migrant Population (per capita)', 
+                 'Tourism - Inbound (per capita)', 
+                 'Tourism - Outbound (per capita)', 
+                 'AB Exported (yes/no)',
+                 'AB Exports (dollars per capita)')
+  
+  coefs <- coefs %>% 
+    mutate(wrap.facet = factor(wrap.facet, levels = c("Zero-Inflated Model", "Conditional Model"))) %>% 
+    mutate(term_clean = factor(term_clean, levels = var_order)) %>% 
+    mutate(term_clean = fct_rev(term_clean))
   ggplot(coefs, aes(x = term_clean, y = estimate)) + 
     geom_hline(yintercept = 1, color = "gray60") +
     geom_segment(aes(y = conf.low, yend = conf.high, xend = term_clean), color = "cornflowerblue") +
     geom_point(aes(color = group), show.legend = FALSE) +
     geom_text(aes(label = lab), nudge_x = 0.25) +
-    scale_y_continuous(limits = c(0.25, 2)) +
+    scale_y_log10() +
+    # scale_y_continuous(limits = c(0.25, 2)) +
     scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
-    labs(x = "", y = "Odds Ratio", title = "Model Coefficients") +
+    facet_wrap(wrap.facet ~ .) +
+    labs(x = "", y = "Odds Ratio", title = paste0("Model Coefficients - ", lab)) +
     coord_flip() +
     theme_foundation(base_size = 10, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
           title = element_text(size = rel(1), face = "bold"), 
-          axis.text = element_text( size = rel(1)), 
+          axis.text = element_text(size = rel(1)), 
           axis.ticks = element_blank(),
           axis.line = element_blank(), 
           plot.title.position = "plot",
+          panel.spacing = unit(2, "lines"),
+          strip.text = element_text(size = rel(1.1)),
           panel.grid.major = element_line(colour = "gray50", linetype = 3), 
           panel.grid.minor = element_blank())
 }

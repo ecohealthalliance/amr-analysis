@@ -71,7 +71,7 @@ plan <- drake_plan(
   # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_baseline, data_global, data_remove_us, data_remove_outbound_tourism, data_remove_livestock_biomass), .id = FALSE)
+    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp_pop, data_v4_full_impute), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
@@ -93,13 +93,13 @@ plan <- drake_plan(
     transform = map(data_mice, .id = FALSE)
   ),
   # data exploration markdown
-  quantities_data_doc = render(knitr_in(!!h("doc/quantities_data.Rmd")), output_file = file_out(!!h("doc/quantities_data.html"))),
+  #quantities_data_doc = render(knitr_in(!!h("doc/quantities_data.Rmd")), output_file = file_out(!!h("doc/quantities_data.html"))),
   
   #### Model Fitting ####
   # fit brm hurdle model
   formula = target(
     formula,
-    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!remove_outbound_tourism_formula, !!remove_livestock_biomass_formula), .id = FALSE)),
+    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!main_formula), .id = FALSE)),
   
   mod_fit =  target(
     fit_brm_model(data_mice, 
@@ -162,9 +162,9 @@ plan <- drake_plan(
   ),
   # coefficient dot plot
   coef_plot = target(
-    ggsave(plot_coefficients(coefs),
+    ggsave(plot_coefficients(coefs, lab),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
-           width = 6, height = 4),
+           width = 10, height = 4),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?
@@ -227,7 +227,7 @@ plan <- drake_plan(
 
 vis_drake_graph(plan, targets_only = TRUE)
 
-future::plan(multisession, workers = floor(parallel::detectCores()/4))
+#future::plan(multisession, workers = floor(parallel::detectCores()/4))
 
 # _drake.R must end with a call to drake_config().
 # The arguments to drake_config() are basically the same as those to make().
