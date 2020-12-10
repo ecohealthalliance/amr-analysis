@@ -1,0 +1,155 @@
+---
+title: "AMR Imputation Sensitivity Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+```
+
+
+```{r load}
+suppressPackageStartupMessages({
+  library(drake)
+  library(tidyverse)
+  library(brms)
+  library(here)
+  library(mice)
+  library(future)
+  library(furrr)
+  library(rmarkdown)
+  library(rstan)
+  library(StanHeaders)
+  library(bayesplot)
+  library(sjPlot)
+  library(cowplot)
+  library(ggthemes)
+  library(rnaturalearth)
+  library(rnaturalearthdata)
+  library(rnaturalearthhires)
+  library(countrycode)
+  library(sf)
+  library(leaflet)
+  library(leaflet.extras)
+  library(httr)
+  library(PerformanceAnalytics)
+})
+h <- here::here
+for (file in list.files(h("R"), pattern = "\\.R$", full.names = TRUE)) source(file)
+
+loadd(data_v1_complete_only)
+loadd(data_v2_human_or_animal)
+loadd(data_v3_countries_in_range_gdp)
+loadd(data_v4_full_impute)
+```
+
+This document presents the results of a sensitivity analysis of missing value imputation for human and animal antimicrobial consumption. We evaluate four subsets of the data with varying degrees of imputation.
+
+1) Countries with values for human AND animal antimicrobial consumption data, i.e., no imputation (n = `r nrow(data_v1_complete_only)`)
+2) Countries with values for human OR animal antimicrobial consumption data, i.e., one or the other is imputed (n = `r nrow(data_v2_human_or_animal)`)
+3) Countries with GDP values within the range of countries that have values for human and animal antimicrobial consumption, i.e., both consumption values can be imputed (n = `r nrow(data_v3_countries_in_range_gdp)`)
+4) All countries in dataset, i.e., the original analysis with full imputation of missing values (n = `r nrow(data_v4_full_impute)`)
+
+All imputations in this sensitivity analysis were performed using `MICE`. To compare results across the four scenarios, we present model coefficients and maps showing reported and predicted AMR emergence counts and n imputations by country.
+
+### Model Coefficients
+Odds ratios are close to 1 for human and animal antimicrobial consumption for all degrees of imputation. In scenario 1 (no imputation) neither variable is a consistent predictor of AMR emergence. In scenario 2, human AB consumption is a positive consistent predictor and animal AB consumption is not a predictor. In scenarios 3 and 4, human AB consumption is a positive consistent predictor and animal AB consumption is a negative consistent predictor. In all scenarios, the effect size is small and animal AB consumption is never a consistent predictor in the positive direction.
+
+```{r dotplots}
+labs <- c("1. Countries with values for human AND animal antimicrobial consumption data", "2. Countries with values for human OR animal antimicrobial consumption data", "3. Countries with GDP values within the range of countries that have values for human\nand animal antimicrobial consumption", "4. All countries in dataset")
+loadd(coefs)
+loadd(coefs_2)
+loadd(coefs_3)
+loadd(coefs_4)
+
+plot_coefficients(coefs, labs[1])
+plot_coefficients(coefs_2, labs[2])
+plot_coefficients(coefs_3, labs[3])
+plot_coefficients(coefs_4, labs[4])
+
+```
+
+### Maps
+```{r maps, fig.width=16}
+loadd(map_data)
+loadd(map_data_2)
+loadd(map_data_3)
+loadd(map_data_4)
+
+map_dat_list <- list(map_data, map_data_2, map_data_3, map_data_4)
+raw_dat_list <- list(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute)
+
+# which countries are imputed?
+map_dat_imputes <- purrr::map2(map_dat_list, raw_dat_list, function(mp, rd){
+  
+  imputed <- rd %>% 
+    select(iso3c, human_consumption_ddd, livestock_consumption_kg_per_capita) %>% 
+    mutate(human_consumption_imputed = is.na(human_consumption_ddd)) %>% 
+    mutate(livestock_consumption_imputed = is.na(livestock_consumption_kg_per_capita)) %>% 
+    rowwise() %>% 
+    mutate(n_imputed = as.character(sum(human_consumption_imputed, livestock_consumption_imputed))) %>% 
+    select(-human_consumption_ddd, -livestock_consumption_kg_per_capita) 
+  
+  left_join(mp, imputed) %>% 
+    filter(is.na(v) | v == "mean_pop") %>% 
+    filter(name != "Antarctica") %>% 
+    select(ends_with("imputed")) 
+  
+})
+
+
+# show values
+plots <- map(1:4, function(i) {
+  
+  p1 <- plot_map(map_dat_list[[i]])
+  
+  p2 <- map_dat_imputes[[i]] %>% 
+    mutate(n_imputed = factor(n_imputed, levels = c("2", "1", "0"))) %>% 
+    ggplot() + 
+    geom_sf(aes(fill = n_imputed), size = 0.1) +
+    scale_fill_manual(values = c("0" = "#bdd7e7", "1" = "#6baed6", "2" = "#2171b5"), na.value = "gray50") +
+    labs(fill = "Imputed AB consumption") +
+    theme_foundation(base_size = 11, base_family =  "sans") +
+    coord_sf() +
+    theme(strip.background = element_blank(), 
+          strip.text = element_text(size = rel(1)), 
+          rect = element_rect(fill = "white", linetype = 0, colour = NA),
+          axis.text = element_blank(), 
+          axis.ticks = element_blank(),
+          axis.line = element_blank(), 
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          legend.position = "top")
+  
+  plot_row <-plot_grid(p2, p1)
+  
+  # now add the title
+  title <- ggdraw() +
+    draw_label(
+      labs[i],
+      fontface = 'bold',
+      x = 0,
+      hjust = 0
+    ) +
+    theme(
+      # add margin on the left of the drawing canvas,
+      # so title is aligned with left edge of first plot
+      plot.margin = margin(0, 0, 0, 7)
+    )
+  plot_grid(
+    title, plot_row,
+    ncol = 1,
+    # rel_heights values control vertical title margins
+    rel_heights = c(0.1, 1)
+  )
+  
+})
+
+plots[[1]]
+plots[[2]]
+plots[[3]]
+plots[[4]]
+```
+
+

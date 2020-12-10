@@ -45,7 +45,7 @@ plot_coefficients <- function(coefs, lab){
     # scale_y_continuous(limits = c(0.25, 2)) +
     scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
     facet_wrap(wrap.facet ~ .) +
-    labs(x = "", y = "Odds Ratio", title = paste0("Model Coefficients - ", lab)) +
+    labs(x = "", y = "Odds Ratio", title = paste0(lab)) +
     coord_flip() +
     theme_foundation(base_size = 10, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),

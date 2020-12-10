@@ -33,7 +33,7 @@ suppressPackageStartupMessages({
 h <- here::here
 pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-for (file in list.files("R", pattern = "\\.R$", full.names = TRUE)) source(file)
+for (file in list.files(h("R"), pattern = "\\.R$", full.names = TRUE)) source(file)
 
 # Set analysis parameters
 imputed_sets <- 30
@@ -43,7 +43,7 @@ set.seed(seed)
 
 #TODO add labels to plots
 
-labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp_pop", "v4_full_impute")
+labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp", "v4_full_impute")
 
 plan <- drake_plan(
   
@@ -61,8 +61,8 @@ plan <- drake_plan(
     split_data(data, "v2_human_or_animal")
   ),
   # 3
-  data_v3_countries_in_range_gdp_pop = target(
-    split_data(data, "v3_countries_in_range_gdp_pop")
+  data_v3_countries_in_range_gdp = target(
+    split_data(data, "v3_countries_in_range_gdp")
   ),
   # 4
   data_v4_full_impute = target(
@@ -71,7 +71,7 @@ plan <- drake_plan(
   # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp_pop, data_v4_full_impute), .id = FALSE)
+    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
