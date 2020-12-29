@@ -21,6 +21,10 @@ bayes_R2(mod_comb, summary = TRUE)
 
 get means and predict doubling for each vars
 ```{r}
+# add interaction to data_mice_compl
+data_mice_compl <- data_mice_compl %>% 
+  mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
+
 amr_means <- colMeans(as.matrix(data_mice_compl[,unique(c(zi_vars, pois_vars))])) %>%
   enframe() %>%
   pivot_wider(names_from = name, values_from = value)
