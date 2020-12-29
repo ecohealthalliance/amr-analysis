@@ -1,17 +1,16 @@
 
-plot_zi_partial_effects <- function(beta_samples, zi_vars, imputed_data_complete, model_data_long){
-  
+plot_zi_partial_effects <- function(betas, zi_vars, data_mice_compl, data_reshape){
   # Get Zi partial effects
   out_zi <- map_dfr(zi_vars, function(var){
     
-    minx <- imputed_data_complete %>% pull(var) %>% min(., na.rm = T)
-    maxx <- imputed_data_complete %>% pull(var) %>% max(., na.rm = T)
+    minx <- data_mice_compl %>% pull(var) %>% min(., na.rm = T)
+    maxx <- data_mice_compl %>% pull(var) %>% max(., na.rm = T)
     seqx <- seq(from = minx, to = maxx, length.out = 100)
     
-    betas <- as.matrix(beta_samples[,grep("zi", colnames(beta_samples))])
+    betas <- as.matrix(betas[,grep("zi", colnames(betas))])
     
     X <- matrix(
-      c(1, colMeans(as.matrix(imputed_data_complete[,zi_vars]))),
+      c(1, colMeans(as.matrix(data_mice_compl[,zi_vars]))),
       nrow = length(zi_vars) + 1, ncol = length(seqx),
     )
     rownames(X) <- c("Intercept", zi_vars)
@@ -20,7 +19,7 @@ plot_zi_partial_effects <- function(beta_samples, zi_vars, imputed_data_complete
     
     X[var, ] <- seqx
     Y <- plogis(betas %*% X)
-    out <- as_tibble(Y) %>% 
+    out <- as_tibble(Y, .name_repair = "universal") %>% 
       mutate(samp = 1:nrow(Y)) %>% 
       gather("x", "y", -samp) %>% 
       mutate(x = rep(seqx, each = nrow(betas)),
@@ -50,7 +49,7 @@ plot_zi_partial_effects <- function(beta_samples, zi_vars, imputed_data_complete
       geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = med), size = 1) +
       geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = lo),  size = 0.5, alpha = 0.8) +
       geom_line(data = filter(out_zi_sum, var==zv), aes(x = x_backtrans, y = hi),  size = 0.5, alpha = 0.8) +
-      geom_rug(data = filter(model_data_long, var==zv), mapping = aes(x = x_backtrans)) +
+      geom_rug(data = filter(data_reshape, var==zv), mapping = aes(x = x_backtrans)) +
       scale_y_continuous(limits = c(0,1)) +
       labs(y = "", x = "", title = lookup_vars[zv]) +
       theme_foundation(base_size = 10, base_family =  "sans") + 
@@ -77,20 +76,24 @@ plot_zi_partial_effects <- function(beta_samples, zi_vars, imputed_data_complete
 }
 
 
-plot_pois_partial_effects <- function(beta_samples, pois_vars, imputed_data_complete, model_data_long){
+plot_pois_partial_effects <- function(betas, pois_vars, data_mice_compl, data_reshape){
+  
+  # add interaction to data_mice_compl
+  data_mice_compl <- data_mice_compl %>% 
+    mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
   
   # Get poisson partial effects
   out_pois <- map_dfr(pois_vars, function(var){
     
-    minx <- imputed_data_complete %>% pull(var) %>% min(., na.rm = T)
-    maxx <- imputed_data_complete %>% pull(var) %>% max(., na.rm = T)
+    minx <- data_mice_compl %>% pull(var) %>% min(., na.rm = T)
+    maxx <- data_mice_compl %>% pull(var) %>% max(., na.rm = T)
     seqx <- seq(from = minx, to = maxx, length.out = 100)
     
-    betas <- cbind(as.matrix(beta_samples[,c(grep("b_[^z]", colnames(beta_samples)))]), 1)
+    betas <- cbind(as.matrix(betas[,c(grep("b_[^z]", colnames(betas)))]), 1)
     colnames(betas)[ncol(betas)] <- "offset"
     
     X <- matrix(
-      c(1, colMeans(as.matrix(imputed_data_complete[,c(pois_vars, "ln_population")]))),
+      c(1, colMeans(as.matrix(data_mice_compl[,c(pois_vars, "ln_population")]))),
       nrow = length(pois_vars) + 2, ncol = length(seqx),
     )
     rownames(X) <- c("Intercept", pois_vars, "offset") 
@@ -99,7 +102,7 @@ plot_pois_partial_effects <- function(beta_samples, pois_vars, imputed_data_comp
     
     X[var, ] <- seqx
     Y <- exp(betas %*% X)
-    out <- as_tibble(Y) %>% 
+    out <- as_tibble(Y, .name_repair = "universal") %>% 
       mutate(samp = 1:nrow(Y)) %>% 
       gather("x", "y", -samp) %>% 
       mutate(x = rep(seqx, each = nrow(betas)),
@@ -125,7 +128,7 @@ plot_pois_partial_effects <- function(beta_samples, pois_vars, imputed_data_comp
       geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = med), size = 1) +
       geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = lo),  size = 0.5, alpha = 0.8) +
       geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = hi),  size = 0.5, alpha = 0.8) +
-      geom_rug(data = filter(model_data_long, var==pv), mapping = aes(x = x_backtrans)) +
+      geom_rug(data = filter(data_reshape, var==pv), mapping = aes(x = x_backtrans)) +
       # scale_y_continuous(limits = c(0, 10), 
       #                    breaks = c(0, 2.5, 5, 7.5, 10), 
       #                    labels = c("0", "", "5", "", "10")) +
