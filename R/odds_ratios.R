@@ -18,19 +18,7 @@ get_consistent_predictors <- function(coefs){
 
 plot_coefficients <- function(coefs, lab){
   
-  var_order <- c('Population',
-                 'GDP (dollars per capita)', 
-                 'ProMed Mentions (per capita)', 
-                 'Publication Bias Index (per capita)',
-                 'English Spoken (yes/no)', 
-                 'Human AB Consumption (DDD)',
-                 'Livestock AB Consumption (kg per capita)', 
-                 'Health Expenditure (% GDP)', 
-                 'Migrant Population (per capita)', 
-                 'Tourism - Inbound (per capita)', 
-                 'Tourism - Outbound (per capita)', 
-                 'AB Exported (yes/no)',
-                 'AB Exports (dollars per capita)')
+  var_order <-  unname(lookup_vars) %>% unique()
   
   coefs <- coefs %>% 
     mutate(wrap.facet = factor(wrap.facet, levels = c("Zero-Inflated Model", "Conditional Model"))) %>% 
