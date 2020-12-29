@@ -48,7 +48,10 @@ This document presents the results of a sensitivity analysis of missing value im
 
 1) Countries with values for human AND animal antimicrobial consumption data, i.e., no imputation (n = `r nrow(data_v1_complete_only)`)
 2) Countries with values for human OR animal antimicrobial consumption data, i.e., one or the other is imputed (n = `r nrow(data_v2_human_or_animal)`)
-3) Countries with GDP values within the range of countries that have values for human and animal antimicrobial consumption, i.e., both consumption values can be imputed (n = `r nrow(data_v3_countries_in_range_gdp)`)
+3) Countries with GDP values within the range of countries that have values for both human and animal antimicrobial consumption, i.e., both consumption values can be imputed (n = `r nrow(data_v3_countries_in_range_gdp)`). The figure below shows the distribution of GDPs for countries in this subset.
+```{r gdp, fig.height=2}
+plot_gdp(data_v3_countries_in_range_gdp)
+```
 4) All countries in dataset, i.e., the original analysis with full imputation of missing values (n = `r nrow(data_v4_full_impute)`)
 
 All imputations in this sensitivity analysis were performed using `MICE`. To compare results across the four scenarios, we present model coefficients and maps showing reported and predicted AMR emergence counts and n imputations by country.

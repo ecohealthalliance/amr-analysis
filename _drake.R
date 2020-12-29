@@ -64,6 +64,11 @@ plan <- drake_plan(
   data_v3_countries_in_range_gdp = target(
     split_data(data, "v3_countries_in_range_gdp")
   ),
+  plot_data_v3_countries_in_range_gdp = target(
+    ggsave(plot_gdp(data_v3_countries_in_range_gdp),
+           filename = file_out(!!h(paste0("plots/gdp_by_impute_status.png"))), 
+           width = 8, height = 4)
+  ),
   # 4
   data_v4_full_impute = target(
     split_data(data, "v4_full_impute")
@@ -174,7 +179,7 @@ plan <- drake_plan(
   ),
   # marginal effects plot
   marg_eff_plot = target(
-    ggsave(plot_marginal_effects(marg_eff, plot_labels, consistent_preds, data_reshape),
+    ggsave(plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_reshape),
            filename = file_out(!!h(paste0("plots/marginal_effects_multi_", lab, ".png"))),
            width = 10, height = 21),
     transform = map(marg_eff, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
@@ -229,14 +234,16 @@ vis_drake_graph(plan, targets_only = TRUE)
 
 #future::plan(multisession, workers = floor(parallel::detectCores()/4))
 
+drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
+            cache_log_file = "drake_cache_log.csv")
+
+
 # _drake.R must end with a call to drake_config().
 # The arguments to drake_config() are basically the same as those to make().
 config <- drake_config(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
                        cache_log_file = "drake_cache_log.csv")
 config
 
-drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
-           cache_log_file = "drake_cache_log.csv")
 
 
 
