@@ -197,7 +197,14 @@ if(!file.exists(h("data/antimicrobial_use/mgabx_Log10p1_byCountry.csv"))){
 pcu <- read_csv(h("data", "mgPCU_by_Country_2017.csv")) %>% 
   mutate(livestock_consumption_kg_per_pcu = 1e-6 * mgPCUSales) %>% 
   dplyr::select(iso3c = "ISO3", livestock_consumption_kg_per_pcu) %>% 
-  drop_na()
+  drop_na() 
+
+# deal with dupe
+pcu %>% janitor::get_dupes(iso3c)
+pcu <- pcu %>% 
+  group_by(iso3c) %>% 
+  summarize(livestock_consumption_kg_per_pcu = mean(livestock_consumption_kg_per_pcu)) %>% 
+  ungroup()
 
 livestock_consumption_country %<>%
   right_join(pcu) %>%
@@ -264,5 +271,7 @@ amr %<>%
          promed_mentions_per_capita = promed_mentions/population
   ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg, -country, -gdp_dollars, -pubcrawl, -promed_mentions)
-  
+ 
+
+assertthat::are_equal(nrow(janitor::get_dupes(amr, iso3c)), 0) 
 write_csv(amr, h("data/country-level-amr.csv"))
