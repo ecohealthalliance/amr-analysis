@@ -13,7 +13,8 @@ get_consistent_predictors <- function(coefs){
   coefs %>%
     filter(predictor) %>%
     mutate(lab = "*") %>%
-    select(term, lab)
+    select(term, lab) %>% 
+    mutate_all(~str_replace(., "\\.", ":"))
 } 
 
 plot_coefficients <- function(coefs, lab){

@@ -200,7 +200,7 @@ plan <- drake_plan(
   pois_part_plot = target(
     ggsave(plot_pois_partial_effects(betas, pois_vars, data_mice_compl, data_reshape),
            filename = file_out(!!h(paste0("plots/pois_partial_effects_", lab, ".png"))),
-           width = 12, height = 12),
+           width = 14, height = 12),
     transform = map(betas, pois_vars, data_mice_compl, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get map data

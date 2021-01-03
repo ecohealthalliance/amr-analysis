@@ -48,32 +48,56 @@ This document presents the results of a sensitivity analysis of missing value im
 
 1) Countries with values for human AND animal antimicrobial consumption data, i.e., no imputation (n = `r nrow(data_v1_complete_only)`)
 2) Countries with values for human OR animal antimicrobial consumption data, i.e., one or the other is imputed (n = `r nrow(data_v2_human_or_animal)`)
-3) Countries with GDP values within the range of countries that have values for both human and animal antimicrobial consumption, i.e., both consumption values can be imputed (n = `r nrow(data_v3_countries_in_range_gdp)`). The figure below shows the distribution of GDPs for countries in this subset.
+3) Countries with GDP values within the range of countries that have values for both human and animal antimicrobial consumption, i.e., both consumption values can be imputed (n = `r nrow(data_v3_countries_in_range_gdp)`). The figure below shows the distribution of GDP values for countries in this subset.
 ```{r gdp, fig.height=2}
 plot_gdp(data_v3_countries_in_range_gdp)
 ```
 4) All countries in dataset, i.e., the original analysis with full imputation of missing values (n = `r nrow(data_v4_full_impute)`)
 
-All imputations in this sensitivity analysis were performed using `MICE`. To compare results across the four scenarios, we present model coefficients and maps showing reported and predicted AMR emergence counts and n imputations by country.
+All imputations in this sensitivity analysis were performed using `MICE`. To compare results across the four scenarios, we present model coefficients, marginal effect plots for three variables of interest (human AB consumption, livestock AB consumption, and the interaction between livestock AB consumption and GDP), and maps showing reported and predicted AMR emergence counts and human/livestock AB consumption imputations by country.
 
-### Model Coefficients
-Odds ratios are close to 1 for human and animal antimicrobial consumption for all degrees of imputation. In scenario 1 (no imputation) neither variable is a consistent predictor of AMR emergence. In scenario 2, human AB consumption is a positive consistent predictor and animal AB consumption is not a predictor. In scenarios 3 and 4, human AB consumption is a positive consistent predictor and animal AB consumption is a negative consistent predictor. In all scenarios, the effect size is small and animal AB consumption is never a consistent predictor in the positive direction.
+### Model coefficients with in-depth focus on human and livestock antibiotic (AB) consumption effects
 
-```{r dotplots}
+In an earlier iteration of this analysis (not shown), we found a consistent negative association between livestock AB consumption and AMR events in scenarios 3 and 4. Because countries with data for livestock AB consumption tend to be countries with higher GDPs, this negative effect when lower-GDP countries were included in the analysis suggested a possible interaction between livestock AB consumption and GDP. The model results below include a new term for livestock AB consumption and GDP interaction.
+
+In scenario 1 (no imputation) none of AB consumption variables are consistent predictors of AMR emergence. In scenarios 2 and 3, human AB consumption is a positive consistent predictor of AMR emergence. Livestock AB consumption on its own is not a predictor, but the interaction between livestock AB consumption and GDP is a consistent negative predictor of AMR emergence: higher GDP countries show a negative association between livestock AB consumption and AMR emergence, and lower GDP countries show a slight positive association. In scenario 4, human AB consumption is a consistent predictor, but neither livestock AB consumption nor its interaction with GDP is a consistent predictor of AMR emergence.
+
+```{r dotplots, fig.width=16, fig.height=10}
 labs <- c("1. Countries with values for human AND animal antimicrobial consumption data", "2. Countries with values for human OR animal antimicrobial consumption data", "3. Countries with GDP values within the range of countries that have values for human\nand animal antimicrobial consumption", "4. All countries in dataset")
-loadd(coefs)
-loadd(coefs_2)
-loadd(coefs_3)
-loadd(coefs_4)
+loadd(coefs, coefs_2, coefs_3, coefs_4)
 
-plot_coefficients(coefs, labs[1])
-plot_coefficients(coefs_2, labs[2])
-plot_coefficients(coefs_3, labs[3])
-plot_coefficients(coefs_4, labs[4])
+loadd(marg_eff, lookup_vars, consistent_preds, data_reshape)
+loadd(marg_eff_2, consistent_preds_2, data_reshape_2)
+loadd(marg_eff_3, consistent_preds_3, data_reshape_3)
+loadd(marg_eff_4, consistent_preds_4, data_reshape_4)
+# negative interaction: the slope of X (livestock) decreases, when Y (GDP) increases
+
+
+pc1 <- plot_coefficients(coefs, labs[1])
+pc2 <- plot_coefficients(coefs_2, labs[2])
+pc3 <- plot_coefficients(coefs_3, labs[3])
+pc4 <- plot_coefficients(coefs_4, labs[4])
+
+variables <- c(
+  "human_consumption_ddd",
+  "ln_livestock_consumption_kg_per_capita",
+  "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"
+)
+
+me1 <- plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_reshape, 
+                             variables = variables, ncol = 1)
+me2 <- plot_marginal_effects(marg_eff_2, lookup_vars, consistent_preds_2, data_reshape_2,  variables = variables, ncol = 1)
+me3 <- plot_marginal_effects(marg_eff_3, lookup_vars, consistent_preds_3, data_reshape_3,  variables = variables, ncol = 1)
+me4 <- plot_marginal_effects(marg_eff_4, lookup_vars, consistent_preds_4, data_reshape_4,  variables = variables, ncol = 1)
+cowplot::plot_grid(pc1, me1, rel_widths = c(2,1)) 
+cowplot::plot_grid(pc2, me2, rel_widths = c(2,1)) 
+cowplot::plot_grid(pc3, me3, rel_widths = c(2,1)) 
+cowplot::plot_grid(pc4, me4, rel_widths = c(2,1)) 
 
 ```
 
 ### Maps
+Scenario 1 includes countries from high GDP regions. With greater degrees of imputation (scenarios 2 through 4), more LMIC countries are incorporated into the analysis. 
 ```{r maps, fig.width=16}
 loadd(map_data)
 loadd(map_data_2)

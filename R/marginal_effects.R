@@ -1,7 +1,7 @@
 
-plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_reshape){
-  
+plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_reshape, variables = NULL, ncol = 2){
   marg_effects_data <- imap_dfr(marg_eff, function(me, iter){
+    if(!is.null(variables)) me <- me[variables]
     imap_dfr(me, function(x, y){
       x %>% 
         select(effect1__, suppressWarnings(one_of("effect2__")), cond__:upper__) %>%
@@ -72,6 +72,7 @@ plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_
     
   })
   
-  cowplot::plot_grid(plotlist = purrr::compact(me_plots), 
-                     ncol = 2) 
+  me_plots <- purrr::compact(me_plots)
+  cowplot::plot_grid(plotlist = me_plots, 
+                     ncol = ncol) 
 }
