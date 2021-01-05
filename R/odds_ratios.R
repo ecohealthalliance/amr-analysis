@@ -27,19 +27,19 @@ plot_coefficients <- function(coefs, lab){
     mutate(term_clean = fct_rev(term_clean))
   ggplot(coefs, aes(x = term_clean, y = estimate)) + 
     geom_hline(yintercept = 1, color = "gray60") +
-    geom_segment(aes(y = conf.low, yend = conf.high, xend = term_clean), color = "cornflowerblue") +
-    geom_point(aes(color = group), show.legend = FALSE) +
-    geom_text(aes(label = lab), nudge_x = 0.25) +
+    geom_segment(aes(y = conf.low, yend = conf.high, xend = term_clean), color = "cornflowerblue", size = 2) +
+    geom_point(aes(color = group), show.legend = FALSE, size = 4) +
+    geom_text(aes(label = lab), nudge_x = 0.25, size = 6) +
     scale_y_log10() +
     # scale_y_continuous(limits = c(0.25, 2)) +
     scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
     facet_wrap(wrap.facet ~ .) +
     labs(x = "", y = "Odds Ratio", title = paste0(lab)) +
     coord_flip() +
-    theme_foundation(base_size = 10, base_family =  "sans") + 
+    theme_foundation(base_size = 12, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
-          title = element_text(size = rel(1), face = "bold"), 
-          axis.text = element_text(size = rel(1)), 
+          title = element_text(size = rel(1.4), face = "bold"), 
+          axis.text = element_text(size = rel(1.2)), 
           axis.ticks = element_blank(),
           axis.line = element_blank(), 
           plot.title.position = "plot",
