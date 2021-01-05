@@ -194,6 +194,7 @@ if(!file.exists(h("data/antimicrobial_use/mgabx_Log10p1_byCountry.csv"))){
 #   mutate(livestock_consumption_kg_per_pcu = value/1000000) %>%
 #   dplyr::select(iso3c = `iso-a3`, livestock_consumption_kg_per_pcu)
 
+# via personal communication with T. Van Boeckel
 pcu <- read_csv(h("data", "mgPCU_by_Country_2017.csv")) %>% 
   mutate(livestock_consumption_kg_per_pcu = 1e-6 * mgPCUSales) %>% 
   dplyr::select(iso3c = "ISO3", livestock_consumption_kg_per_pcu) %>% 
