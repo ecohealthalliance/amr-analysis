@@ -42,47 +42,41 @@ for (file in list.files(h("R"), pattern = "\\.R$", full.names = TRUE)) source(fi
 
 loadd(data_v1_complete_only)
 loadd(data_v2_human_or_animal)
-loadd(data_v3_countries_in_range_gdp)
-loadd(data_v4_full_impute)
+loadd(data_v3_full_impute)
 ```
 
 This document presents the results of a sensitivity analysis of missing value imputation for human and animal antimicrobial consumption. We evaluate four subsets of the data with varying degrees of imputation.
 
 1) Countries with values for human AND animal antimicrobial consumption data, i.e., no imputation (n = `r nrow(data_v1_complete_only)`)
 2) Countries with values for human OR animal antimicrobial consumption data, i.e., one or the other is imputed (n = `r nrow(data_v2_human_or_animal)`)
-3) Countries with GDPs within the range of GDPs of countries that have both human and animal antimicrobial consumption data (n = `r nrow(data_v3_countries_in_range_gdp)`). In this scenario, both human and animal consumption values can be imputed if the country GDP is within range. The figure below shows the distribution of GDPs for countries in this subset.
-```{r gdp, fig.height=2}
-plot_gdp(data_v3_countries_in_range_gdp)
-```
-4) All countries in the dataset, i.e., full imputation of missing values (n = `r nrow(data_v4_full_impute)`)
+3) All countries in the dataset, i.e., full imputation of missing values (n = `r nrow(data_v3_full_impute)`)
 
 All imputations in this sensitivity analysis were performed using `MICE`. To compare results across the four scenarios, we present model coefficients, marginal effect plots for three variables of interest (human antimicrobial consumption, livestock antimicrobial consumption, and the interaction between livestock antimicrobial consumption and GDP), and maps showing reported and predicted AMR emergence counts and human/livestock antimicrobial consumption imputations by country.
 
+
+```{r na-view}
+library(naniar)
+data_v3_full_impute %>% 
+  select(human_consumption_ddd, livestock_consumption_kg_per_capita) %>% 
+  vis_miss(show_perc = FALSE, show_perc_col = TRUE)
+```
+
+
 ### Model coefficients with in-depth focus on human and livestock antimicrobial consumption effects
 
-In the original analysis, we found a consistent negative association between livestock antimicrobial consumption and AMR events. However, interpretation of this relationship was limited due to the fact that livestock antimicrobial consumption data is sparse (n = 31) and biased towards higher income countries. To account for the potential confounding by country GDP, we have included an interaction term between livestock antimicrobial consumption and GDP. These new model results, summarized below, confirm that the association between livestock antimicrobial consumption and AMR events is negative in higher income countries, whereas no relationship is discernible in middle and low income countries. For the publication, we propose using scenario 3 for the primary analysis while also presenting the results of the full sensitivity analysis.
-
-In scenario 1 (no imputation) none of antimicrobial consumption variables are consistent predictors of AMR emergence. In this scenario we lose too much data to detect an effect.
-
-Scenarios 2 and 3 have similar results. Human antimicrobial consumption is a positive consistent predictor of AMR emergence. Livestock antimicrobial consumption on its own is not a predictor, but the interaction between livestock antimicrobial consumption and GDP is a consistent negative predictor of AMR emergence: higher GDP countries show a negative association between livestock antimicrobial consumption and AMR emergence, and lower GDP countries do not show strong trends. 
-
-In scenario 4, human antimicrobial consumption is a consistent predictor, but neither livestock antimicrobial consumption nor its interaction with GDP is a consistent predictor of AMR emergence. In this case, the high degree of imputation obscures potential relationships.
-
 ```{r dotplots, fig.width=16, fig.height=10}
-labs <- c("1. Countries with values for human AND animal antimicrobial consumption data", "2. Countries with values for human OR animal antimicrobial consumption data", "3. Countries with GDP values within the range of countries that have values for human\nand animal antimicrobial consumption", "4. All countries in dataset")
-loadd(coefs, coefs_2, coefs_3, coefs_4)
+labs <- c("1. Countries with values for human AND animal antimicrobial consumption data", "2. Countries with values for human OR animal antimicrobial consumption data", "3. All countries in dataset")
+loadd(coefs, coefs_2, coefs_3)
 
 loadd(marg_eff, lookup_vars, consistent_preds, data_reshape)
 loadd(marg_eff_2, consistent_preds_2, data_reshape_2)
 loadd(marg_eff_3, consistent_preds_3, data_reshape_3)
-loadd(marg_eff_4, consistent_preds_4, data_reshape_4)
 # negative interaction: the slope of X (livestock) decreases, when Y (GDP) increases
 
 
 pc1 <- plot_coefficients(coefs, lab = "")
 pc2 <- plot_coefficients(coefs_2, lab = "")
 pc3 <- plot_coefficients(coefs_3, lab = "")
-pc4 <- plot_coefficients(coefs_4, lab = "")
 
 variables <- c(
   "human_consumption_ddd",
@@ -94,7 +88,6 @@ me1 <- plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_resha
                              variables = variables, ncol = 1)
 me2 <- plot_marginal_effects(marg_eff_2, lookup_vars, consistent_preds_2, data_reshape_2,  variables = variables, ncol = 1)
 me3 <- plot_marginal_effects(marg_eff_3, lookup_vars, consistent_preds_3, data_reshape_3,  variables = variables, ncol = 1)
-me4 <- plot_marginal_effects(marg_eff_4, lookup_vars, consistent_preds_4, data_reshape_4,  variables = variables, ncol = 1)
 ```
 
 ##### 1. Countries with values for human AND animal antimicrobial consumption data
@@ -107,14 +100,9 @@ cowplot::plot_grid(pc1, me1, rel_widths = c(2,1))
 cowplot::plot_grid(pc2, me2, rel_widths = c(2,1)) 
 ```
 
-##### 3. Countries with GDP values within the range of countries that have values for human\nand animal antimicrobial consumption
-```{r p3, fig.width=16, fig.height=10}
-cowplot::plot_grid(pc3, me3, rel_widths = c(2,1)) 
-```
-
-##### 4. All countries in dataset
+##### 3. All countries in dataset
 ```{r p4, fig.width=16, fig.height=10}
-cowplot::plot_grid(pc4, me4, rel_widths = c(2,1)) 
+cowplot::plot_grid(pc3, me3, rel_widths = c(2,1)) 
 ```
 
 ### Maps
@@ -123,10 +111,9 @@ As desribed above, scenario 1 is limited to countries from high GDP regions. Wit
 loadd(map_data)
 loadd(map_data_2)
 loadd(map_data_3)
-loadd(map_data_4)
 
-map_dat_list <- list(map_data, map_data_2, map_data_3, map_data_4)
-raw_dat_list <- list(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute)
+map_dat_list <- list(map_data, map_data_2, map_data_3)
+raw_dat_list <- list(data_v1_complete_only, data_v2_human_or_animal, data_v3_full_impute)
 
 # which countries are imputed?
 map_dat_imputes <- purrr::map2(map_dat_list, raw_dat_list, function(mp, rd){
@@ -148,7 +135,7 @@ map_dat_imputes <- purrr::map2(map_dat_list, raw_dat_list, function(mp, rd){
 
 
 # show values
-plots <- map(1:4, function(i) {
+plots <- map(1:3, function(i) {
   
   p1 <- plot_map(map_dat_list[[i]])
   
@@ -170,7 +157,7 @@ plots <- map(1:4, function(i) {
           panel.grid.minor = element_blank(),
           legend.position = "top")
   
- plot_grid(p2, p1)
+  plot_grid(p2, p1)
   
   # # now add the title
   # title <- ggdraw() +
@@ -210,13 +197,8 @@ plots[[1]]
 plots[[2]]
 ```
 
-##### 3. Countries with GDP values within the range of countries that have values for human\nand animal antimicrobial consumption
-```{r m3, fig.width=16, fig.height=8}
-plots[[3]]
-```
-
-##### 4. All countries in dataset
+##### 3. All countries in dataset
 ```{r m4, fig.width=16, fig.height=8}
-plots[[4]]
+plots[[3]]
 ```
 
