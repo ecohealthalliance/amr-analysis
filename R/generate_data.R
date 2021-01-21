@@ -18,19 +18,7 @@ split_data <- function(data, model_scenario){
          "v2_human_or_animal" = data %>%
            select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
            filter(!(is.na(human_consumption_ddd) & is.na(livestock_consumption_kg_per_capita))),
-         "v3_countries_in_range_gdp" = data %>%
-           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
-           mutate(max_gdp = max(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
-                  min_gdp = min(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
-                  # max_pop = max(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
-                  # min_pop = min(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
-           filter(gdp_per_capita <= max_gdp, 
-                  gdp_per_capita >= min_gdp
-                  # population <= max_pop,
-                  # population >= min_pop
-           ) %>% 
-           select(-starts_with("min"), -starts_with("max")),
-         "v4_full_impute" = data %>%
+         "v3_full_impute" = data %>%
            select(-n_amr_first_events, -livestock_consumption_kg_per_pcu)
   )
 }
