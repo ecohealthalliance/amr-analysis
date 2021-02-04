@@ -43,7 +43,7 @@ set.seed(seed)
 
 #TODO add labels to plots
 
-labs <- c("v1_complete_only", "v2_human_or_animal", "v3_full_impute")
+labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp", "v4_full_impute")
 
 plan <- drake_plan(
   
@@ -61,13 +61,22 @@ plan <- drake_plan(
     split_data(data, "v2_human_or_animal")
   ),
   # 3
-  data_v3_full_impute = target(
-    split_data(data, "v3_full_impute")
+  data_v3_countries_in_range_gdp = target(
+    split_data(data, "v3_countries_in_range_gdp")
+  ),
+  plot_data_v3_countries_in_range_gdp = target(
+    ggsave(plot_gdp(data_v3_countries_in_range_gdp),
+           filename = file_out(!!h(paste0("plots/gdp_by_impute_status.png"))), 
+           width = 8, height = 4)
+  ),
+  # 4
+  data_v4_full_impute = target(
+    split_data(data, "v4_full_impute")
   ),
   # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_full_impute), .id = FALSE)
+    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
@@ -95,7 +104,7 @@ plan <- drake_plan(
   # fit brm hurdle model
   formula = target(
     formula,
-    cross(formula = c(!!main_formula, !!main_formula, !!main_formula), .id = FALSE)),
+    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!main_formula), .id = FALSE)),
   
   mod_fit =  target(
     fit_brm_model(data_mice, 
@@ -223,7 +232,7 @@ plan <- drake_plan(
 
 vis_drake_graph(plan, targets_only = TRUE)
 
-# future::plan(multisession, workers = floor(parallel::detectCores()/4))
+#future::plan(multisession, workers = floor(parallel::detectCores()/4))
 
 drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
             cache_log_file = "drake_cache_log.csv")
@@ -234,7 +243,3 @@ drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
 config <- drake_config(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
                        cache_log_file = "drake_cache_log.csv")
 config
-
-
-
-
