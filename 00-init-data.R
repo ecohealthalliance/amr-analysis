@@ -147,17 +147,15 @@ human_consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet
 
 #-----------------Livestock Consumption data-----------------
 # 2017
-# https://www.dropbox.com/s/tvawapdd5jxdgvi/2017_mg_PCU.csv?dl=0
+# https://www.dropbox.com/s/6b6426nqiixl7dv/2017_Tonnes_PCU_2.csv?dl=0
 # New data from T. Van Boeckel 
-livestock_consumption <- read_csv(h("data/2017_mg_PCU.csv")) %>% 
-  filter(Pred_Consumption_2017_mg > 0) %>% 
-  mutate(livestock_consumption_kg = Pred_Consumption_2017_mg / 1e6) %>% 
-  group_by(ISO3) %>% # dealing with dupe in american somoa
-  summarize(livestock_consumption_kg = mean(livestock_consumption_kg),
-            livestock_pcu = mean(Tot_PCU_2017)) %>% 
-  ungroup() %>% 
-  rename(iso3c = ISO3) %>% 
+
+livestock_consumption <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
+  drop_na(Observed_Tonnes) %>% 
+  mutate(livestock_consumption_kg = Observed_Tonnes * 1000) %>% 
+  dplyr::select(iso3c = ISO3, livestock_consumption_kg, livestock_pcu = Tot_PCU_2017) %>% 
   mutate(livestock_consumption_kg_per_pcu = livestock_consumption_kg/livestock_pcu) 
+
 
 #-----------------Tourism data-----------------
 # 2015
@@ -198,7 +196,7 @@ amr <- all_countries %>%
   left_join(tourism)
 
 # make sure no event or consumption data lost
-setdiff(events$study_iso3c, amr$iso3c)
+setdiff(events$iso3c, amr$iso3c)
 setdiff(human_consumption$iso3c, amr$iso3c)
 setdiff(livestock_consumption$iso3c, amr$iso3c) # islands
 
