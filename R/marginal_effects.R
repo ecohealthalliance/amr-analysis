@@ -1,4 +1,3 @@
-
 plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_reshape, variables = NULL, ncol = 2){
   marg_effects_data <- imap_dfr(marg_eff, function(me, iter){
     if(!is.null(variables)) me <- me[variables]
@@ -33,23 +32,27 @@ plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_
   me_plots <- map(names(lookup_vars), function(lv){
     dat <- filter(marg_effects_data, var == lv)
     if(nrow(dat) == 0) return(NULL)
+    title <- lookup_vars[lv]
+    if(lv == "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"){
+      title <- "Livestock AB Consumption (kg per capita)" 
+    }
     p <- ggplot(data = dat, aes(x = effect1_backtrans)) + 
       geom_line(aes(y = estimate__, group = interaction(iteration, effect2_backtrans), color = effect2_backtrans), size=.5, alpha = 0.2) +
       geom_line(data = filter(marg_effects_avg, var == lv), 
                 aes(x = effect1_backtrans, y = mean, group = effect2_backtrans, color = effect2_backtrans), size = 1.5) +
       geom_rug(data = filter(data_reshape, var ==lv), mapping = aes(x = x_backtrans)) +
+      scale_color_manual(values = rep("gray50", n_distinct(dat$effect2_backtrans))) +
       # scale_y_continuous(limits = c(0, 100),
       #                    breaks = c(0, 25, 50, 75, 100),
       #                    labels = c("0", "", "50", "", "100")) +
-      scale_color_viridis_d() +
-      labs(title = lookup_vars[lv], y = "", x="", color = lookup_vars[unique(dat$var2)]) +
+      labs(title = title, y = "AMR Events", x="", color = lookup_vars[unique(dat$var2)]) +
       theme_foundation(base_size = 12, base_family =  "sans") + 
       theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
             title = element_text(size = rel(1.1)), 
             axis.text = element_text( size = rel(1)), 
             axis.ticks = element_blank(),
             axis.line = element_blank(), 
-            panel.grid.major = element_line(colour = "gray50", linetype = 3), 
+            panel.grid.major = element_line(colour = "gray30", linetype = 3), 
             panel.grid.minor = element_blank()
       )
     if(is.na(unique(dat$var2))){
@@ -62,6 +65,9 @@ plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_
     }
     if(lv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
       p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+    }
+    if(lv == "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"){
+      p <- p + scale_color_viridis_d()
     }
     if(lv %in% predictors$var){
       p <- p +
