@@ -6,3 +6,4 @@ report_files
 .drake
 .DS_Store
 *.rds
+doc/sensitivity_files/*
