@@ -5,4 +5,4 @@
 report_files
 .drake
 .DS_Store
-plots/
+*.rds
