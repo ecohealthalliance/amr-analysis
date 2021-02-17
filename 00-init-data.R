@@ -63,18 +63,16 @@ wbd %<>%
 
 #-----------------Observatory of Economic Complexity------------
 # 2015
-# Visualization: https://atlas.media.mit.edu/en/visualize/tree_map/hs92/export/show/all/2941/2015/
+# Visualization: https://oec.world/en/profile/hs92/antibiotics?yearSelector1=tradeYear4
 # Values in billions
-oec <- read_json("https://atlas.media.mit.edu/hs92/export/2015/show/all/2941/")$data 
-oec <- map_df(oec, function(x){
-  
-  import <- ifelse(is.null(x$import_val), NA, x$import_val)
-  export <- ifelse(is.null(x$export_val), NA, x$export_val)
-  
-  tibble(iso3c = toupper(substr(x$origin_id, 3, 5)), 
-         ab_import_dollars = import, 
-         ab_export_dollars = export)
-}) 
+oec_exports <- fromJSON("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&HS4=62941&Year=2015&drilldowns=Exporter+Country&locale=en&measures=Trade+Value&parents=true&sparse=false&properties=Exporter+Country+ISO+3")$data %>% 
+  dplyr::select(iso3c = `ISO 3`, ab_export_dollars = `Trade Value`) 
+
+oec_imports <- fromJSON("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&HS4=62941&Year=2015&drilldowns=Importer+Country&locale=&measures=Trade+Value&parents=true&sparse=false&properties=Importer+Country+ISO+3")$data %>% 
+  dplyr::select(iso3c = `ISO 3`, ab_import_dollars = `Trade Value`) 
+
+oec <- full_join(oec_exports, oec_imports) %>% 
+  mutate(iso3c = toupper(iso3c))
 
 oec %<>% 
   mutate(ab_export_bin = ifelse(is.na(ab_export_dollars), 0, 1))
@@ -139,7 +137,7 @@ lang <- lang %>%
 # Defined Daily Dose (DDD): The assumed average maintenance dose per day for a drug used for its main indication in adults.
 # there are three fields with human consumption data.  `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)` has the most available.
 
-consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[2].xlsx")) %>%
+human_consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[2].xlsx")) %>%
   dplyr::select(`International Organization for Standardization (ISO)*`, 
                 `CCDEP Usage Per Capita (Units of usage are on average 45% of DDD measured by ECDC)`) %>%
   rename(iso3c = `International Organization for Standardization (ISO)*`, 
@@ -148,59 +146,22 @@ consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet Data[
   drop_na(iso3c, human_consumption_ddd)
 
 #-----------------Livestock Consumption data-----------------
-# 2010
-# Raw sales data
-# Supp data from VanBoeckelEA 2015 https://www.pnas.org/content/112/18/5649
-livestock_sales <- read_csv(h("data/VanBoeckelEA_total_annual_sales.csv")) %>%
-  group_by(country) %>%
-  summarize(livestock_ab_sales_kg = mean(livestock_ab_sales_kg)) %>% # average multiple values by country (all are very close)
-  ungroup() %>%
-  mutate(iso3c = countrycode(sourcevar = country,
-                             origin = "country.name",
-                             destination = "iso3c")) %>%
-  dplyr::select(-country)
+# 2017
+# https://www.dropbox.com/s/6b6426nqiixl7dv/2017_Tonnes_PCU_2.csv?dl=0
+# New data from T. Van Boeckel 
 
-# 2010 
-# Modeled AMR consumption by livestock
-# Raster obtained via personal communication with authors VanBoeckelEA 
-livestock_consumption <- raster('data/antimicrobial_use/mgabx_Log10p1.tif') # units are log10[(mg/pixel)+1]
-livestock_consumption$livestock_consumption_mg_per_px <- (10^livestock_consumption$mgabx_Log10p1)-1
-livestock_consumption$livestock_consumption_kg_per_px <- livestock_consumption$livestock_consumption_mg_per_px/1000000
-
-countries <- ne_countries(scale = "large") # for extracting
-
-if(!file.exists(h("data/antimicrobial_use/mgabx_Log10p1_byCountry.csv"))){
-  livestock_consumption_country <- raster::extract(x = livestock_consumption, y = countries, layer = 3, 
-                                                   fun = sum, na.rm = TRUE, df = TRUE) # sum kg for each country
-  livestock_consumption_country %<>% 
-    mutate(country = countries$name,
-           iso_a3_eh = countries$iso_a3_eh,
-           iso3c = countrycode(sourcevar = country,
-                               origin = "country.name",
-                               destination = "iso3c"),
-           iso3c = ifelse(is.na(iso3c), iso_a3_eh, iso3c)) %>%
-    drop_na(iso3c) %>% 
-    arrange(-livestock_consumption_kg_per_px) %>%
-    dplyr::select(iso3c, livestock_consumption_kg = livestock_consumption_kg_per_px) %>% 
-    group_by(iso3c) %>% 
-    summarize(livestock_consumption_kg = sum(livestock_consumption_kg)) %>% # accounting for countries that were split up (SOM, CYP)
-    ungroup()
+livestock_consumption <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
+  drop_na(Observed_Tonnes) %>% 
+  mutate(livestock_consumption_kg = Observed_Tonnes * 1000) %>% 
+  dplyr::select(iso3c = ISO3, livestock_consumption_kg) 
   
-  write_csv(livestock_consumption_country, h("data/antimicrobial_use/mgabx_Log10p1_byCountry.csv"))
-}else{
-  livestock_consumption_country <- read_csv(h("data/antimicrobial_use/mgabx_Log10p1_byCountry.csv"))
-}
-
-# Read in json pcu data - scraped from https://resistancemap.cddep.org/AnimalUse.php - 07/29/2019
-pcu <- fromJSON(h("data", "resistance-map.json")) %>% # value is mg/pcu
-  mutate(livestock_consumption_kg_per_pcu = value/1000000) %>%
-  dplyr::select(iso3c = `iso-a3`, livestock_consumption_kg_per_pcu)
-
-livestock_consumption_country %<>%
-  right_join(pcu) %>%
-  mutate(livestock_pcu = livestock_consumption_kg/livestock_consumption_kg_per_pcu) %>%
-  filter(!is.na(livestock_pcu), !is.infinite(livestock_pcu), !is.nan(livestock_pcu)) %>% # unclear if no livestock or no consumption
-  dplyr::select(-livestock_consumption_kg)
+livestock_pcu <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
+  drop_na(Tot_PCU_2017) %>% 
+  filter(Tot_PCU_2017 > 0) %>% 
+  dplyr::select(iso3c = ISO3, livestock_pcu = Tot_PCU_2017) %>% 
+  group_by(iso3c) %>% 
+  summarize(livestock_pcu = mean(livestock_pcu)) %>%  # dealins with a dupe
+  ungroup()
 
 #-----------------Tourism data-----------------
 # 2015
@@ -236,15 +197,15 @@ amr <- all_countries %>%
   left_join(wbd) %>%
   left_join(oec) %>%
   left_join(lang) %>%
-  left_join(consumption) %>%
-  left_join(livestock_sales) %>%
-  left_join(livestock_consumption_country) %>%
+  left_join(human_consumption) %>%
+  left_join(livestock_consumption) %>%
+  left_join(livestock_pcu) %>%
   left_join(tourism)
 
 # make sure no event or consumption data lost
-setdiff(events$study_iso3c, amr$iso3c)
-setdiff(consumption$iso3c, amr$iso3c)
-setdiff(livestock_sales$iso3c, amr$iso3c)
+setdiff(events$iso3c, amr$iso3c)
+setdiff(human_consumption$iso3c, amr$iso3c)
+setdiff(livestock_consumption$iso3c, amr$iso3c) # islands
 
 # check for dupes
 amr %>% janitor::get_dupes(iso3c)
@@ -253,22 +214,16 @@ amr %>% janitor::get_dupes(iso3c)
 amr %<>%
   mutate(ab_export_per_capita = ab_export_dollars/population,
          ab_import_per_capita = ab_import_dollars/population,
-         livestock_consumption_kg_per_capita = livestock_ab_sales_kg/population,
+         livestock_consumption_kg_per_capita = livestock_consumption_kg/population,
+         livestock_consumption_kg_per_pcu = livestock_consumption_kg/livestock_pcu,
          gdp_per_capita = gdp_dollars/population,
          tourism_outbound_per_capita = (tourism_outbound*1000)/population,
          tourism_inbound_per_capita = (tourism_inbound*1000)/population,
          pubcrawl_per_capita = pubcrawl/population,
          promed_mentions_per_capita = promed_mentions/population
   ) %>%
-  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_ab_sales_kg, -country, -gdp_dollars, -pubcrawl, -promed_mentions)
-  
+  dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_consumption_kg, -country, -gdp_dollars, -pubcrawl, -promed_mentions)
+ 
+
+assertthat::are_equal(nrow(janitor::get_dupes(amr, iso3c)), 0) 
 write_csv(amr, h("data/country-level-amr.csv"))
-
-# summary
-amr %>%
-  gather(key = "param", value = "value", -iso3c) %>%
-  filter(!param %in% c("english_spoken", "country", "region", "continent")) %>%
-  mutate(value = as.numeric(value)) %>%
-  group_by(param) %>%
-  filter(value == max(value, na.rm =T) ) %>% ungroup() 
-

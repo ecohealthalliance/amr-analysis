@@ -1,0 +1,229 @@
+"","CountryName","ISO3","mgPCUSales","Standardized"
+"1","Afghanistan","AFG",42.16973174,0
+"2","Albania","ALB",49.17345041,0
+"3","Algeria","DZA",45.41721603,0
+"4","American Samoa","WSM",25.92460445,0
+"5","Andorra","AND",NA,0
+"6","Angola","AGO",47.19611278,0
+"7","Anguilla","AIA",NA,0
+"8","Antigua and Barbuda","ATG",59.08910191,0
+"9","Argentina","ARG",47.53135336,0
+"10","Armenia","ARM",48.82711017,0
+"11","Aruba","ABW",NA,0
+"12","Australia","AUS",16.80120185,1
+"13","Austria","AUT",17.12348472,1
+"14","Azerbaijan","AZE",44.80114948,0
+"15","Bahamas","BHS",53.75667829,0
+"16","Bahrain","BHR",50.23810031,0
+"17","Bangladesh","BGD",37.05414054,0
+"18","Barbados","BRB",57.49280529,0
+"19","Belarus","BLR",63.2300854,0
+"20","Belgium","BEL",44.15838721,1
+"21","Belize","BLZ",49.77264935,0
+"22","Benin","BEN",40.79102957,0
+"23","Bermuda","BMU",43.17972683,0
+"24","Bhutan","BTN",44.4601016,0
+"25","Bolivia (Plurinational State of)","BOL",43.16081354,0
+"26","Bosnia and Herzegovina","BIH",51.5893968,0
+"27","Botswana","BWA",43.74230326,0
+"28","Brazil","BRA",48.29280109,0
+"29","British Virgin Islands","VGB",43.17972683,0
+"30","Brunei Darussalam","BRN",51.46084201,0
+"31","Bulgaria","BGR",92.41532761,1
+"32","Burkina Faso","BFA",39.80225611,0
+"33","Burundi","BDI",41.25672001,0
+"34","Côte d'Ivoire","CIV",36.01393934,0
+"35","Cabo Verde","CPV",50.0428394,0
+"36","Cambodia","KHM",46.10079337,0
+"37","Cameroon","CMR",41.74644932,0
+"38","Canada","CAN",65.95360724,1
+"39","Cayman Islands",NA,NA,0
+"40","Central African Republic","CAF",42.285951,0
+"41","Chad","TCD",43.03376762,0
+"42","Chile","CHL",194.4913143,1
+"43","China, Hong Kong SAR","HKG",50.01960704,0
+"44","China, Macao SAR","MAC",51.85603563,0
+"45","China, mainland","CHN",266.7882743,1
+"46","China, Taiwan Province of","TWN",43.17972683,0
+"47","Colombia","COL",47.71478435,0
+"48","Comoros","COM",39.4819209,0
+"49","Congo","COG",44.09778644,0
+"50","Cook Islands","COK",32.01762944,0
+"51","Costa Rica","CRI",52.6448871,0
+"52","Croatia","HRV",38.03845877,1
+"53","Cuba","CUB",43.17443629,0
+"54","Cyprus","CYP",236.1474839,1
+"55","Czechia","CZE",27.54212899,1
+"56","Democratic People's Republic of Korea","PRK",38.98110495,0
+"57","Democratic Republic of the Congo","COD",42.48560195,0
+"58","Denmark","DNK",23.45574535,1
+"59","Djibouti","DJI",43.17972683,0
+"60","Dominica","DMA",54.07026477,0
+"61","Dominican Republic","DOM",48.29211527,0
+"62","Ecuador","ECU",51.96052796,0
+"63","Egypt","EGY",45.53188842,0
+"64","El Salvador","SLV",48.15132484,0
+"65","Equatorial Guinea","GNQ",63.21913026,0
+"66","Eritrea","ERI",42.65050121,0
+"67","Estonia","EST",23.18841993,1
+"68","Ethiopia","ETH",42.56658229,0
+"69","Falkland Islands (Malvinas)","FLK",43.36887072,0
+"70","Faroe Islands","FRO",43.17972683,0
+"71","Fiji","FJI",45.14655754,0
+"72","Finland","FIN",62.01165003,0
+"73","France","FRA",26.6669791,1
+"74","French Guiana","GUF",NA,0
+"75","French Polynesia","PYF",41.63738871,0
+"76","Gabon","GAB",68.40628159,0
+"77","Gambia","GMB",41.41119331,0
+"78","Georgia","GEO",47.02117975,0
+"79","Germany","DEU",39.10101736,1
+"80","Ghana","GHA",36.94284463,0
+"81","Gibraltar","GBZ",NA,0
+"82","Greece","GRC",106.0291285,1
+"83","Greenland","GRL",NA,0
+"84","Grenada","GRD",56.3261725,0
+"85","Guadeloupe","GLP",44.35122424,0
+"86","Guam","GUM",78.5030539,0
+"87","Guatemala","GTM",47.07275628,0
+"88","Guinea","GIN",40.50917102,0
+"89","Guinea-Bissau","GNB",42.02798013,0
+"90","Guyana","GUY",48.38600109,0
+"91","Haiti","HTI",40.24064813,0
+"92","Holy See","VAT",NA,0
+"93","Honduras","HND",44.23944871,0
+"94","Hungary","HUN",70.54157489,1
+"95","Iceland","ISL",9.160035172,1
+"96","India","IND",42.94113939,0
+"97","Indonesia","IDN",44.23027545,0
+"98","Iran (Islamic Republic of)","IRN",172.2388154,1
+"99","Iraq","IRQ",43.27843331,0
+"100","Ireland","IRL",18.09736957,1
+"101","Israel","ISR",50.63993219,0
+"102","Italy","ITA",113.8541364,1
+"103","Jamaica","JAM",50.48227582,0
+"104","Japan","JPN",67.12259606,1
+"105","Jordan","JOR",50.1739139,0
+"106","Kazakhstan","KAZ",49.38034857,0
+"107","Kenya","KEN",42.39970717,0
+"108","Kiribati","KIR",NA,0
+"109","Kuwait","KWT",50.80057761,0
+"110","Kyrgyzstan","KGZ",42.76550576,0
+"111","Lao People's Democratic Republic","LAO",38.30820479,0
+"112","Latvia","LVA",18.21776083,1
+"113","Lebanon","LBN",48.49918203,0
+"114","Lesotho","LSO",44.18615468,0
+"115","Liberia","LBR",25.17963992,0
+"116","Libya","LBY",49.37255994,0
+"117","Liechtenstein","LIE",NA,0
+"118","Lithuania","LTU",14.94581912,1
+"119","Luxembourg","LUX",12.47801264,1
+"120","Madagascar","MDG",44.27894374,0
+"121","Malawi","MWI",37.52450569,0
+"122","Malaysia","MYS",57.84574437,0
+"123","Maldives","MDV",NA,0
+"124","Mali","MLI",41.43980772,0
+"125","Malta","MLT",54.93377969,1
+"126","Marshall Islands","MHL",NA,0
+"127","Martinique","MTQ",60.04332124,0
+"128","Mauritania","MRT",42.38228431,0
+"129","Mauritius","MUS",49.81960474,0
+"130","Mayotte","MYT",NA,0
+"131","Mexico","MEX",53.58758849,0
+"132","Micronesia (Federated States of)","FSM",37.47641873,0
+"133","Monaco","MCO",NA,0
+"134","Mongolia","MNG",43.20692313,0
+"135","Montenegro","MNE",51.01439746,0
+"136","Montserrat","MSR",43.77067147,0
+"137","Morocco","MAR",45.16526599,0
+"138","Mozambique","MOZ",36.21395046,0
+"139","Myanmar","MMR",38.0400071,0
+"140","Namibia","NAM",43.50853255,0
+"141","Nauru","NRU",NA,0
+"142","Nepal","NPL",41.27232252,0
+"143","Netherlands","NLD",25.61077852,1
+"144","Netherlands Antilles","ANT",NA,0
+"145","New Caledonia","NCL",43.77227744,0
+"146","New Zealand","NZL",18.94838684,1
+"147","Nicaragua","NIC",43.39038414,0
+"148","Niger","NER",42.80613724,0
+"149","Nigeria","NGA",40.34599008,0
+"150","Niue","NIU",29.03601929,0
+"151","Northern Mariana Islands","MNP",NA,0
+"152","Norway","NOR",7.216566875,1
+"153","Occupied Palestinian Territory","PSE",NA,0
+"154","Oman","OMN",44.63742007,0
+"155","Pakistan","PAK",42.46126581,0
+"156","Palau","PLW",NA,0
+"157","Panama","PAN",49.81260682,0
+"158","Papua New Guinea","PNG",41.13320134,0
+"159","Paraguay","PRY",44.6292752,0
+"160","Peru","PER",49.97433428,0
+"161","Philippines","PHL",54.1290677,0
+"162","Poland","POL",75.94711212,1
+"163","Portugal","PRT",31.14529885,1
+"164","Puerto Rico","PRI",53.93159361,0
+"165","Qatar","QAT",50.76878071,0
+"166","Réunion","REU",52.88695133,0
+"167","Republic of Korea","KOR",166.4862494,1
+"168","Republic of Moldova","MDA",37.75564814,0
+"169","Romania","ROU",84.12890446,1
+"170","Russian Federation","RUS",65.62672731,0
+"171","Rwanda","RWA",34.55096243,0
+"172","Saint Helena, Ascension and Tristan da Cunha","SHN",NA,0
+"173","Saint Kitts and Nevis","KNA",53.86858937,0
+"174","Saint Lucia","LCA",55.21457972,0
+"175","Saint Pierre and Miquelon","SPM",10.37120713,0
+"176","Saint Vincent and the Grenadines","VCT",59.98691399,0
+"177","Samoa","WSM",35.82169125,0
+"178","San Marino","SMR",NA,0
+"179","Sao Tome and Principe","STP",36.50248152,0
+"180","Saudi Arabia","SAU",50.54240765,0
+"181","Senegal","SEN",38.3445601,0
+"182","Serbia","SRB",80.58970702,0
+"183","Seychelles","SYC",127.1659566,0
+"184","Sierra Leone","SLE",35.50299284,0
+"185","Singapore","SGP",51.84876307,0
+"186","Slovakia","SVK",26.5605716,1
+"187","Slovenia","SVN",13.86878929,1
+"188","Solomon Islands","SLB",45.2757123,0
+"189","Somalia","SOM",43.28333678,0
+"190","South Africa","ZAF",47.84623768,0
+"191","Spain","ESP",128.5890653,1
+"192","Sri Lanka","LKA",47.36092171,0
+"193","Sudan (former)","SDN",NA,0
+"194","Suriname","SUR",50.13675164,0
+"195","Swaziland","SWZ",NA,0
+"196","Sweden","SWE",6.08004817,1
+"197","Switzerland","CHE",23.05575521,1
+"198","Syrian Arab Republic","SYR",46.5922568,0
+"199","Tajikistan","TJK",42.6509742,0
+"200","Thailand","THA",516.6379884,1
+"201","The former Yugoslav Republic of Macedonia","MKD",NA,0
+"202","Timor-Leste","TLS",39.70467214,0
+"203","Togo","TGO",33.82377526,0
+"204","Tokelau","TKL",NA,0
+"205","Tonga","TON",52.05200626,0
+"206","Trinidad and Tobago","TTO",52.47704136,0
+"207","Tunisia","TUN",46.87086597,0
+"208","Turkey","TUR",46.20543328,0
+"209","Turkmenistan","TKM",43.57097449,0
+"210","Turks and Caicos Islands","TCA",NA,0
+"211","Tuvalu","TUV",NA,0
+"212","Uganda","UGA",41.42131163,0
+"213","Ukraine","UKR",54.59866616,0
+"214","United Arab Emirates","ARE",49.01375335,0
+"215","United Kingdom of Great Britain and Northern Ireland","GBR",21.1061406,1
+"216","United Republic of Tanzania","TZA",41.98462125,0
+"217","United States of America","USA",46.34293718,1
+"218","United States Virgin Islands","VIR",43.89359002,0
+"219","Uruguay","URY",43.71360729,0
+"220","Uzbekistan","UZB",42.24150113,0
+"221","Vanuatu","VUT",41.42429852,0
+"222","Venezuela (Bolivarian Republic of)","VEN",48.87610143,0
+"223","Viet Nam","VNM",47.47522432,0
+"224","Wallis and Futuna Islands","WLF",43.17972683,0
+"225","Western Sahara","ESH",NA,0
+"226","Yemen","YEM",43.54075826,0
+"227","Zambia","ZMB",40.15686629,0
+"228","Zimbabwe","ZWE",42.22034042,0

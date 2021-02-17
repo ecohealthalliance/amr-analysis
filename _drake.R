@@ -33,7 +33,7 @@ suppressPackageStartupMessages({
 h <- here::here
 pkgconfig::set_config("drake::strings_in_dots" = "literals")
 
-for (file in list.files("R", pattern = "\\.R$", full.names = TRUE)) source(file)
+for (file in list.files(h("R"), pattern = "\\.R$", full.names = TRUE)) source(file)
 
 # Set analysis parameters
 imputed_sets <- 30
@@ -41,11 +41,9 @@ impute_iterations <- 40
 seed <- 101
 set.seed(seed)
 
-#TODO add all scenarios - see backup - running into errors that didn't exist previously ???
 #TODO add labels to plots
-#TODO change seeds
 
-labs <- c("baseline", "global", "remove_us", "remove_outbound_tourism", "remove_livestock_biomass")
+labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp", "v4_full_impute")
 
 plan <- drake_plan(
   
@@ -55,28 +53,30 @@ plan <- drake_plan(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
   # 1
-  data_baseline = target(
-    split_data(data, "baseline")
+  data_v1_complete_only = target(
+    split_data(data, "v1_complete_only")
   ),
   # 2
-  data_global = target(
-    split_data(data, "global")
+  data_v2_human_or_animal = target(
+    split_data(data, "v2_human_or_animal")
   ),
   # 3
-  data_remove_us = target(
-    split_data(data, "remove_us")
+  data_v3_countries_in_range_gdp = target(
+    split_data(data, "v3_countries_in_range_gdp")
+  ),
+  plot_data_v3_countries_in_range_gdp = target(
+    ggsave(plot_gdp(data_v3_countries_in_range_gdp),
+           filename = file_out(!!h(paste0("plots/gdp_by_impute_status.png"))), 
+           width = 8, height = 4)
   ),
   # 4
-  data_remove_outbound_tourism = target(
-    split_data(data, "remove_outbound_tourism")
+  data_v4_full_impute = target(
+    split_data(data, "v4_full_impute")
   ),
-  # 5
-  data_remove_livestock_biomass = target(
-    split_data(data, "remove_livestock_biomass")
-  ),  # use hueristics to replace some NAs, log transform vars
+  # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_baseline, data_global, data_remove_us, data_remove_outbound_tourism, data_remove_livestock_biomass), .id = FALSE)
+    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
@@ -98,13 +98,13 @@ plan <- drake_plan(
     transform = map(data_mice, .id = FALSE)
   ),
   # data exploration markdown
-  quantities_data_doc = render(knitr_in(!!h("doc/quantities_data.Rmd")), output_file = file_out(!!h("doc/quantities_data.html"))),
+  #quantities_data_doc = render(knitr_in(!!h("doc/quantities_data.Rmd")), output_file = file_out(!!h("doc/quantities_data.html"))),
   
   #### Model Fitting ####
   # fit brm hurdle model
   formula = target(
     formula,
-    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!remove_outbound_tourism_formula, !!remove_livestock_biomass_formula), .id = FALSE)),
+    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!main_formula), .id = FALSE)),
   
   mod_fit =  target(
     fit_brm_model(data_mice, 
@@ -167,9 +167,9 @@ plan <- drake_plan(
   ),
   # coefficient dot plot
   coef_plot = target(
-    ggsave(plot_coefficients(coefs),
+    ggsave(plot_coefficients(coefs, lab),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
-           width = 6, height = 4),
+           width = 10, height = 4),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?
@@ -179,7 +179,7 @@ plan <- drake_plan(
   ),
   # marginal effects plot
   marg_eff_plot = target(
-    ggsave(plot_marginal_effects(marg_eff, plot_labels, consistent_preds, data_reshape),
+    ggsave(plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_reshape),
            filename = file_out(!!h(paste0("plots/marginal_effects_multi_", lab, ".png"))),
            width = 10, height = 21),
     transform = map(marg_eff, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
@@ -200,7 +200,7 @@ plan <- drake_plan(
   pois_part_plot = target(
     ggsave(plot_pois_partial_effects(betas, pois_vars, data_mice_compl, data_reshape),
            filename = file_out(!!h(paste0("plots/pois_partial_effects_", lab, ".png"))),
-           width = 12, height = 12),
+           width = 14, height = 12),
     transform = map(betas, pois_vars, data_mice_compl, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get map data
@@ -234,14 +234,12 @@ vis_drake_graph(plan, targets_only = TRUE)
 
 future::plan(multisession, workers = floor(parallel::detectCores()/4))
 
+drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
+            cache_log_file = "drake_cache_log.csv")
+
+
 # _drake.R must end with a call to drake_config().
 # The arguments to drake_config() are basically the same as those to make().
 config <- drake_config(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
                        cache_log_file = "drake_cache_log.csv")
 config
-
-drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
-           cache_log_file = "drake_cache_log.csv")
-
-
-
