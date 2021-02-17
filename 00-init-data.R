@@ -153,9 +153,15 @@ human_consumption <- readxl::read_xlsx(h("data/Supplementary Table 1 Spreadsheet
 livestock_consumption <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
   drop_na(Observed_Tonnes) %>% 
   mutate(livestock_consumption_kg = Observed_Tonnes * 1000) %>% 
-  dplyr::select(iso3c = ISO3, livestock_consumption_kg, livestock_pcu = Tot_PCU_2017) %>% 
-  mutate(livestock_consumption_kg_per_pcu = livestock_consumption_kg/livestock_pcu) 
-
+  dplyr::select(iso3c = ISO3, livestock_consumption_kg) 
+  
+livestock_pcu <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
+  drop_na(Tot_PCU_2017) %>% 
+  filter(Tot_PCU_2017 > 0) %>% 
+  dplyr::select(iso3c = ISO3, livestock_pcu = Tot_PCU_2017) %>% 
+  group_by(iso3c) %>% 
+  summarize(livestock_pcu = mean(livestock_pcu)) %>%  # dealins with a dupe
+  ungroup()
 
 #-----------------Tourism data-----------------
 # 2015
@@ -193,6 +199,7 @@ amr <- all_countries %>%
   left_join(lang) %>%
   left_join(human_consumption) %>%
   left_join(livestock_consumption) %>%
+  left_join(livestock_pcu) %>%
   left_join(tourism)
 
 # make sure no event or consumption data lost
@@ -208,6 +215,7 @@ amr %<>%
   mutate(ab_export_per_capita = ab_export_dollars/population,
          ab_import_per_capita = ab_import_dollars/population,
          livestock_consumption_kg_per_capita = livestock_consumption_kg/population,
+         livestock_consumption_kg_per_pcu = livestock_consumption_kg/livestock_pcu,
          gdp_per_capita = gdp_dollars/population,
          tourism_outbound_per_capita = (tourism_outbound*1000)/population,
          tourism_inbound_per_capita = (tourism_inbound*1000)/population,
