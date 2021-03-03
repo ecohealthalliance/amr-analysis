@@ -81,8 +81,10 @@ plot_zi_partial_effects <- function(betas, zi_vars, data_mice_compl, data_reshap
 plot_pois_partial_effects <- function(betas, pois_vars, data_mice_compl, data_reshape){
   
   # add interaction to data_mice_compl
-  data_mice_compl <- data_mice_compl %>%
-    mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
+  if("ln_livestock_consumption_kg_per_capita" %in% names(data_mice_compl)){
+    data_mice_compl <- data_mice_compl %>% 
+      mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
+  }
   
   # Get poisson partial effects
   out_pois <- map_dfr(pois_vars, function(var){

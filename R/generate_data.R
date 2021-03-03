@@ -22,16 +22,29 @@ split_data <- function(data, model_scenario){
            select(-n_amr_first_events, -livestock_consumption_kg_per_pcu) %>% 
            mutate(max_gdp = max(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
                   min_gdp = min(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
-           # max_pop = max(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
-           # min_pop = min(population[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
            filter(gdp_per_capita <= max_gdp, 
-                  gdp_per_capita >= min_gdp
-                  # population <= max_pop,
-                  # population >= min_pop
-           ) %>% 
+                  gdp_per_capita >= min_gdp) %>% 
+           select(-starts_with("min"), -starts_with("max")),
+         "v3.2_livestock_biomass_included" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_capita) %>% 
+           mutate(max_gdp = max(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_pcu)], na.rm=TRUE),
+                  min_gdp = min(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_pcu)], na.rm=TRUE)) %>% 
+           filter(gdp_per_capita <= max_gdp, 
+                  gdp_per_capita >= min_gdp) %>% 
+           select(-starts_with("min"), -starts_with("max")),
+         "v3.3_first_global_emergence" = data %>%
+           select(-n_amr_events, -livestock_consumption_kg_per_pcu) %>% 
+           rename(n_amr_events = n_amr_first_events) %>% 
+           mutate(max_gdp = max(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE),
+                  min_gdp = min(gdp_per_capita[!is.na(human_consumption_ddd) & !is.na(livestock_consumption_kg_per_capita)], na.rm=TRUE)) %>% 
+           filter(gdp_per_capita <= max_gdp, 
+                  gdp_per_capita >= min_gdp) %>% 
            select(-starts_with("min"), -starts_with("max")),
          "v4_full_impute" = data %>%
-           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu)
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu),
+         "v5_full_impute_no_livestock" = data %>%
+           select(-n_amr_first_events, -livestock_consumption_kg_per_pcu, -livestock_consumption_kg_per_capita)
+         
   )
 }
 

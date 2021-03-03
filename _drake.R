@@ -43,7 +43,14 @@ set.seed(seed)
 
 #TODO add labels to plots
 
-labs <- c("v1_complete_only", "v2_human_or_animal", "v3_countries_in_range_gdp", "v4_full_impute")
+labs <- c("v1_complete_only", 
+          "v2_human_or_animal", 
+          "v3_countries_in_range_gdp", 
+          "v3.1_us_removed", 
+          "v3.2_livestock_biomass_included", 
+          "v3.3_first_global_emergence",
+          "v4_full_impute"
+          )
 
 plan <- drake_plan(
   
@@ -69,6 +76,18 @@ plan <- drake_plan(
            filename = file_out(!!h(paste0("plots/gdp_by_impute_status.png"))), 
            width = 8, height = 4)
   ),
+  #3.1
+  data_v3.1_us_removed = target(
+    data_v3_countries_in_range_gdp %>% filter(iso3c != "USA")
+  ),
+  # 3.2
+  data_v3.2_livestock_biomass_included = target(
+    split_data(data, "v3.2_livestock_biomass_included")
+  ),
+  # 3.3
+  data_v3.3_first_global_emergence = target(
+    split_data(data, "v3.3_first_global_emergence")
+  ),
   # 4
   data_v4_full_impute = target(
     split_data(data, "v4_full_impute")
@@ -76,7 +95,13 @@ plan <- drake_plan(
   # use hueristics to replace some NAs, log transform vars
   data_trans = target(
     transform_data(split_data = input_data),
-    transform = cross(input_data = c(data_v1_complete_only, data_v2_human_or_animal, data_v3_countries_in_range_gdp, data_v4_full_impute), .id = FALSE)
+    transform = cross(input_data = c(data_v1_complete_only, 
+                                     data_v2_human_or_animal, 
+                                     data_v3_countries_in_range_gdp, 
+                                     data_v3.1_us_removed, 
+                                     data_v3.2_livestock_biomass_included, 
+                                     data_v3.3_first_global_emergence, 
+                                     data_v4_full_impute), .id = FALSE)
   ),
   # gather data (for plotting later)
   data_reshape = target(
@@ -104,7 +129,14 @@ plan <- drake_plan(
   # fit brm hurdle model
   formula = target(
     formula,
-    cross(formula = c(!!main_formula, !!main_formula, !!main_formula, !!main_formula), .id = FALSE)),
+    cross(formula = c(!!main_formula, # v1
+                      !!main_formula, # v2
+                      !!main_formula, # v3
+                      !!main_formula, # v3.1
+                      !!livestock_biomass_included_formula, # v3.2
+                      !!main_formula, # v3.3
+                      !!main_formula), #v4
+          .id = FALSE)),
   
   mod_fit =  target(
     fit_brm_model(data_mice, 

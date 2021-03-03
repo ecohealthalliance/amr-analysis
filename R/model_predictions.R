@@ -1,8 +1,10 @@
 get_predictions <- function(data_mice_compl, betas, pois_vars){
   
   # add interaction to data_mice_compl
+  if("ln_livestock_consumption_kg_per_capita" %in% names(data_mice_compl)){
   data_mice_compl <- data_mice_compl %>% 
     mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
+  }
   
   # matrix of beta samples
   betas <- cbind(as.matrix(betas[,c(grep("b_[^z]", colnames(betas)))]), 1)
