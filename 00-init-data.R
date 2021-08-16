@@ -53,6 +53,7 @@ wbd <- map_df(indicator, function(x){
 
 wbd %<>%
   drop_na(value) %>%
+  filter(countryiso3code != "AFE") %>% # duplicates and unclear what country tthis is
   spread(key = param, value = value) %>%
   mutate(SM.POP.TOTL = SM.POP.TOTL/SP.POP.TOTL) %>% #calc migrant % of population
   rename(population = SP.POP.TOTL,

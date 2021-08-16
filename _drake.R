@@ -50,7 +50,7 @@ labs <- c("v1_complete_only",
           "v3.2_livestock_biomass_included", 
           "v3.3_first_global_emergence",
           "v4_full_impute"
-          )
+)
 
 plan <- drake_plan(
   
@@ -59,6 +59,16 @@ plan <- drake_plan(
   data = target(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
+  # check correlations on raw data
+  cor_matrix_data = target(
+    data %>%
+      dplyr::select(-iso3c, # character
+                    -n_amr_events, -n_amr_first_events, # outputs
+                    -livestock_pcu, -livestock_consumption_kg_per_pcu, -ab_import_per_capita, # not in final model
+                    -english_spoken # binary
+      ) %>%
+      cor(., method = "spearman", use = "pairwise.complete.obs")
+  ),  
   # 1
   data_v1_complete_only = target(
     split_data(data, "v1_complete_only")

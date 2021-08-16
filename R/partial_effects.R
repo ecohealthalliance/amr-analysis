@@ -143,16 +143,16 @@ plot_pois_partial_effects <- function(betas, pois_vars, data_mice_compl, data_re
     return(out)
   })
   
-  # labels for x axis
+  # labels for x axis and interaction term
   out_pois <- out_pois %>% 
     mutate(x_backtrans = ifelse(grepl("ln_", var), exp(x), x)) %>% 
-    mutate(z = signif(exp(as.numeric(z)), 1)) %>% 
-    mutate(z = factor(z, levels =  sort(as.numeric(unique(z))))) %>% 
-    mutate(z = fct_rev(z)) 
+    mutate(z_lab = signif(exp(as.numeric(z)), 1)) %>% 
+    mutate(z_lab = factor(z_lab, levels =  sort(as.numeric(unique(z_lab))))) %>% 
+    mutate(z_lab = fct_rev(z_lab)) 
   
   # summarize over samples
   out_pois_sum <- out_pois %>% 
-    group_by(z, x, x_backtrans, var) %>% 
+    group_by(z, z_lab, x, x_backtrans, var) %>% 
     summarise(med = median(y),
               lo = quantile(y, .025),
               hi = quantile(y, .975)) %>% 
@@ -179,10 +179,51 @@ plot_pois_partial_effects <- function(betas, pois_vars, data_mice_compl, data_re
       )
     
     if(pv == "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"){
+      
+      # get three levels of interaction
+      gdp_levels <- out_pois_sum %>% 
+        filter(var==pv) %>% 
+        distinct(z, z_lab) %>% 
+        mutate(z = as.numeric(z)) %>% 
+        pull(z) %>% 
+        sort()
+      
+      # split raw values by gdp levels
+      interaction_rug <- data_reshape %>% 
+        filter(var=="ln_livestock_consumption_kg_per_capita") %>% 
+        mutate(z = if_else(interaction_ln_gdp_per_capita < gdp_levels[1],
+                           gdp_levels[1],
+                           if_else(interaction_ln_gdp_per_capita >= gdp_levels[3],
+                                   gdp_levels[3], 
+                                   gdp_levels[2]))) %>% 
+        mutate(z_lab = signif(exp(as.numeric(z)), 1)) %>% 
+        mutate(z_lab = factor(z_lab, levels =  sort(as.numeric(unique(z_lab))))) %>% 
+        mutate(z_lab = fct_rev(z_lab)) 
+      
+      # get max livestock value by gdp group
+      x_limits <- interaction_rug %>% 
+        group_by(z_lab) %>% 
+        filter(x_backtrans == max(x_backtrans)) %>% 
+        ungroup() %>% 
+        select(z_lab, max_x_backtrans = x_backtrans)
+      
+      # truncate curves to only show range of raw x values
+      out_pois_interaction <- out_pois %>% 
+        filter(var==pv) %>% 
+        left_join(x_limits) %>% 
+        mutate(x_backtrans = ifelse(x_backtrans > max_x_backtrans, NA, x_backtrans)) %>% 
+        drop_na(x_backtrans)
+      
+      out_pois_sum_interaction <- out_pois_sum %>% 
+        filter(var==pv) %>% 
+        left_join(x_limits) %>% 
+        mutate(x_backtrans = ifelse(x_backtrans > max_x_backtrans, NA, x_backtrans)) %>% 
+        drop_na(x_backtrans)
+      
       p <- ggplot() + 
-        geom_line(data = filter(out_pois, var==pv), aes(x = x_backtrans, y = y, group = interaction(samp, z), color = z), size=.5, alpha = 0.1) + #For lots of lines
-        geom_line(data = filter(out_pois_sum, var==pv), aes(x = x_backtrans, y = med, group = z, color = z), size = 1.5) +
-        geom_rug(data = filter(data_reshape, var==pv), mapping = aes(x = x_backtrans)) +
+        geom_line(data = out_pois_interaction, aes(x = x_backtrans, y = y, group = interaction(samp, z_lab), color = z_lab), size=.5, alpha = 0.1) + #For lots of lines
+        geom_line(data = out_pois_sum_interaction, aes(x = x_backtrans, y = med, group = z_lab, color = z_lab), size = 1.5) +
+        geom_rug(data = interaction_rug, mapping = aes(x = x_backtrans, color = z_lab)) +
         scale_color_viridis_d() +
         labs(y = "", x = "", title = lookup_vars[pv], color = lookup_vars["ln_gdp_per_capita"]) +
         theme_foundation(base_size = 12, base_family =  "sans") + 

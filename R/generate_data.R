@@ -52,17 +52,12 @@ transform_data <- function(split_data) {
   # NA handling
   split_data %>%
     # amr events - assume 0 for NA
-    mutate_at(.vars = c("n_amr_events"), ~replace_na(., 0)) %>% 
-    # pubcrawler and promed - replace NAs and 0s with 1/2 min
-    mutate_at(vars(pubcrawl_per_capita, promed_mentions_per_capita), 
+    mutate_at(vars(n_amr_events), ~replace_na(., 0)) %>% 
+    # pubcrawler and promed and ab_export_per_capita (proxy for production)- replace NAs and 0s with 1/2 min
+    mutate_at(vars(pubcrawl_per_capita, promed_mentions_per_capita, ab_export_per_capita), 
               ~ifelse(is.na(.)|.==0,
                       0.5*min(.[.>0], na.rm = TRUE),
                       .)) %>% 
-    # ab exports - replace NAs and 0s with mean (not doing this to import_per_capita because it only goes into tree impute model)
-    mutate_at(vars(ab_export_per_capita), 
-              ~ifelse(is.na(.)|.==0,
-                      mean(., na.rm = TRUE),
-                      .)) %>%
     #mutate(ab_export_bin = replace_na(ab_export_bin, 0)) %>% 
     # log transform values
     mutate_at(vars(one_of("gdp_per_capita", "migrant_pop_per_capita", "population", "livestock_consumption_kg_per_capita", "tourism_inbound_per_capita", 
@@ -75,9 +70,18 @@ transform_data <- function(split_data) {
 
 
 rehape_data <- function(data_trans){
-  data_trans %>%
-    dplyr::select(-iso3c) %>%
-    gather(key ="var", value = "x") %>%
+  
+  out <- data_trans %>%
+    gather(-"iso3c", key ="var", value = "x") %>%
     drop_na() %>%
     mutate(x_backtrans = ifelse(str_detect(var, "ln_"), exp(x), x))
+  
+  interaction <- data_trans %>% 
+    gather(-c("iso3c", "ln_gdp_per_capita"),  key ="var", value = "x") %>% 
+    rename(interaction_ln_gdp_per_capita = ln_gdp_per_capita)
+  
+  out <- left_join(out, interaction,by = c("iso3c", "var", "x")) 
+  
+  return(out)
+  
 }
