@@ -22,13 +22,14 @@ suppressPackageStartupMessages({
   library(ggthemes)
   library(rnaturalearth)
   library(rnaturalearthdata)
-  library(rnaturalearthhires)
+  library(rnaturalearthhires) # ropensci/rnaturalearthhires
   library(countrycode)
   library(sf)
   library(leaflet)
   library(leaflet.extras)
   library(httr)
   library(PerformanceAnalytics)
+  library(visNetwork)
 })
 h <- here::here
 pkgconfig::set_config("drake::strings_in_dots" = "literals")
@@ -58,6 +59,11 @@ plan <- drake_plan(
   # pull country amr data & split into scenarios
   data = target(
     init_data(file_in(!!h("data/country-level-amr.csv")))
+  ),
+  # summary of missingness
+  data_avail_summary = target(
+    write_csv(summarize_data_avail(data),
+    file = file_out(!!h("table_s1_data_availability_summary.csv")))
   ),
   # check correlations on raw data
   cor_matrix_data = target(
