@@ -60,10 +60,10 @@ plan <- drake_plan(
   data = target(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
-  # summary of missingness
-  data_avail_summary = target(
-    write.csv(summarize_data_avail(data), file_out(!!h("doc/table_s1_data_availability_summary.csv")))
-  ),
+  # # summary of missingness
+  # data_avail_summary = target(
+  #   write.csv(summarize_data_avail(data), file_out(!!h("doc/table_s1_data_availability_summary.csv")))
+  # ),
   # check correlations on raw data
   cor_matrix_data = target(
     data %>%
