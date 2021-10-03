@@ -60,10 +60,6 @@ plan <- drake_plan(
   data = target(
     init_data(file_in(!!h("data/country-level-amr.csv")))
   ),
-  # # summary of missingness
-  # data_avail_summary = target(
-  #   write.csv(summarize_data_avail(data), file_out(!!h("doc/table_s1_data_availability_summary.csv")))
-  # ),
   # check correlations on raw data
   cor_matrix_data = target(
     data %>%
@@ -137,9 +133,6 @@ plan <- drake_plan(
       select(-.id),
     transform = map(data_mice, .id = FALSE)
   ),
-  # data exploration markdown
-  #quantities_data_doc = render(knitr_in(!!h("doc/quantities_data.Rmd")), output_file = file_out(!!h("doc/quantities_data.html"))),
-  
   #### Model Fitting ####
   # fit brm hurdle model
   formula = target(
