@@ -175,7 +175,7 @@ loadd(mod_comb, data_mice_compl, zi_vars, pois_vars)</code></pre>
 <p>Bayesian R-squared</p>
 <pre class="r"><code>bayes_R2(mod_comb, summary = TRUE)</code></pre>
 <pre><code>##     Estimate  Est.Error      Q2.5     Q97.5
-## R2 0.7433307 0.04055481 0.6327468 0.7950426</code></pre>
+## R2 0.7432971 0.04073738 0.6325709 0.7951167</code></pre>
 <p>get means and predict doubling for each vars</p>
 <pre class="r"><code># add interaction to data_mice_compl
 data_mice_compl &lt;- data_mice_compl %&gt;% 
@@ -194,40 +194,40 @@ imap(amr_means, function(x, y){
   dbl_estimate[1]/mean_estimate[1]
 })</code></pre>
 <pre><code>## $ln_pubcrawl_per_capita
-## [1] 0.6785593
+## [1] 0.6796016
 ## 
 ## $ln_promed_mentions_per_capita
-## [1] 1.321118
+## [1] 1.322325
 ## 
 ## $ln_gdp_per_capita
-## [1] 2.304409
+## [1] 2.306824
 ## 
 ## $ln_population
-## [1] 2.097241
+## [1] 2.100674
 ## 
 ## $english_spoken
-## [1] 0.9452617
+## [1] 0.9458106
 ## 
 ## $ln_livestock_consumption_kg_per_capita
-## [1] 0.8732802
+## [1] 0.8753531
 ## 
 ## $ln_migrant_pop_per_capita
-## [1] 0.9750082
+## [1] 0.9763575
 ## 
 ## $ln_tourism_inbound_per_capita
-## [1] 1.415735
+## [1] 1.420545
 ## 
 ## $ln_ab_export_per_capita
-## [1] 0.9186592
+## [1] 0.9187975
 ## 
 ## $health_expend_perc
-## [1] 0.2003289
+## [1] 0.2003019
 ## 
 ## $human_consumption_ddd
-## [1] 0.9970373
+## [1] 0.9969171
 ## 
 ## $`ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita`
-## [1] 1.001242</code></pre>
+## [1] 1.002468</code></pre>
 
 
 

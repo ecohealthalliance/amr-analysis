@@ -17,8 +17,8 @@ lookup_vars <- c(
   "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
   "ln_livestock_consumption_kg_per_capita.ln_gdp_per_capita"= "Livestock AB Consumption:GDP",
   "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"= "Livestock AB Consumption:GDP",
-  # "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
-  # "ln_livestock_pcu" = "Livestock Population (PCU)", 
+  "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
+  "ln_livestock_pcu" = "Livestock Population (PCU)", 
   
   # production
   "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 

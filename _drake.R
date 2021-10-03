@@ -8,13 +8,13 @@
 suppressPackageStartupMessages({
   library(drake)
   library(tidyverse)
-  library(brms)
+  library(brms) # 2.16.0
   library(here)
   library(mice)
   library(future)
   library(furrr)
   library(rmarkdown)
-  library(rstan)
+  library(rstan) # 2.21.1
   library(StanHeaders)
   library(bayesplot)
   library(sjPlot)
@@ -62,8 +62,7 @@ plan <- drake_plan(
   ),
   # summary of missingness
   data_avail_summary = target(
-    write_csv(summarize_data_avail(data),
-    file = file_out(!!h("table_s1_data_availability_summary.csv")))
+    write.csv(summarize_data_avail(data), file_out(!!h("doc/table_s1_data_availability_summary.csv")))
   ),
   # check correlations on raw data
   cor_matrix_data = target(
