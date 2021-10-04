@@ -171,63 +171,63 @@ pre code {
 <pre class="r"><code>library(drake)
 library(tidyverse)
 library(brms)
-loadd(mod_comb, data_mice_compl, zi_vars, pois_vars)</code></pre>
+loadd(mod_comb_3, data_mice_compl_3, zi_vars_3, pois_vars_3)</code></pre>
 <p>Bayesian R-squared</p>
-<pre class="r"><code>bayes_R2(mod_comb, summary = TRUE)</code></pre>
-<pre><code>##     Estimate  Est.Error      Q2.5     Q97.5
-## R2 0.7432971 0.04073738 0.6325709 0.7951167</code></pre>
+<pre class="r"><code>bayes_R2(mod_comb_3, summary = TRUE)</code></pre>
+<pre><code>##    Estimate  Est.Error      Q2.5     Q97.5
+## R2 0.634074 0.05124768 0.5408597 0.7291681</code></pre>
 <p>get means and predict doubling for each vars</p>
 <pre class="r"><code># add interaction to data_mice_compl
-data_mice_compl &lt;- data_mice_compl %&gt;% 
+data_mice_compl_3 &lt;- data_mice_compl_3 %&gt;% 
   mutate(&quot;ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita&quot; = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
 
-amr_means &lt;- colMeans(as.matrix(data_mice_compl[,unique(c(zi_vars, pois_vars))])) %&gt;%
+amr_means &lt;- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars_3))])) %&gt;%
   enframe() %&gt;%
   pivot_wider(names_from = name, values_from = value)
 
-mean_estimate &lt;- predict(mod_comb, newdata = amr_means, summary = TRUE)
+mean_estimate &lt;- predict(mod_comb_3, newdata = amr_means, summary = TRUE)
 
 imap(amr_means, function(x, y){
   dbl_estimate &lt;- amr_means %&gt;%
     mutate(!!y := ifelse(str_detect(y, &quot;ln_&quot;), log(exp(x) * 2), x * 2)) %&gt;%
-    predict(mod_comb, newdata = .)
+    predict(mod_comb_3, newdata = .)
   dbl_estimate[1]/mean_estimate[1]
 })</code></pre>
 <pre><code>## $ln_pubcrawl_per_capita
-## [1] 0.6796016
+## [1] 1.164685
 ## 
 ## $ln_promed_mentions_per_capita
-## [1] 1.322325
+## [1] 0.7071996
 ## 
 ## $ln_gdp_per_capita
-## [1] 2.306824
+## [1] 2.602215
 ## 
 ## $ln_population
-## [1] 2.100674
+## [1] 2.791909
 ## 
 ## $english_spoken
-## [1] 0.9458106
+## [1] 0.758314
 ## 
 ## $ln_livestock_consumption_kg_per_capita
-## [1] 0.8753531
+## [1] 0.7291246
 ## 
 ## $ln_migrant_pop_per_capita
-## [1] 0.9763575
+## [1] 0.9442162
 ## 
 ## $ln_tourism_inbound_per_capita
-## [1] 1.420545
+## [1] 1.251423
 ## 
 ## $ln_ab_export_per_capita
-## [1] 0.9187975
+## [1] 0.9183877
 ## 
 ## $health_expend_perc
-## [1] 0.2003019
+## [1] 0.3376351
 ## 
 ## $human_consumption_ddd
-## [1] 0.9969171
+## [1] 1.334812
 ## 
 ## $`ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita`
-## [1] 1.002468</code></pre>
+## [1] 1.015429</code></pre>
 
 
 
