@@ -148,8 +148,8 @@ af234b97a5fa3e42,import,leaflet::addLegend
 60d229c534ee4deb,import,purrr::compact
 13058d19857449ef,import,sjPlot::get_model_data
 afae5edb12098d79,import,file /home/emmamendelsohn/amr-analysis/data/country-level-amr.csv
-31d08e4770606751,import,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.Rmd
-34015cad7aca0586,target,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.html
+f7eca9459ee3d492,import,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.Rmd
+5aa5d8e96c55c9cf,target,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.html
 b188e548cf08546b,target,file /home/emmamendelsohn/amr-analysis/doc/table_s1_data_availability_summary.csv
 3e1086f9ee681d96,target,file /home/emmamendelsohn/amr-analysis/plots/gdp_by_impute_status.png
 e9d8668a4adcf322,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3_countries_in_range_gdp.png

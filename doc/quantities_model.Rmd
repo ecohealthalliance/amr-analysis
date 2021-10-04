@@ -11,12 +11,17 @@ knitr::opts_chunk$set(echo = TRUE)
 library(drake)
 library(tidyverse)
 library(brms)
-loadd(mod_comb_3, data_mice_compl_3, zi_vars_3, pois_vars_3)
+loadd(mod_comb_3, coefs_3, data_mice_compl_3, zi_vars_3, pois_vars_3)
 ```
 
 Bayesian R-squared
 ```{r}
 bayes_R2(mod_comb_3, summary = TRUE)
+```
+
+Model coefficients
+```{r}
+knitr::kable(coefs_3)
 ```
 
 get means and predict doubling for each vars
