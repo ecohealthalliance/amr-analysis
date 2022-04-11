@@ -154,7 +154,7 @@ plan <- drake_plan(
   ),
   # get marginal effects on all model iterations
   marg_eff = target(
-    furrr::future_map(mod_fit, ~brms::marginal_effects(.)),
+    furrr::future_map(mod_fit, ~brms::marginal_effects(.)), 
     transform = map(mod_fit, .id = FALSE)
   ),
   # aggregate brm model
@@ -209,7 +209,7 @@ plan <- drake_plan(
   coef_plot = target(
     ggsave(plot_coefficients(coefs, lab),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
-           width = 10, height = 4),
+           width = 6, height = 4),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?

@@ -36,9 +36,9 @@ plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_
     p <- ggplot(data = dat, aes(x = effect1_backtrans)) + 
       geom_line(aes(y = estimate__, 
                     group = interaction(iteration, effect2_backtrans)),
-                color = "gray60", size=.5, alpha = 0.2) +
+                color = "gray60", size=.5, alpha = 0.4) +
       geom_line(data = filter(marg_effects_avg, var == lv), 
-                aes(x = effect1_backtrans, y = mean, group = effect2_backtrans), color = "gray60", size = 1.5) +
+                aes(x = effect1_backtrans, y = mean, group = effect2_backtrans), color = "gray20", size = 1.5) +
       geom_rug(data = filter(data_reshape, var == lv), mapping = aes(x = x_backtrans)) +
       # scale_y_continuous(limits = c(0, 100),
       #                    breaks = c(0, 25, 50, 75, 100),
@@ -119,11 +119,11 @@ plot_marginal_effects <- function(marg_eff, lookup_vars, consistent_preds, data_
               panel.grid.minor = element_blank(),
               legend.position = "top")
     }
-    if(lv == "ln_population"){
+    if(str_detect(lv, "ln_")){
       p <- p + scale_x_log10()
     }
     if(lv %in% c("ln_pubcrawl_per_capita", "ln_gdp_per_capita")){
-      p <- p + scale_x_continuous(labels = function(x) format(x, scientific = TRUE))
+      p <- p + scale_x_log10(labels = function(x) format(x, scientific = TRUE))
     }
     if(lv %in% predictors$var){
       p <- p +
