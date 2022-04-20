@@ -14,9 +14,38 @@ library(brms)
 loadd(mod_comb_3, coefs_3, data_mice_compl_3, zi_vars_3, pois_vars_3)
 ```
 
+Summarize database
+```{r}
+loadd(data)
+sum(data$n_amr_events, na.rm = TRUE) # total events
+
+data %>% 
+  drop_na(n_amr_events) %>% 
+  count() # number of countries with events
+
+data %>% 
+  arrange(-n_amr_events) %>% 
+  dplyr::select(iso3c, n_amr_events, n_amr_first_events) %>% 
+  slice(1:5)
+
+```
+
+
 Bayesian R-squared
 ```{r}
 bayes_R2(mod_comb_3, summary = TRUE)
+```
+
+Conversion statistics (rhats)
+```{r}
+loadd(mod_fit_data_mice_3_formula_3)
+
+map(mod_fit_data_mice_3_formula_3, function(x){
+  x %>% 
+    rhat() %>% 
+    enframe()
+}) %>% 
+  reduce(left_join, by = c("name", "value"))
 ```
 
 Model coefficients
@@ -34,14 +63,55 @@ amr_means <- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars
   enframe() %>%
   pivot_wider(names_from = name, values_from = value)
 
-mean_estimate <- predict(mod_comb_3, newdata = amr_means, summary = TRUE)
+mean_estimate <- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
+mean_estimate_no_zero <- mean_estimate %>% 
+  enframe(value = "est") %>% 
+  filter(est > 0) %>% 
+  summarize(est_mean = mean(est),
+            est_sd = sd(est),
+            est_high = mean(est) + sd(est),
+            est_low = mean(est) - sd(est))
 
-imap(amr_means, function(x, y){
+imap_dfr(amr_means, function(x, y){
+  
   dbl_estimate <- amr_means %>%
     mutate(!!y := ifelse(str_detect(y, "ln_"), log(exp(x) * 2), x * 2)) %>%
-    predict(mod_comb_3, newdata = .)
-  dbl_estimate[1]/mean_estimate[1]
-})
+    predict(mod_comb_3, newdata = ., summary = FALSE)
+  
+  dbl_estimate_no_zero <- dbl_estimate %>% 
+    enframe(value = "est") %>% 
+    filter(est > 0) %>% 
+    summarize(dbl_est_mean = mean(est),
+              dbl_est_sd = sd(est),
+              dbl_est_high = mean(est) + sd(est),
+              dbl_est_low = mean(est) - sd(est))
+  
+  mean_value <- ifelse(str_detect(y, "ln_"), exp( amr_means %>% pull(y)),  amr_means %>% pull(y))
+  
+  tibble(var = y, mean_value = mean_value) %>% 
+    bind_cols(mean_estimate_no_zero, dbl_estimate_no_zero) %>% 
+    mutate( diff_mean = (dbl_est_mean - est_mean)/est_mean,
+            diff_high = (dbl_est_high - est_high)/est_high,
+            diff_low = (dbl_est_low - est_low)/est_low
+    )
+}) %>% 
+  knitr::kable()
 
+
+```
+
+Differences between predicted versus actual
+```{r}
+loadd(predicted_versus_actual_diff_3)
+
+predicted_versus_actual_diff_3 %>% 
+  summarize(percent_predicted_greater = length(diff[diff > 0])/n())
+
+predicted_versus_actual_diff_3 %>% View
+
+predicted_versus_actual_diff_3 %>% 
+  select(-iso3c, -v, -country) %>% 
+  select(country_lab, continent, everything()) %>% 
+  knitr::kable()
 ```
 

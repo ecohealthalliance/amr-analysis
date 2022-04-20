@@ -1,0 +1,17 @@
+term_clean,lab,conf.low,conf.high
+Livestock AB Consumption (per PCU),1.1,0.95,1.4
+Livestock Population (PCU),0.66*,0.63,0.69
+GDP (dollars per capita),1.52*,1.2,2.1
+Migrant Population (per capita),0.85*,0.75,0.94
+Tourism - Inbound (per capita),1.22*,1,1.4
+AB Exports (dollars per capita),0.95*,0.92,0.97
+Health Expenditure (% GDP),1.01,0.98,1
+Human AB Consumption (DDD),1.06*,1,1.1
+English Spoken (yes/no),0.99,0.77,1.2
+Publication Bias Index (per capita),1.07,0.97,1.2
+ProMed Mentions (per capita),1.37*,1.2,1.6
+Publication Bias Index (per capita),0.63,0.33,1.1
+ProMed Mentions (per capita),4.16*,1.7,12
+GDP (dollars per capita),0.18*,0.063,0.46
+Population,0.46*,0.3,0.66
+English Spoken (yes/no),1.49,0.47,4.8

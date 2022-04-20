@@ -45,6 +45,13 @@ plot_coefficients <- function(coefs, lab){
           plot.title.position = "plot",
           panel.spacing = unit(2, "lines"),
           strip.text = element_text(size = rel(1.1)),
+          plot.margin = margin(5.5, 18, 5.5, 5.5, "pt"),
           panel.grid.major = element_line(colour = "gray50", linetype = 3), 
           panel.grid.minor = element_blank())
+}
+
+export_coefficient_table <- function(coefs){
+  coefs %>% 
+    select(term_clean, lab, conf.low, conf.high) %>% 
+    mutate_at(vars("conf.low", "conf.high"), ~signif(., 2))
 }

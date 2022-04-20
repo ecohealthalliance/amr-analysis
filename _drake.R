@@ -205,11 +205,17 @@ plan <- drake_plan(
     get_coefficients(mod_comb),
     transform = map(mod_comb, .id = FALSE)
   ),
+  # export model coefficients for reporting
+  coef_tbl = target(
+    write_csv(export_coefficient_table(coefs),
+           file = file_out(!!h(paste0("doc/coef_values_", lab, ".csv")))),
+    transform = map(coefs, lab = !!labs, .id = FALSE)
+    ),
   # coefficient dot plot
   coef_plot = target(
     ggsave(plot_coefficients(coefs, lab),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
-           width = 6, height = 4),
+           width = 8, height = 4),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?
@@ -248,9 +254,14 @@ plan <- drake_plan(
     get_map_data(predicts),
     transform = map(predicts, .id = FALSE)
   ),
+  # get differences between predicted and actual
+  predicted_versus_actual_diff = target(
+    get_predicted_versus_actual_diff(predicts),
+    transform = map(predicts, .id = FALSE)
+  ),
   # combine slope and map into single figure
   ms_plot = target(
-    ggsave(plot_grid(plot_map(map_data), plot_slope(predicts), labels = "AUTO"),
+    ggsave(plot_grid(plot_map(map_data), plot_slope(predicted_versus_actual_diff), labels = "AUTO"),
            filename = file_out(!!h(paste0("plots/map_and_slope_", lab, ".png"))),
            width = 14, height = 8),
     transform = map(map_data, predicts, lab = !!labs, .id = FALSE)
