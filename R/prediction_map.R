@@ -26,9 +26,35 @@ plot_map <- function(map_data){
           axis.line = element_blank(), 
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
-          legend.position = "right")
-  # legend.title = element_text(size = rel(0.9)),
-  # legend.text = element_text(size = rel(0,8)), 
-  # legend.position = "left")
+          legend.position = "top",
+          plot.margin=unit(c(0,0,0,0), "mm"))
+}
+
+plot_diff_map <- function(map_data){
+  
+  # Get adm
+  admin_diff <- map_data %>%
+    filter(is.na(v) | v == "mean_pop") %>% 
+    mutate(diff = `Predicted AMR Events` - `Reported AMR Events`) %>% 
+    filter(name != "Antarctica")
+    
+  ggplot(admin_diff) + 
+    geom_sf(aes(fill = diff), size = 0.1) +
+    scale_fill_distiller(type = "div", palette = "RdYlBu") +
+    labs(fill = "Difference in Predicted versus Reported") +
+    theme_foundation(base_size = 11, base_family =  "sans") + 
+    coord_sf() +
+    theme(strip.background = element_blank(), 
+          strip.text = element_text(size = rel(1)), 
+          rect = element_rect(fill = "white", linetype = 0, colour = NA),
+          #title = element_text(size = rel(1.1), face = "bold"), 
+          axis.text = element_blank(), 
+          axis.ticks = element_blank(),
+          axis.line = element_blank(), 
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          legend.position = "top",
+          plot.margin=unit(c(0,0,0,0), "mm"))
+  
 }
 

@@ -30,6 +30,7 @@ suppressPackageStartupMessages({
   library(httr)
   library(PerformanceAnalytics)
   library(visNetwork)
+  library(ggrepel)
 })
 h <- here::here
 pkgconfig::set_config("drake::strings_in_dots" = "literals")
@@ -42,8 +43,6 @@ impute_iterations <- 40
 seed <- 101
 set.seed(seed)
 
-#TODO add labels to plots
-
 labs <- c("v1_complete_only", 
           "v2_human_or_animal", 
           "v3_countries_in_range_gdp", 
@@ -51,6 +50,15 @@ labs <- c("v1_complete_only",
           "v3.2_livestock_biomass_included", 
           "v3.3_first_global_emergence",
           "v4_full_impute"
+)
+
+fancy_labs <- c("1. No imputation of antibiotic consumption", 
+                "2. Imputation of either human or livestock antibiotic consumption", 
+                "3. Imputation of human and livestock antibiotic consumption for countries within GDP range", 
+                "3.1. Robustness Scenario - USA Removed", 
+                "3.2. Robustness Scenario - Livestock Biomass Included", 
+                "3.3. Robustness Scenario - First Global Emergence",
+                "4. Full Imputation"
 )
 
 plan <- drake_plan(
@@ -208,15 +216,15 @@ plan <- drake_plan(
   # export model coefficients for reporting
   coef_tbl = target(
     write_csv(export_coefficient_table(coefs),
-           file = file_out(!!h(paste0("doc/coef_values_", lab, ".csv")))),
+              file = file_out(!!h(paste0("doc/coef_values_", lab, ".csv")))),
     transform = map(coefs, lab = !!labs, .id = FALSE)
-    ),
+  ),
   # coefficient dot plot
   coef_plot = target(
-    ggsave(plot_coefficients(coefs, lab),
+    ggsave(plot_coefficients(coefs, fancy_lab),
            filename = file_out(!!h(paste0("plots/dot_plot_", lab, ".png"))),
            width = 8, height = 4),
-    transform = map(coefs, lab = !!labs, .id = FALSE)
+    transform = map(coefs, fancy_lab = !!fancy_labs, lab = !!labs, .id = FALSE)
   ),
   # which variables are consistent predictors?
   consistent_preds = target(
@@ -260,12 +268,45 @@ plan <- drake_plan(
     transform = map(predicts, .id = FALSE)
   ),
   # combine slope and map into single figure
-  ms_plot = target(
-    ggsave(plot_grid(plot_map(map_data), plot_slope(predicted_versus_actual_diff), labels = "AUTO"),
-           filename = file_out(!!h(paste0("plots/map_and_slope_", lab, ".png"))),
-           width = 14, height = 8),
-    transform = map(map_data, predicts, lab = !!labs, .id = FALSE)
+  ms_plot_left = target(
+    ggsave(
+      plot_grid(
+        plot_map(map_data),
+        plot_diff_map(map_data),
+        ncol = 1,
+        rel_heights = c(0.65, 0.35),
+        labels = c("A", "B")),
+      filename = file_out(!!h(paste0("plots/map_and_slope_left_", lab, ".png"))),
+      width = 12, height = 8, dpi = 500),
+    transform = map(map_data, lab = !!labs, .id = FALSE)
   ),
+  ms_plot_right = target(
+    ggsave(
+      plot_grid(
+        plot_slope(predicted_versus_actual_diff),
+        ncol = 1,
+        labels = c("C")),
+      filename = file_out(!!h(paste0("plots/map_and_slope_right_", lab, ".png"))),
+      width = 9, height = 8, dpi = 500),
+    transform = map(predicted_versus_actual_diff, lab = !!labs, .id = FALSE)
+  ),
+  # ms_plot = target(
+  #   ggsave(
+  #     plot_grid(
+  #     plot_grid(
+  #       plot_map(map_data),
+  #       plot_diff_map(map_data),
+  #       ncol = 1,
+  #       rel_heights = c(0.65, 0.35),
+  #       labels = c("A", "B")),
+  #     plot_slope(predicted_versus_actual_diff),
+  #     rel_widths = c(0.6, 0.4),
+  #     labels = c("", "C")) +
+  #       theme(panel.background = element_rect(fill = NA, color = NA)),
+  #     filename = file_out(!!h(paste0("plots/map_and_slope_", lab, ".png"))),
+  #     width = 18, height = 8, dpi = 500),
+  #   transform = map(map_data, predicted_versus_actual_diff, lab = !!labs, .id = FALSE)
+  # ),
   # for interactive map: get dataframe of AMR events
   events = get_events(),
   # for interactive map: get coordinate locations of AMR events

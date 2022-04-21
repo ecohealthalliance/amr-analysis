@@ -11,15 +11,14 @@ get_predicted_versus_actual_diff <- function(predicts){
 }
 
 
-
-plot_slope <- function(diffs){
+plot_slope <- function(predicted_versus_actual_diff){
   
   # view largest differences between predicted and actual
   
-  # mean(diffs$diff)
-  # diffs %>% filter(diff > 0) %>% nrow()
+  # mean(predicted_versus_actual_diff$diff)
+  # predicted_versus_actual_diff %>% filter(diff > 0) %>% nrow()
   
-  diffs_reshape <- diffs %>%
+  diffs_reshape <- predicted_versus_actual_diff %>%
     select(country_lab, n_amr_events, med, diff) %>%
     mutate(increase = diff > 0) %>%
     mutate(top_10 = row_number() <= 10) %>%
@@ -34,8 +33,12 @@ plot_slope <- function(diffs){
     geom_point(data = diffs_reshape, aes(x = key, y = value, group = country_lab), color = "gray40", alpha = 0.2) +
     geom_line(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
     geom_point(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
-    geom_text(data = filter(diffs_reshape_top10, key == "Predicted", ), aes(label = country_lab, x = key, y = value),
-              hjust = "outward", nudge_x = 0.02) +
+    geom_text_repel(data = filter(diffs_reshape_top10, key == "Predicted", ), aes(label = country_lab, x = key, y = value),
+                             force=1, point.padding=unit(1,'lines'),
+                             hjust=0,
+                             direction='y',
+                             nudge_x=0.1,
+                             segment.size=0.2) +
     scale_x_discrete(expand = c(0.1, 0,0 ,0.5))+
     # scale_color_manual(values = c(`TRUE` = "hotpink",
     #                               `FALSE` = "blue")) +

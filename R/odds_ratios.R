@@ -17,7 +17,7 @@ get_consistent_predictors <- function(coefs){
     mutate_all(~str_replace(., "\\.", ":"))
 } 
 
-plot_coefficients <- function(coefs, lab){
+plot_coefficients <- function(coefs, fancy_lab){
   
   var_order <-  unname(lookup_vars) %>% unique()
   
@@ -34,7 +34,7 @@ plot_coefficients <- function(coefs, lab){
     # scale_y_continuous(limits = c(0.25, 2)) +
     scale_color_manual(values = c("neg" = "cornflowerblue", "pos" = "cornflowerblue")) +
     facet_wrap(wrap.facet ~ .) +
-    labs(x = "", y = "Odds Ratio", title = paste0(lab)) +
+    labs(x = "", y = "Odds Ratio", title = paste0(fancy_lab)) +
     coord_flip() +
     theme_foundation(base_size = 10, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
