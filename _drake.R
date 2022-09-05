@@ -7,7 +7,12 @@
 
 suppressPackageStartupMessages({
   library(drake)
-  library(tidyverse)
+  library(dplyr)
+  library(purrr)
+  library(tidyr)
+  library(readr)
+  library(stringr)
+  library(forcats)
   library(brms) # 2.16.0
   library(here)
   library(mice)

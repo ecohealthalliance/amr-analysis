@@ -1,11 +1,11 @@
 hash,type,name
-ab6e08f409cad4e5,target,betas
-ecd05bf7b48163c5,target,betas_2
-bed388a26f45bb96,target,betas_3
-154bebc700ba376a,target,betas_4
-6da1699d2e30b980,target,betas_5
-f6f6bac61d368f16,target,betas_6
-30256f8840da8dfd,target,betas_7
+20eca57e6c92ec95,target,betas
+1b51beadc7cdcd3a,target,betas_2
+56a208d6c03d6881,target,betas_3
+2dc353dcf1dc6dcb,target,betas_4
+87848eb39b3c2898,target,betas_5
+adc2f82b55a53da1,target,betas_6
+5ec1ebda28662748,target,betas_7
 227640bc42e67e5b,target,coef_plot
 53e80d4abf5de0b3,target,coef_plot_2
 1c156c95b2f6b0d9,target,coef_plot_3
@@ -13,20 +13,20 @@ fe999425460cd5e4,target,coef_plot_4
 c49910a4cb8b8cf3,target,coef_plot_5
 648ce64bdb8fe2be,target,coef_plot_6
 4b7fef2c4382d8a2,target,coef_plot_7
-c15bdfa6209668ba,target,coef_tbl
-265f7b332883520f,target,coef_tbl_2
-ca22d210cbbd861e,target,coef_tbl_3
-7b287713b68a1a91,target,coef_tbl_4
-98c4ba4408a20f93,target,coef_tbl_5
-4c8d6ca6f5603508,target,coef_tbl_6
-e927569d57e18748,target,coef_tbl_7
-bb46bd675865b896,target,coefs
-a9857b1218f4e695,target,coefs_2
-63d5b5e89a814f37,target,coefs_3
-5bdd02364a4102dd,target,coefs_4
-6e6df1a9afdb8c3d,target,coefs_5
-856c970bb8844b1b,target,coefs_6
-e77a7ad57f158832,target,coefs_7
+dbf5de5a4985e4fe,target,coef_tbl
+3e7467826031dfd0,target,coef_tbl_2
+586dfde11f9cb153,target,coef_tbl_3
+c86dc5cf959046f2,target,coef_tbl_4
+fd8d10b92c321551,target,coef_tbl_5
+605729374f5587e2,target,coef_tbl_6
+2c9ff72f4fe196b1,target,coef_tbl_7
+906a95479ae37818,target,coefs
+12a581b5325884e2,target,coefs_2
+6c6365085517429a,target,coefs_3
+d658a10eedefa624,target,coefs_4
+8070c7621a265548,target,coefs_5
+daa573aae0f97a89,target,coefs_6
+b2ade39cf2c3b70d,target,coefs_7
 bd938cf9e9d786fd,target,consistent_preds
 b04ef520cfb2e74d,target,consistent_preds_2
 73da08ea33c482c2,target,consistent_preds_3
@@ -37,13 +37,13 @@ fcbf4c4bdb55a9b4,target,consistent_preds_7
 891b19de2e15143e,target,cor_matrix_data
 18e98fdb8ba4787e,target,data
 c85d88fc56f4e042,target,data_avail_summary
-8acf0a26c6475293,target,data_mice
-0027fb57e3fc7f5c,target,data_mice_2
-26701d3f30b90372,target,data_mice_3
-50bde5af84dc5918,target,data_mice_4
-dd3987e6002e1483,target,data_mice_5
-cbac34af8db15329,target,data_mice_6
-1308a9001b7aa6c2,target,data_mice_7
+8a70c6f08c92b9ae,target,data_mice
+8f2c228821ab58b7,target,data_mice_2
+f5f57169ed61a16b,target,data_mice_3
+f34a49c12bba670d,target,data_mice_4
+362d3f09c46d5824,target,data_mice_5
+aef8ab52a0a06f66,target,data_mice_6
+1f1b6283a722499e,target,data_mice_7
 bf67c4e237bc89bb,target,data_mice_compl
 786fbe8dddcf21e7,target,data_mice_compl_2
 6e5054c45739290a,target,data_mice_compl_3
@@ -89,32 +89,32 @@ a33edee8dc0bc126,import,get_consistent_predictors
 1de158c3e1d31686,import,get_events
 1c090def480ecf96,import,get_locations
 ca22b975d5b76ef0,import,get_map_data
-d5df9007b03f44c5,import,get_pois_vars
+298a4d6bc10824ef,import,get_pois_vars
 259658ad951801b1,import,get_predicted_versus_actual_diff
-8011cd6cb72a66ce,import,get_predictions
+0d7e119a707d1766,import,get_predictions
 118558bdc43d99ac,import,get_zi_vars
 1393aef18608c8be,import,impute_iterations
 0a4dc977c5c5addb,import,imputed_sets
 6e7102564ff993f6,import,init_data
 2c61539c7ce0f967,import,interactive_map
-be1005b45c8a518a,import,lab
+f9b4f2f71990e3f2,import,lab
 e8635bc93fce96ab,import,labs
 6230aac876698325,target,locations
 6f31bfa2c8db556c,import,lookup_vars
-c9cb780d8550993b,target,map_data
-e953df231fee3d91,target,map_data_2
-429e4101b21bb762,target,map_data_3
-4dcc99cd2d8ffa97,target,map_data_4
-7cd341ac6cd50f4c,target,map_data_5
-2bf8d19d88e27b26,target,map_data_6
-5d454b5f6800918d,target,map_data_7
-6e7bc42a2099d5ae,target,marg_eff
-16be0975b944cf84,target,marg_eff_2
-5f7ef29e640c9684,target,marg_eff_3
-cb3db599a8d3d942,target,marg_eff_4
-0eede65f1b2fe8c4,target,marg_eff_5
-60c6b582605a7a1c,target,marg_eff_6
-95057adaafd8d3fe,target,marg_eff_7
+f547c9786d144b52,target,map_data
+24c5810187ebbc8a,target,map_data_2
+7327c8a9faf2711f,target,map_data_3
+5d98a3ed32d32bc9,target,map_data_4
+b5bec5da6de892d5,target,map_data_5
+d1aeb80a079961a7,target,map_data_6
+3a54c93c5ce722d9,target,map_data_7
+98c3d8f4972921c2,target,marg_eff
+8861c1322f483d6e,target,marg_eff_2
+41b77d9704d892c6,target,marg_eff_3
+48038c63cece9b03,target,marg_eff_4
+42a1a0afd722552b,target,marg_eff_5
+10eba8f8ee51e5c1,target,marg_eff_6
+36b55737c304102a,target,marg_eff_7
 4c446c2bef60e245,target,marg_eff_plot
 f8d17ec46fbda6aa,target,marg_eff_plot_2
 3879c3ff29711d53,target,marg_eff_plot_3
@@ -122,20 +122,20 @@ f8d17ec46fbda6aa,target,marg_eff_plot_2
 edea2bb1813d0a5a,target,marg_eff_plot_5
 84e94713efd0f445,target,marg_eff_plot_6
 24edc75a0b9ea54a,target,marg_eff_plot_7
-5c68584a90efddf3,target,mod_comb
-93b6f5b7783aa56e,target,mod_comb_2
-2e633297a5b7e67a,target,mod_comb_3
-54734d3a05a705c3,target,mod_comb_4
-d60994251d552637,target,mod_comb_5
-ef733bc2b92ccb47,target,mod_comb_6
-7139513d7e6f7c1e,target,mod_comb_7
-1dfe1ac8175c2fca,target,mod_fit_data_mice_2_formula_2
-0b7dfe7e4479bcd2,target,mod_fit_data_mice_3_formula_3
-e4c4d5f4ab630359,target,mod_fit_data_mice_4_formula_4
-135d9f3c8a01ed31,target,mod_fit_data_mice_5_formula_5
-22035bc495b7f133,target,mod_fit_data_mice_6_formula_6
-97782b38fa456e59,target,mod_fit_data_mice_7_formula_7
-b40ff0754b805e0b,target,mod_fit_data_mice_formula
+cb91fd4542e9aa72,target,mod_comb
+cb1ec48c68752923,target,mod_comb_2
+7b25454ce76777c3,target,mod_comb_3
+93e81997edc50c37,target,mod_comb_4
+f87f162014cda6f9,target,mod_comb_5
+9eaa9da5c60d9b13,target,mod_comb_6
+98abaf22a90ee9ec,target,mod_comb_7
+af98de4ff0213dc0,target,mod_fit_data_mice_2_formula_2
+d3a7fbbde2015d18,target,mod_fit_data_mice_3_formula_3
+2d77b803f5a0ef0f,target,mod_fit_data_mice_4_formula_4
+e10ec4460b03c118,target,mod_fit_data_mice_5_formula_5
+6f7dc2f897118f2b,target,mod_fit_data_mice_6_formula_6
+707d97d3bdbf3b8d,target,mod_fit_data_mice_7_formula_7
+893f954a3a3ead1d,target,mod_fit_data_mice_formula
 44e3068a1830cec3,target,ms_plot
 367209e5dac9e11d,target,ms_plot_2
 8a06fb43bc8f639e,target,ms_plot_3
@@ -163,27 +163,27 @@ ef40d67b0cf820b4,target,ms_plot_right_4
 a8c6605d810245ba,import,brms::marginal_effects
 648cf5fbca3f05e2,import,brms::posterior_predict
 09f90279d29fd5bc,import,brms::posterior_samples
-c9569b7b34f1b689,import,countrycode::countrycode
+6038bfcbe12e2387,import,countrycode::countrycode
 41a6e3d782b9eaa1,import,cowplot::plot_grid
 36f9439f5abf9401,import,dplyr::select
 e5825f3d3d562c85,import,furrr::future_map
 c71e748efe098a83,import,htmlwidgets::saveWidget
 af234b97a5fa3e42,import,leaflet::addLegend
-2a3f4abb782c2447,import,mice::complete
-48fba068163c3bbd,import,mice::mice
+e5e80093840e544d,import,mice::complete
+45fb9eb9127a5657,import,mice::mice
 60d229c534ee4deb,import,purrr::compact
 13058d19857449ef,import,sjPlot::get_model_data
 afae5edb12098d79,import,file /home/emmamendelsohn/amr-analysis/data/country-level-amr.csv
-45a42726c3d69d2f,import,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.Rmd
-3f9408eb55e6eca7,target,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.html
+78ec7c61256d64df,import,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.Rmd
+48e23c46f7e29523,target,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.html
 b188e548cf08546b,target,file /home/emmamendelsohn/amr-analysis/doc/table_s1_data_availability_summary.csv
-c7b43e484399d588,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v4_full_impute.csv
-2c6a316a8d24aef2,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v1_complete_only.csv
-f9e35e39900a4fc8,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v2_human_or_animal.csv
-9cbbafecfdaba583,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.3_first_global_emergence.csv
-723fe2eb8106bdba,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.1_us_removed.csv
-0cf4fddf59f326e9,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.2_livestock_biomass_included.csv
-673240eba4a5c8f3,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3_countries_in_range_gdp.csv
+4e2bfb78695c28aa,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v4_full_impute.csv
+1bb64e13fe1dec21,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v1_complete_only.csv
+56000e285823bdbb,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v2_human_or_animal.csv
+8f62556f9bec105a,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.3_first_global_emergence.csv
+0252db8306b82827,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.1_us_removed.csv
+a71daa6a8212c55d,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.2_livestock_biomass_included.csv
+340589be46693b81,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3_countries_in_range_gdp.csv
 3e1086f9ee681d96,target,file /home/emmamendelsohn/amr-analysis/plots/gdp_by_impute_status.png
 0e0167024d86c39c,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v3_countries_in_range_gdp.csv
 45a853e60b92a4c4,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v1_complete_only.csv
@@ -192,44 +192,44 @@ e3c118989590fe29,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values
 a378254a6a12739d,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v3.2_livestock_biomass_included.csv
 01932acfecb59ecc,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v3.3_first_global_emergence.csv
 07416e205c0e02aa,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v4_full_impute.csv
-e9d8668a4adcf322,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3_countries_in_range_gdp.png
-9257dfa9357d44f3,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v1_complete_only.png
-423c44a1b20dd54f,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v2_human_or_animal.png
-6265e85dda6f6a24,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.1_us_removed.png
-ae1c8b29af95f734,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.2_livestock_biomass_included.png
-83f104cd4c314df0,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.3_first_global_emergence.png
-fa6a4b09e21b4e4d,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v4_full_impute.png
+1e9110bb0e57db07,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3_countries_in_range_gdp.png
+5bc368b4e0ba2c89,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v1_complete_only.png
+292ae08f8a61f54c,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v2_human_or_animal.png
+77bae8d929277b16,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.1_us_removed.png
+5b7ddb4c9bad7ff3,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.2_livestock_biomass_included.png
+a2e7f2e3aceddc4d,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v3.3_first_global_emergence.png
+ce71d3d395c37a26,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v4_full_impute.png
 293008a239bfb7f9,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/posterior_v5_full_impute_no_livestock.png
-c305a29ea0e28f2a,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v1_complete_only.png
-2dab26263a247391,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v2_human_or_animal.png
-c5c49182bcae198a,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.1_us_removed.png
-0ee6064481369e00,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.2_livestock_biomass_included.png
-40cef67dc0f6e34c,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.3_first_global_emergence.png
-968eac1b8d2968c9,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3_countries_in_range_gdp.png
-611c1f47e7c98b6f,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v4_full_impute.png
+08e2904a4f42bb82,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v1_complete_only.png
+a51a9e72039f0434,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v2_human_or_animal.png
+aa35af7dc558724f,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.1_us_removed.png
+71294accf23256dd,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.2_livestock_biomass_included.png
+db1973d1f644bf97,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3.3_first_global_emergence.png
+aa5d9d3a649eaf2d,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v3_countries_in_range_gdp.png
+2ede2d2e14a9871a,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v4_full_impute.png
 7d750f9fac0541b3,target,file /home/emmamendelsohn/amr-analysis/plots/diagnostics/trace_v5_full_impute_no_livestock.png
-6b04a6483be538af,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v1_complete_only.png
-fe099994f7b9e381,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v2_human_or_animal.png
-62de9da9f6350838,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.1_us_removed.png
-2e2727f64d103483,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.2_livestock_biomass_included.png
-23d48da7e1479d8a,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.3_first_global_emergence.png
-dfce8980cb6696d5,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3_countries_in_range_gdp.png
-07bc0e59791b15c1,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v4_full_impute.png
+c361fbbc088e4c1c,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v1_complete_only.png
+fbbd1e50b97990fa,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v2_human_or_animal.png
+c3c64fd876a8833e,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.1_us_removed.png
+d7d81f4bb240d9e3,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.2_livestock_biomass_included.png
+992aee5f888e967d,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3.3_first_global_emergence.png
+57685f6debf435ac,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v3_countries_in_range_gdp.png
+f538b595802eb746,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v4_full_impute.png
 cc79ce2d999f7356,target,file /home/emmamendelsohn/amr-analysis/plots/dot_plot_v5_full_impute_no_livestock.png
-a7ef58a8b4bab99b,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v1_complete_only.png
-11103f40136856f7,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v2_human_or_animal.png
-430ed10ebb630084,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.1_us_removed.png
-c1e230d098ec959c,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.2_livestock_biomass_included.png
-19475eb1a02fb58f,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.3_first_global_emergence.png
-d95feec2a61f7ff0,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3_countries_in_range_gdp.png
-d92d9507111c1ec0,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v4_full_impute.png
-0b491bdfb0ab1caa,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v4_full_impute.png
-1df20dd6ee45b157,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v1_complete_only.png
-b2eb6c2853f42880,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v2_human_or_animal.png
-a657d633a0bf7cca,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.3_first_global_emergence.png
-d1d93476d365d534,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.1_us_removed.png
-f3fd2821aed818a6,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.2_livestock_biomass_included.png
-5999e613ab87240d,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3_countries_in_range_gdp.png
+88569aa3c16fb725,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v1_complete_only.png
+c963ac7c6a29d1fa,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v2_human_or_animal.png
+45c79bf957cd2b4d,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.1_us_removed.png
+68b5db0500697934,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.2_livestock_biomass_included.png
+73566d880c019202,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3.3_first_global_emergence.png
+9fe3f79f27870546,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v3_countries_in_range_gdp.png
+65ced293c0e4f3f2,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_left_v4_full_impute.png
+751e02e17b631129,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v4_full_impute.png
+1902657192dc14a6,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v1_complete_only.png
+63e7bc83e5ea6031,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v2_human_or_animal.png
+5498d17345e2cb07,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.3_first_global_emergence.png
+0269b03ea9c0c01c,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.1_us_removed.png
+00e91b67652aaef0,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3.2_livestock_biomass_included.png
+a3377be771794329,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_right_v3_countries_in_range_gdp.png
 bad11d8b6144a255,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v1_complete_only.png
 9d9ba89ad76fe513,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v2_human_or_animal.png
 caa9a5db2703e903,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v3.1_us_removed.png
@@ -238,37 +238,37 @@ b1be1691ee31e7af,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slo
 cfe443b54cfd4497,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v3_countries_in_range_gdp.png
 7b2a69d00fdb5986,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v4_full_impute.png
 a474c9f379ddfaa0,target,file /home/emmamendelsohn/amr-analysis/plots/map_and_slope_v5_full_impute_no_livestock.png
-78b8906383610bbc,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v1_complete_only.html
-99b6f86715881ee9,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v2_human_or_animal.html
-59557240963ec437,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.1_us_removed.html
-810ebc442187e04a,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.2_livestock_biomass_included.html
-0771d9dfe8d58478,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.3_first_global_emergence.html
-d0ba1a908e7ac7cd,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3_countries_in_range_gdp.html
-7c5d831b8c82c17e,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v4_full_impute.html
+4510356c582bbdf4,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v1_complete_only.html
+8d1694b49c84ecbf,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v2_human_or_animal.html
+c935209dcd796c82,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.1_us_removed.html
+2626a019258adcfc,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.2_livestock_biomass_included.html
+f487f6386f749659,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3.3_first_global_emergence.html
+f9c42224caaf7a86,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v3_countries_in_range_gdp.html
+a39bd38ee855b922,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v4_full_impute.html
 39de019216b75578,target,file /home/emmamendelsohn/amr-analysis/plots/map_predictions_interactive_v5_full_impute_no_livestock.html
-44829d478760c6b3,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v1_complete_only.png
-7b2c2aadcfdda490,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v2_human_or_animal.png
-d1ca389da1b51279,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.1_us_removed.png
-93a4fe84190beb9a,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.2_livestock_biomass_included.png
-572c9f2ad806cbf5,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.3_first_global_emergence.png
-169dc3dd2a407f77,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3_countries_in_range_gdp.png
-9e8a261ce360d716,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v4_full_impute.png
+f0c449f494615619,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v1_complete_only.png
+8300959726ee7e3d,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v2_human_or_animal.png
+8064b11fa773badd,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.1_us_removed.png
+df3861aec1e38590,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.2_livestock_biomass_included.png
+da898f663c4d0b08,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3.3_first_global_emergence.png
+8d67df021ca03e72,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v3_countries_in_range_gdp.png
+8ffa5a7eb5c91b63,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v4_full_impute.png
 efd068d06d73ca48,target,file /home/emmamendelsohn/amr-analysis/plots/marginal_effects_multi_v5_full_impute_no_livestock.png
-16824b02414fb3d0,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v1_complete_only.png
-2b9996c5465fc7fb,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v2_human_or_animal.png
-385f93ecf02b97c2,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.1_us_removed.png
-402f474bdeb986ea,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.2_livestock_biomass_included.png
-92426ca36a850c58,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.3_first_global_emergence.png
-fcb94b7b0b86c105,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3_countries_in_range_gdp.png
-5c430d93bc9855f2,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v4_full_impute.png
+b3db9831413d9eaa,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v1_complete_only.png
+efdfb627bad0a232,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v2_human_or_animal.png
+5db641419974e5a3,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.1_us_removed.png
+b5e1ed7bb5afa407,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.2_livestock_biomass_included.png
+73729b7d58e0eb5d,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3.3_first_global_emergence.png
+bd9893b2c330aa55,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v3_countries_in_range_gdp.png
+ed59ff175918efbd,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v4_full_impute.png
 61096a884e06a974,target,file /home/emmamendelsohn/amr-analysis/plots/pois_partial_effects_v5_full_impute_no_livestock.png
-5589c1a877a39672,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v1_complete_only.png
-ea50dd045d67e99b,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v2_human_or_animal.png
-984f93913a740dff,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.1_us_removed.png
-ca26040dd37bebbd,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.2_livestock_biomass_included.png
-65bfbadc5cd15871,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.3_first_global_emergence.png
-67cb0112c84d92ac,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3_countries_in_range_gdp.png
-a1dcaa0e71f04632,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v4_full_impute.png
+ca7de5f1a07b01f4,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v1_complete_only.png
+a0ee2afabfb7c7ac,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v2_human_or_animal.png
+dbac805bf82ecd0c,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.1_us_removed.png
+08837e7cd18dc54b,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.2_livestock_biomass_included.png
+bd67885ae4143882,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3.3_first_global_emergence.png
+6378de8d54127bf3,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v3_countries_in_range_gdp.png
+190a185595c36f32,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v4_full_impute.png
 d6890cd96c53b312,target,file /home/emmamendelsohn/amr-analysis/plots/zi_partial_effects_v5_full_impute_no_livestock.png
 808fadf97ee1a147,import,plot_coefficients
 a11a182fdefc6ea0,target,plot_data_v3_countries_in_range_gdp
@@ -277,7 +277,7 @@ a11a182fdefc6ea0,target,plot_data_v3_countries_in_range_gdp
 eb3a4855fc56cdc4,import,plot_map
 09909d167d2072e4,import,plot_marginal_effects
 30448742f94277b7,import,plot_pois_partial_effects
-4ae0ddb401125d75,import,plot_posteriors
+4d4b11a58bed498c,import,plot_posteriors
 58090a200066fd46,import,plot_slope
 4ede41941fd6df49,import,plot_trace
 c0d8c89144a24624,import,plot_zi_partial_effects
@@ -302,13 +302,13 @@ c1e7e3a0f3a047ed,target,post_plots
 38ad2a9e90655e4a,target,post_plots_5
 5a7cd3826943042f,target,post_plots_6
 e70644cb8baeb815,target,post_plots_7
-ee89420d24ddfee9,target,post_y
-ceab9a75d3d0f44f,target,post_y_2
-b9cff2dfabb11d55,target,post_y_3
-317c63498c50ea48,target,post_y_4
-780723640371af80,target,post_y_5
-a01e42ab00e9a8b6,target,post_y_6
-68fecae21af976ea,target,post_y_7
+16bfacba3c82b2f1,target,post_y
+c2fd6c899af63014,target,post_y_2
+1cdcc97267d9fcc6,target,post_y_3
+f5cc6b4232abeb41,target,post_y_4
+839590320bd880e6,target,post_y_5
+32e506ba48003479,target,post_y_6
+7ebf2ab0fbd017d4,target,post_y_7
 c85d88fc56f4e042,target,predict_map_interactive
 c85d88fc56f4e042,target,predict_map_interactive_2
 c85d88fc56f4e042,target,predict_map_interactive_3
@@ -316,20 +316,20 @@ c85d88fc56f4e042,target,predict_map_interactive_4
 c85d88fc56f4e042,target,predict_map_interactive_5
 c85d88fc56f4e042,target,predict_map_interactive_6
 c85d88fc56f4e042,target,predict_map_interactive_7
-498a9bb4a70ff9b3,target,predicted_versus_actual_diff
-95ce5efa85e88459,target,predicted_versus_actual_diff_2
-3d81fb78bb96af40,target,predicted_versus_actual_diff_3
-b23162b9d356a591,target,predicted_versus_actual_diff_4
-57d8797ff86b2b06,target,predicted_versus_actual_diff_5
-54fc6ed2476906d6,target,predicted_versus_actual_diff_6
-03c3449e588a60b8,target,predicted_versus_actual_diff_7
-87374ac21b945739,target,predicts
-f370902840da5b42,target,predicts_2
-8b9f5806a497d53e,target,predicts_3
-6a6b1b11d6d95501,target,predicts_4
-12dcb411a611808f,target,predicts_5
-09aabbfdc3b1b130,target,predicts_6
-1247928f08ae30b0,target,predicts_7
+6ed3eb9bd504827d,target,predicted_versus_actual_diff
+f741b6f6b22393c5,target,predicted_versus_actual_diff_2
+ba8fb724201a7859,target,predicted_versus_actual_diff_3
+327b0879ea25b242,target,predicted_versus_actual_diff_4
+109cbc9077ae847a,target,predicted_versus_actual_diff_5
+b38372469eab08b7,target,predicted_versus_actual_diff_6
+71902975025b3d6b,target,predicted_versus_actual_diff_7
+91e93625fc7a1259,target,predicts
+f144c3935fcf0c66,target,predicts_2
+6a47530db714e7bd,target,predicts_3
+60fea40489325394,target,predicts_4
+176bba4af87ec7ed,target,predicts_5
+68e18e41153ccd20,target,predicts_6
+4b259c42195537cb,target,predicts_7
 60bdac5b65d684b3,target,quantities_model_doc
 c812b7654c612727,import,rehape_data
 581c96f8ae00ff51,import,seed

@@ -23,16 +23,17 @@ plot_posteriors <- function(data_trans, post_y){
   # Density overlay plots
   dens_plot <- ppc_dens_overlay(y, post_y) + 
     scale_y_continuous(limits = c(0, 1)) +
-    scale_x_continuous(limits = c(0, 50))
+    scale_x_continuous(limits = c(0, 50)) +
+    labs(x = "")
   
   # Proportion zero plots
   prop_zero <- function(x) mean(x == 0)
-  zero_plot <- ppc_stat(y, post_y, stat = "prop_zero", binwidth = 0.005)
+  zero_plot <- ppc_stat(y, post_y, stat = "prop_zero", binwidth = 0.005) + labs(x = "")
   
   # Interval plots
-  interval_plot <- ppc_intervals(y, post_y)# + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
+  interval_plot <- ppc_intervals(y, post_y) + labs(x = "")# + labs(title = "Observations versus Predictions (individual observations)", caption = paste0("dark line = 50% probability\nfaded line = 90% probability\n", p50, "% non-zeros in 50% prob\n", p90,  "% non-zeros in 90% prob"))
   
   # all plots
   all_plots <- list(dens_plot, interval_plot, zero_plot)
-  cowplot::plot_grid(plotlist=all_plots, labels = c("B", "C", "D"), nrow = 1)
+  cowplot::plot_grid(plotlist=all_plots, labels = c("A", "B", "C"), nrow = 1)
 }
