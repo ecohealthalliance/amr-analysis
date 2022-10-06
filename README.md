@@ -9,6 +9,9 @@ CC-BY-4.0](https://img.shields.io/badge/License%20(for%20text)-CC_BY_4.0-blue.sv
 # Global patterns and correlates in the emergence of antimicrobial resistance in humans
 Preprint available on MedRxiv: https://www.medrxiv.org/content/10.1101/2022.09.29.22280519v1
 
+This repository is on Zenodo: https://doi.org/10.5281/zenodo.7051952
+
+If referring to the study or methods, please cite the publication. If you re-use these data and/or code in a publication please be sure to cite the Zenodo reference, as well.
 
 ___Authors___:  _Emma Mendelsohn[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-3446-9993), Noam Ross [![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-2136-0000), Carlos Zambrana-Torrelio[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-5614-7496), Thomas Van Boeckel, Ramanan Laxminarayan, Peter Daszak[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-2046-5695)_
 
