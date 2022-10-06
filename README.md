@@ -7,7 +7,7 @@ CC0-1.0](https://img.shields.io/badge/License%20(for%20data)-CC0_1.0-lightgrey.s
 CC-BY-4.0](https://img.shields.io/badge/License%20(for%20text)-CC_BY_4.0-blue.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 
 # Global patterns and correlates in the emergence of antimicrobial resistance in humans
-Preprint available on MedRxiv: https://www.medrxiv.org/content/10.1101/2022.09.29.22280519v1
+Preprint available on MedRxiv: https://www.medrxiv.org/content/10.1101/2022.09.29.22280519v2
 
 This repository is on Zenodo: https://doi.org/10.5281/zenodo.7051952
 
