@@ -1,14 +1,26 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7051952.svg)](https://doi.org/10.5281/zenodo.7051952)
+[![License (for code):
+MIT](https://img.shields.io/badge/License%20(for%20code)-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License:
+CC0-1.0](https://img.shields.io/badge/License%20(for%20data)-CC0_1.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
+[![License:
+CC-BY-4.0](https://img.shields.io/badge/License%20(for%20text)-CC_BY_4.0-blue.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 
-# Correlates of antimicrobial resistance emergence
+# Global patterns and correlates in the emergence of antimicrobial resistance in humans
+Preprint available on MedRxiv: https://www.medrxiv.org/content/10.1101/2022.09.29.22280519v1
 
-___Authors___:  _Emma Mendelsohn, Noam Ross, Carlos Zambrana-Torrelio, Thomas Van Boeckel, Ramanan Laxminarayan, Peter Daszak_
+
+___Authors___:  _Emma Mendelsohn[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0003-3446-9993), Noam Ross [![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-2136-0000), Carlos Zambrana-Torrelio[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-5614-7496), Thomas Van Boeckel, Ramanan Laxminarayan, Peter Daszak[![](https://orcid.org/sites/default/files/images/orcid_16x16.png)](https://orcid.org/0000-0002-2046-5695)_
 
 ---
 
-### Repo Structure
+### Repository Structure
 
 This repository contains code, data, and documentation used to model correlates of global antimicrobial
 resistance emergence events. 
+
+## Reproducibility
+This project was run with R version 4.2.1 (2022-06-23). This project uses the {renv} framework to record R package dependencies and versions. Packages and versions used are recorded in renv.lock and code used to manage dependencies is in renv/ and other files in the root project directory. On starting an R session in the working directory, run renv::restore() to install R package dependencies.
 
 ## Code
 -	`00-init-data.R` compiles global data for the analysis. Outputs from this script are saved in `data/`, so it is not necessary to run this script to run the analysis in `_drake.R`.
