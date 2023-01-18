@@ -16,7 +16,7 @@ events <- read_csv(content(events, "text")) %>%
   mutate(start_year = as.integer(substr(start_date, 1, 4))) %>%
   filter(start_year >= 2006) %>%  # removes promed mentions prior to 2006
   rename(iso3c = study_iso3c)
-  
+
 #-----------------Country-wide data-----------------
 # Mark first global emergence
 events %<>%
@@ -30,7 +30,7 @@ events_by_country <- events %>%
   summarize(n_amr_events = n(), n_amr_first_events = sum(first_emergence)) %>%
   ungroup() 
 #-----------------World Bank data-----------------
-# 2015
+# 2006-2017
 # Population and GDP
 # SP.POP.TOTL = Population, total
 # SM.POP.TOTL = International migrant stock, total (number of people born in a country other than that in which they live. It also includes refugees). United Nations Population Division, Trends in Total Migrant Stock: 2012 Revision.
@@ -43,9 +43,9 @@ indicator = c("SP.POP.TOTL",
               "SH.XPD.CHEX.GD.ZS")
 
 wbd <- map_df(indicator, function(x){
-  tmp <- fromJSON(paste0("http://api.worldbank.org/v2/country/all/indicator/", x, "?date=2015:2015&per_page=20000&format=json"))
+  tmp <- fromJSON(paste0("http://api.worldbank.org/v2/country/all/indicator/", x, "?date=2006:2017&per_page=20000&format=json"))
   tmp[[2]] %>% 
-    dplyr::select(value, countryiso3code) %>%
+    dplyr::select(value, date, countryiso3code) %>%
     mutate(param = tmp[[2]][[1]]$id) %>%
     as_tibble() %>%
     filter(countryiso3code != "")
@@ -62,18 +62,36 @@ wbd %<>%
          health_expend_perc = SH.XPD.CHEX.GD.ZS,
          iso3c = countryiso3code)
 
+# average over date range
+wbd %<>%
+  group_by(iso3c) %>% 
+  summarize(across(gdp_dollars:population, ~mean(., na.rm = TRUE))) %>%
+  ungroup() %>%
+  mutate(across(gdp_dollars:population, ~if_else(is.nan(.), NA_real_, .)))
+
 #-----------------Observatory of Economic Complexity------------
-# 2015
+# 2006-2017
 # Visualization: https://oec.world/en/profile/hs92/antibiotics?yearSelector1=tradeYear4
 # Values in billions
-oec_exports <- fromJSON("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&HS4=62941&Year=2015&drilldowns=Exporter+Country&locale=en&measures=Trade+Value&parents=true&sparse=false&properties=Exporter+Country+ISO+3")$data %>% 
-  dplyr::select(iso3c = `ISO 3`, ab_export_dollars = `Trade Value`) 
 
-oec_imports <- fromJSON("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&HS4=62941&Year=2015&drilldowns=Importer+Country&locale=&measures=Trade+Value&parents=true&sparse=false&properties=Importer+Country+ISO+3")$data %>% 
-  dplyr::select(iso3c = `ISO 3`, ab_import_dollars = `Trade Value`) 
+
+oec_exports <- map_df(2006:2017, function(y){
+  fromJSON(paste0("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&drilldowns=Year,Exporter Country&measures=Trade Value&parents=true&Year=", y, "&HS4=62941&properties=Exporter Country ISO 3"))$data %>% 
+    dplyr::select(year = Year, iso3c = `ISO 3`, ab_export_dollars = `Trade Value`) 
+})
+
+oec_imports <-  map_df(2006:2017, function(y){
+  fromJSON(paste0("https://oec.world/olap-proxy/data?cube=trade_i_baci_a_92&drilldowns=Year,Importer Country&measures=Trade Value&parents=true&Year=", y, "&HS4=62941&properties=Importer Country ISO 3"))$data %>% 
+    dplyr::select(year = Year, iso3c = `ISO 3`, ab_import_dollars = `Trade Value`) 
+})
 
 oec <- full_join(oec_exports, oec_imports) %>% 
-  mutate(iso3c = toupper(iso3c))
+  drop_na(iso3c) %>%
+  mutate(iso3c = toupper(iso3c)) %>%
+  group_by(iso3c) %>%
+  summarize(across(ab_export_dollars:ab_import_dollars, ~mean(., na.rm = TRUE))) %>% 
+  ungroup()  %>% 
+  mutate(across(ab_export_dollars:ab_import_dollars, ~if_else(is.nan(.), NA_real_, .)))
 
 oec %<>% 
   mutate(ab_export_bin = ifelse(is.na(ab_export_dollars), 0, 1))
@@ -155,7 +173,7 @@ livestock_consumption <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>%
   drop_na(Observed_Tonnes) %>% 
   mutate(livestock_consumption_kg = Observed_Tonnes * 1000) %>% 
   dplyr::select(iso3c = ISO3, livestock_consumption_kg) 
-  
+
 livestock_pcu <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>% 
   drop_na(Tot_PCU_2017) %>% 
   filter(Tot_PCU_2017 > 0) %>% 
@@ -165,14 +183,18 @@ livestock_pcu <- read_csv(h("data/2017_Tonnes_PCU_2.csv")) %>%
   ungroup()
 
 #-----------------Tourism data-----------------
-# 2015
+# 2006-2017
 # World Tourism Organization (2019), Compendium of Tourism Statistics dataset [Electronic], UNWTO, Madrid, data updated on 11/01/2019.
 # Outbound tourism downloaded from https://www.e-unwto.org/doi/suppl/10.5555/unwtotfb0000290019952017201901
 tour_outbound <- readxl::read_xlsx(h("data/0000290019952017201901.xlsx"), sheet = 1, skip = 5) %>% # Outbound tourism - Departures of visitors (overnight visitors -tourists- and same-day visitors -excursionists-)… Thousands
-  dplyr::select(COUNTRY, tourism_outbound = `2015`) %>%
+  dplyr::select(COUNTRY, `2006`:`2017`) %>%
+  drop_na(COUNTRY)  %>% 
+  pivot_longer(-COUNTRY, names_to = "year", values_to = "tourism_outbound")  %>% 
   filter(tourism_outbound != "..")
 tour_inbound <- readxl::read_xlsx(h("data/0000270019952017201901.xlsx"), sheet = 1, skip = 5) %>% # Inbound tourism - Arrivals of non-resident visitors (overnight visitors -tourists- and same-day visitors -excur… Thousands
-  dplyr::select(COUNTRY, tourism_inbound = `2015`) %>%
+  dplyr::select(COUNTRY, `2006`:`2017`) %>%
+  drop_na(COUNTRY)  %>% 
+  pivot_longer(-COUNTRY, names_to = "year", values_to = "tourism_inbound")  %>% 
   filter(tourism_inbound != "..")
 
 tourism <- full_join(tour_outbound, tour_inbound) %>%
@@ -182,11 +204,16 @@ tourism <- full_join(tour_outbound, tour_inbound) %>%
                              origin = "country.name",
                              destination = "iso3c")) %>%
   dplyr::select(-COUNTRY) %>%
-  drop_na(iso3c)
+  drop_na(iso3c)  %>% 
+  group_by(iso3c) %>%
+  summarize(across(tourism_outbound:tourism_inbound, ~mean(., na.rm = TRUE))) %>% 
+  ungroup()  %>% 
+  mutate(across(tourism_outbound:tourism_inbound, ~if_else(is.nan(.), NA_real_, .)))
+
 
 #-----------------All countries-----------------
 all_countries <- read_csv(h("data", "country-list.csv")) %>%
-    mutate(iso3c = countrycode(sourcevar = country,
+  mutate(iso3c = countrycode(sourcevar = country,
                              origin = "country.name",
                              destination = "iso3c"))  
 
@@ -224,7 +251,7 @@ amr %<>%
          promed_mentions_per_capita = promed_mentions/population
   ) %>%
   dplyr::select(-ab_export_dollars, -ab_import_dollars, -tourism_outbound, -tourism_inbound, -livestock_consumption_kg, -country, -gdp_dollars, -pubcrawl, -promed_mentions)
- 
+
 
 assertthat::are_equal(nrow(janitor::get_dupes(amr, iso3c)), 0) 
 write_csv(amr, h("data/country-level-amr.csv"))
