@@ -1,5 +1,5 @@
 get_coefficients <- function(mod_comb){
-  sjPlot::get_model_data(mod_comb, type = "est") %>% #by default, stanreg-models are printed with two intervals: the "inner" interval, which defaults to the 50%-CI; and the "outer" interval, which defaults to the 89%-C
+  sjPlot::get_model_data(mod_comb, type = "est", ci.lvl = 0.95) %>% #by default, stanreg-models are printed with two intervals: the "inner" interval, which defaults to the 50%-CI; and the "outer" interval, which defaults to the 89%-C
     distinct() %>%
     mutate(term_clean = as.character(term)) %>%
     mutate(term_clean = lookup_vars[term_clean]) %>%
