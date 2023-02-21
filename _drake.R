@@ -329,7 +329,7 @@ plan <- drake_plan(
 
 vis_drake_graph(plan, targets_only = TRUE)
 
-future::plan(multisession, workers = floor(parallel::detectCores()/2))
+future::plan(multisession, workers = 6)
 
 drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
             cache_log_file = "drake_cache_log.csv")

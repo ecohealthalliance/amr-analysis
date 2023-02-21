@@ -7,7 +7,7 @@ get_zi_vars <-  function(betas) {
 
 get_pois_vars <- function(betas){
   betas %>%
-    select(-matches("zi_"), -b_Intercept, -lp__, -lprior) %>%
+    select(-matches("zi_"), -b_Intercept, -lp__) %>%
     colnames(.)%>%
     gsub("^b_", "", .)
 }

@@ -113,7 +113,7 @@ loadd(predicted_versus_actual_diff_3)
 predicted_versus_actual_diff_3 %>% 
   summarize(percent_predicted_greater = length(diff[diff > 0])/n())
 
-predicted_versus_actual_diff_3 %>% View
+predicted_versus_actual_diff_3 
 
 predicted_versus_actual_diff_3 %>% 
   select(-iso3c, -v, -country) %>% 

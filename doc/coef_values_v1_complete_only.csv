@@ -1,17 +1,17 @@
 term_clean,lab,conf.low,conf.high
-Livestock AB Consumption (kg per capita),0*,1.7e-5,0.003
-GDP (dollars per capita),153.49*,45,530
-Migrant Population (per capita),0.96,0.73,1.2
-Tourism - Inbound (per capita),1.65*,1.3,2
-AB Exports (dollars per capita),0.88*,0.84,0.93
-Health Expenditure (% GDP),0.83*,0.79,0.87
-Human AB Consumption (DDD),0.99,0.94,1.1
-English Spoken (yes/no),0.93,0.57,1.5
-Publication Bias Index (per capita),0.54*,0.42,0.66
-ProMed Mentions (per capita),1.44,0.94,2.2
-Livestock AB Consumption:GDP,2.25*,1.7,2.9
-Publication Bias Index (per capita),0.26,0.031,1.9
-ProMed Mentions (per capita),0.49,0.063,3.4
-GDP (dollars per capita),0.63,0.079,4.9
-Population,0.22*,0.03,0.6
-English Spoken (yes/no),3.52,0.26,54
+Livestock AB Consumption (kg per capita),0.01*,8e-4,0.13
+GDP (dollars per capita),29.49*,9.2,100
+Migrant Population (per capita),0.84,0.57,1.2
+Tourism - Inbound (per capita),1.48*,1.1,1.9
+AB Exports (dollars per capita),0.96,0.88,1
+Health Expenditure (% GDP),0.82*,0.78,0.85
+Human AB Consumption (DDD),1.02,0.96,1.1
+English Spoken (yes/no),1.03,0.68,2
+Publication Bias Index (per capita),0.64*,0.52,0.78
+ProMed Mentions (per capita),1.64,0.95,2.4
+Livestock AB Consumption:GDP,1.56*,1.2,2
+Publication Bias Index (per capita),0.32,0.028,3.4
+ProMed Mentions (per capita),0.53,0.046,4.8
+GDP (dollars per capita),0.49,0.048,5.8
+Population,0.23*,0.016,0.71
+English Spoken (yes/no),4.27,0.26,140
