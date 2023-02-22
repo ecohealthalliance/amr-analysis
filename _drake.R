@@ -220,8 +220,8 @@ plan <- drake_plan(
   ),
   # export model coefficients for reporting
   coef_tbl = target(
-    write_csv(export_coefficient_table(coefs),
-              file = file_out(!!h(paste0("doc/coef_values_", lab, ".csv")))),
+    xlsx::write.xlsx(export_coefficient_table(coefs),
+              file = file_out(!!h(paste0("doc/coef_values_", lab, ".xlsx")))),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # coefficient dot plot

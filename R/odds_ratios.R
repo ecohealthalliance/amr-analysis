@@ -52,6 +52,12 @@ plot_coefficients <- function(coefs, fancy_lab){
 
 export_coefficient_table <- function(coefs){
   coefs %>% 
-    select(term_clean, lab, conf.low, conf.high) %>% 
-    mutate_at(vars("conf.low", "conf.high"), ~signif(., 2))
+    mutate(wrap.facet = factor(wrap.facet, levels = c( "Conditional Model", "Zero-Inflated Model"), 
+                               labels = c("Conditional (Poisson)", "Zero-Inflated (Logistic)"),
+                                 ordered = TRUE)) |> 
+    mutate_at(vars("estimate", "conf.low", "conf.high"), ~signif(., 2)) |> 
+    mutate(Estimate = paste0(estimate , " (", conf.low, "-", conf.high, ")", ifelse(predictor, "*", "")))  |> 
+    arrange(wrap.facet, -estimate) |> 
+    select(Model = wrap.facet, Predictor = term_clean, Estimate, group, predictor) 
+    
 }

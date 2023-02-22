@@ -13,13 +13,13 @@ fe999425460cd5e4,target,coef_plot_4
 c49910a4cb8b8cf3,target,coef_plot_5
 648ce64bdb8fe2be,target,coef_plot_6
 4b7fef2c4382d8a2,target,coef_plot_7
-77af1e6a52c5d003,target,coef_tbl
-eda7a5d3d7637665,target,coef_tbl_2
-fcc1d0bd65db715b,target,coef_tbl_3
-40b74e6996250188,target,coef_tbl_4
-b67f5558b99e4073,target,coef_tbl_5
-eb638aca5af50884,target,coef_tbl_6
-2aacff27bdff5f22,target,coef_tbl_7
+c85d88fc56f4e042,target,coef_tbl
+c85d88fc56f4e042,target,coef_tbl_2
+c85d88fc56f4e042,target,coef_tbl_3
+c85d88fc56f4e042,target,coef_tbl_4
+c85d88fc56f4e042,target,coef_tbl_5
+c85d88fc56f4e042,target,coef_tbl_6
+c85d88fc56f4e042,target,coef_tbl_7
 1a82f308f0ec1e75,target,coefs
 ece1a49c80d34a6d,target,coefs_2
 9cb1716bb672075b,target,coefs_3
@@ -74,7 +74,7 @@ fde6e81df001e8c6,target,data_v3.3_first_global_emergence
 4b9cc70447429f17,target,data_v4_full_impute
 00347f43432c9d24,target,data_v5_full_impute_no_livestock
 28cbe0f1a67f2840,target,events
-d8faa53576ff22db,import,export_coefficient_table
+b3d9d1e58b61f9b2,import,export_coefficient_table
 6d28d12796b9a381,import,fancy_labs
 c985f8f7d042504c,import,fit_brm_model
 db3d727ba4685bb5,target,formula
@@ -173,16 +173,24 @@ e5e80093840e544d,import,mice::complete
 45fb9eb9127a5657,import,mice::mice
 60d229c534ee4deb,import,purrr::compact
 13058d19857449ef,import,sjPlot::get_model_data
+864ad2951e4c3497,import,xlsx::write.xlsx
 80002bb6f4ac415c,import,file /home/emmamendelsohn/amr-analysis/data/country-level-amr.csv
 83762b8125ce1ee5,import,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.Rmd
 30652bc563513142,target,file /home/emmamendelsohn/amr-analysis/doc/quantities_model.html
 b188e548cf08546b,target,file /home/emmamendelsohn/amr-analysis/doc/table_s1_data_availability_summary.csv
 4ece9e4435a4fb5f,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v4_full_impute.csv
+0bea7180ae0e6efc,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v4_full_impute.xlsx
 e78a946d695a5b5f,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v1_complete_only.csv
+b0b5eebda41f479f,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v1_complete_only.xlsx
 736eaa18ab45a484,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v2_human_or_animal.csv
+bf5c85f51a850c3b,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v2_human_or_animal.xlsx
+085f5b15dee40fa9,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.3_first_global_emergence.xlsx
 9187047fb87935c4,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.3_first_global_emergence.csv
+e9bf62d54ae31ed6,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.1_us_removed.xlsx
 c214178ed4ae23f4,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.1_us_removed.csv
 288f8b25679b479b,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.2_livestock_biomass_included.csv
+0a97e8acc3c23f6e,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3.2_livestock_biomass_included.xlsx
+4d7a334c215d6c95,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3_countries_in_range_gdp.xlsx
 eeb6be7ab2a7f152,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3_countries_in_range_gdp.csv
 830414bd104fa1f5,target,file /home/emmamendelsohn/amr-analysis/plots/gdp_by_impute_status.png
 0e0167024d86c39c,target,file /home/emmamendelsohn/amr-analysis/plots/coef_values_v3_countries_in_range_gdp.csv
