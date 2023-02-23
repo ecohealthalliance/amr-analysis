@@ -498,7 +498,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">12</td>
 <td align="right">11.93</td>
 <td align="right">12.07</td>
-<td align="left">Livestock AB Consumption (kg per capita)</td>
+<td align="left">Livestock AB Consumption [kg per capita)</td>
 <td align="right">0.02</td>
 <td align="left">TRUE</td>
 <td align="left">0.02*</td>
@@ -519,7 +519,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">GDP (dollars per capita)</td>
+<td align="left">ln(GDP [dollars per capita])</td>
 <td align="right">7.13</td>
 <td align="left">TRUE</td>
 <td align="left">7.13*</td>
@@ -540,7 +540,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">10</td>
 <td align="right">9.93</td>
 <td align="right">10.07</td>
-<td align="left">Migrant Population (per capita)</td>
+<td align="left">ln(Migrant Population [per capita])</td>
 <td align="right">1.11</td>
 <td align="left">FALSE</td>
 <td align="left">1.11</td>
@@ -561,7 +561,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">9</td>
 <td align="right">8.93</td>
 <td align="right">9.07</td>
-<td align="left">Tourism - Inbound (per capita)</td>
+<td align="left">ln(Tourism - Inbound [per capita])</td>
 <td align="right">1.32</td>
 <td align="left">TRUE</td>
 <td align="left">1.32*</td>
@@ -582,7 +582,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">8</td>
 <td align="right">7.93</td>
 <td align="right">8.07</td>
-<td align="left">AB Exports (dollars per capita)</td>
+<td align="left">ln(AB Exports [dollars per capita])</td>
 <td align="right">0.90</td>
 <td align="left">TRUE</td>
 <td align="left">0.9*</td>
@@ -666,7 +666,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">Publication Bias Index (per capita)</td>
+<td align="left">ln(Publication Bias Index [per capita])</td>
 <td align="right">0.89</td>
 <td align="left">FALSE</td>
 <td align="left">0.89</td>
@@ -687,7 +687,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ProMed Mentions (per capita)</td>
+<td align="left">ln(ProMed Mentions [per capita])</td>
 <td align="right">1.17</td>
 <td align="left">FALSE</td>
 <td align="left">1.17</td>
@@ -729,7 +729,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">Publication Bias Index (per capita)</td>
+<td align="left">ln(Publication Bias Index [per capita])</td>
 <td align="right">0.84</td>
 <td align="left">FALSE</td>
 <td align="left">0.84</td>
@@ -750,7 +750,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ProMed Mentions (per capita)</td>
+<td align="left">ln(ProMed Mentions [per capita])</td>
 <td align="right">3.80</td>
 <td align="left">TRUE</td>
 <td align="left">3.8*</td>
@@ -771,7 +771,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">GDP (dollars per capita)</td>
+<td align="left">ln(GDP [dollars per capita])</td>
 <td align="right">0.18</td>
 <td align="left">TRUE</td>
 <td align="left">0.18*</td>
@@ -792,7 +792,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">1</td>
 <td align="right">0.93</td>
 <td align="right">1.07</td>
-<td align="left">Population</td>
+<td align="left">ln(Population)</td>
 <td align="right">0.43</td>
 <td align="left">TRUE</td>
 <td align="left">0.43*</td>
@@ -833,248 +833,121 @@ mean_estimate &lt;- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
 mean_estimate_no_zero &lt;- mean_estimate %&gt;% 
   enframe(value = &quot;est&quot;) %&gt;% 
   filter(est &gt; 0) %&gt;% 
-  summarize(est_mean = mean(est),
-            est_sd = sd(est),
-            est_high = mean(est) + sd(est),
-            est_low = mean(est) - sd(est))
+  summarize(amr_mean_est = mean(est))
 
 imap_dfr(amr_means, function(x, y){
   
+  # predict amr when x is doubled
   dbl_estimate &lt;- amr_means %&gt;%
     mutate(!!y := ifelse(str_detect(y, &quot;ln_&quot;), log(exp(x) * 2), x * 2)) %&gt;%
     predict(mod_comb_3, newdata = ., summary = FALSE)
   
   dbl_estimate_no_zero &lt;- dbl_estimate %&gt;% 
-    enframe(value = &quot;est&quot;) %&gt;% 
-    filter(est &gt; 0) %&gt;% 
-    summarize(dbl_est_mean = mean(est),
-              dbl_est_sd = sd(est),
-              dbl_est_high = mean(est) + sd(est),
-              dbl_est_low = mean(est) - sd(est))
+    as_tibble() |&gt; 
+    rename(amr_dbl_est = V1) |&gt; 
+    filter(amr_dbl_est &gt; 0) |&gt; 
+    bind_cols(mean_estimate_no_zero) |&gt; 
+    mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |&gt; 
+    summarize(amr_mean_diff_when_doubled = mean(amr_est_diff), amd_std_diff_when_doubled = sd(amr_est_diff))
   
   mean_value &lt;- ifelse(str_detect(y, &quot;ln_&quot;), exp( amr_means %&gt;% pull(y)),  amr_means %&gt;% pull(y))
   
-  tibble(var = y, mean_value = mean_value) %&gt;% 
-    bind_cols(mean_estimate_no_zero, dbl_estimate_no_zero) %&gt;% 
-    mutate( diff_mean = (dbl_est_mean - est_mean)/est_mean,
-            diff_high = (dbl_est_high - est_high)/est_high,
-            diff_low = (dbl_est_low - est_low)/est_low
-    )
+  tibble(var = y, mean_var_value = mean_value) %&gt;% 
+    bind_cols(dbl_estimate_no_zero) %&gt;% 
+    mutate_if(.predicate = is.numeric, ~signif(., digits = 2))
 }) %&gt;% 
   knitr::kable()</code></pre>
+<pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+## Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
 <table>
 <colgroup>
-<col width="30%" />
-<col width="6%" />
-<col width="4%" />
-<col width="4%" />
-<col width="4%" />
-<col width="4%" />
-<col width="6%" />
-<col width="5%" />
-<col width="6%" />
-<col width="6%" />
-<col width="5%" />
-<col width="5%" />
-<col width="5%" />
+<col width="45%" />
+<col width="12%" />
+<col width="21%" />
+<col width="20%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">var</th>
-<th align="right">mean_value</th>
-<th align="right">est_mean</th>
-<th align="right">est_sd</th>
-<th align="right">est_high</th>
-<th align="right">est_low</th>
-<th align="right">dbl_est_mean</th>
-<th align="right">dbl_est_sd</th>
-<th align="right">dbl_est_high</th>
-<th align="right">dbl_est_low</th>
-<th align="right">diff_mean</th>
-<th align="right">diff_high</th>
-<th align="right">diff_low</th>
+<th align="right">mean_var_value</th>
+<th align="right">amr_mean_diff_when_doubled</th>
+<th align="right">amd_std_diff_when_doubled</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">ln_pubcrawl_per_capita</td>
-<td align="right">1.580000e-05</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">7.865939</td>
-<td align="right">3.034201</td>
-<td align="right">10.900140</td>
-<td align="right">4.831738</td>
-<td align="right">-0.0782360</td>
-<td align="right">-0.0802321</td>
-<td align="right">-0.0737009</td>
+<td align="right">1.6e-05</td>
+<td align="right">-0.07800</td>
+<td align="right">0.36</td>
 </tr>
 <tr class="even">
 <td align="left">ln_promed_mentions_per_capita</td>
-<td align="right">1.523000e-04</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">9.666979</td>
-<td align="right">4.058422</td>
-<td align="right">13.725402</td>
-<td align="right">5.608557</td>
-<td align="right">0.1328176</td>
-<td align="right">0.1581672</td>
-<td align="right">0.0752242</td>
+<td align="right">1.5e-04</td>
+<td align="right">0.13000</td>
+<td align="right">0.48</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_gdp_per_capita</td>
-<td align="right">1.695749e+04</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">10.224039</td>
-<td align="right">3.780282</td>
-<td align="right">14.004320</td>
-<td align="right">6.443757</td>
-<td align="right">0.1980962</td>
-<td align="right">0.1817027</td>
-<td align="right">0.2353416</td>
+<td align="right">1.7e+04</td>
+<td align="right">0.20000</td>
+<td align="right">0.44</td>
 </tr>
 <tr class="even">
 <td align="left">ln_population</td>
-<td align="right">4.631542e+06</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">17.057473</td>
-<td align="right">5.179630</td>
-<td align="right">22.237103</td>
-<td align="right">11.877842</td>
-<td align="right">0.9988669</td>
-<td align="right">0.8763955</td>
-<td align="right">1.2771176</td>
+<td align="right">4.6e+06</td>
+<td align="right">1.00000</td>
+<td align="right">0.61</td>
 </tr>
 <tr class="odd">
 <td align="left">english_spoken</td>
-<td align="right">5.052632e-01</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">8.634837</td>
-<td align="right">3.195619</td>
-<td align="right">11.830456</td>
-<td align="right">5.439217</td>
-<td align="right">0.0118667</td>
-<td align="right">-0.0017308</td>
-<td align="right">0.0427599</td>
+<td align="right">5.1e-01</td>
+<td align="right">0.01200</td>
+<td align="right">0.37</td>
 </tr>
 <tr class="even">
 <td align="left">ln_livestock_consumption_kg_per_capita</td>
-<td align="right">8.424500e-03</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">6.294540</td>
-<td align="right">2.656353</td>
-<td align="right">8.950893</td>
-<td align="right">3.638187</td>
-<td align="right">-0.2623792</td>
-<td align="right">-0.2447121</td>
-<td align="right">-0.3025182</td>
+<td align="right">8.4e-03</td>
+<td align="right">-0.26000</td>
+<td align="right">0.31</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_migrant_pop_per_capita</td>
-<td align="right">7.724380e-02</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">9.128585</td>
-<td align="right">3.406672</td>
-<td align="right">12.535257</td>
-<td align="right">5.721914</td>
-<td align="right">0.0697263</td>
-<td align="right">0.0577412</td>
-<td align="right">0.0969560</td>
+<td align="right">7.7e-02</td>
+<td align="right">0.07000</td>
+<td align="right">0.40</td>
 </tr>
 <tr class="even">
 <td align="left">ln_tourism_inbound_per_capita</td>
-<td align="right">1.250669e+00</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">10.405242</td>
-<td align="right">3.785475</td>
-<td align="right">14.190717</td>
-<td align="right">6.619767</td>
-<td align="right">0.2193303</td>
-<td align="right">0.1974310</td>
-<td align="right">0.2690846</td>
+<td align="right">1.3e+00</td>
+<td align="right">0.22000</td>
+<td align="right">0.44</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_ab_export_per_capita</td>
-<td align="right">1.515800e-01</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">7.956637</td>
-<td align="right">3.134868</td>
-<td align="right">11.091505</td>
-<td align="right">4.821768</td>
-<td align="right">-0.0676076</td>
-<td align="right">-0.0640845</td>
-<td align="right">-0.0756122</td>
+<td align="right">1.5e-01</td>
+<td align="right">-0.06800</td>
+<td align="right">0.37</td>
 </tr>
 <tr class="even">
 <td align="left">health_expend_perc</td>
-<td align="right">6.851302e+00</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">4.410030</td>
-<td align="right">2.264375</td>
-<td align="right">6.674405</td>
-<td align="right">2.145655</td>
-<td align="right">-0.4832140</td>
-<td align="right">-0.4368051</td>
-<td align="right">-0.5886535</td>
+<td align="right">6.9e+00</td>
+<td align="right">-0.48000</td>
+<td align="right">0.27</td>
 </tr>
 <tr class="odd">
 <td align="left">human_consumption_ddd</td>
-<td align="right">7.282959e+00</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">11.631448</td>
-<td align="right">4.263445</td>
-<td align="right">15.894894</td>
-<td align="right">7.368003</td>
-<td align="right">0.3630224</td>
-<td align="right">0.3412317</td>
-<td align="right">0.4125300</td>
+<td align="right">7.3e+00</td>
+<td align="right">0.36000</td>
+<td align="right">0.50</td>
 </tr>
 <tr class="even">
 <td align="left">ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita</td>
-<td align="right">0.000000e+00</td>
-<td align="right">8.533571</td>
-<td align="right">3.317397</td>
-<td align="right">11.85097</td>
-<td align="right">5.216174</td>
-<td align="right">8.541760</td>
-<td align="right">3.318493</td>
-<td align="right">11.860253</td>
-<td align="right">5.223268</td>
-<td align="right">0.0009596</td>
-<td align="right">0.0007835</td>
-<td align="right">0.0013599</td>
+<td align="right">0.0e+00</td>
+<td align="right">0.00096</td>
+<td align="right">0.39</td>
 </tr>
 </tbody>
 </table>

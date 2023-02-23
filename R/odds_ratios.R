@@ -13,8 +13,9 @@ get_consistent_predictors <- function(coefs){
   coefs %>%
     filter(predictor) %>%
     mutate(lab = "*") %>%
-    select(term, lab) %>% 
-    mutate_all(~str_replace(., "\\.", ":"))
+    select(term, lab, model = wrap.facet) %>% 
+    mutate( term = str_replace(term, "\\.", ":")) |>
+    mutate(model = case_when(model=="Conditional Model" ~ "pois", model=="Zero-Inflated Model" ~ "zi"))
 } 
 
 plot_coefficients <- function(coefs, fancy_lab){

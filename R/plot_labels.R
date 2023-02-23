@@ -3,29 +3,29 @@
 lookup_vars <- c(
   
   # surveillance 
-  "ln_population" = "Population",
+  "ln_population" = "ln(Population)",
   "english_spoken" = "English Spoken (yes/no)", 
-  "ln_pubcrawl_per_capita" = "Publication Bias Index (per capita)",
-  "ln_promed_mentions_per_capita" = "ProMed Mentions (per capita)",
+  "ln_pubcrawl_per_capita" = "ln(Publication Bias Index [per capita])",
+  "ln_promed_mentions_per_capita" = "ln(ProMed Mentions [per capita])",
   
   # gdp
-  "ln_gdp_per_capita" = "GDP (dollars per capita)", 
+  "ln_gdp_per_capita" = "ln(GDP [dollars per capita])", 
   "health_expend_perc" = "Health Expenditure (% GDP)", 
   
   # consumption vars
   "human_consumption_ddd" = "Human AB Consumption (DDD)", 
-  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (kg per capita)",
+  "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption [kg per capita)",
   "ln_livestock_consumption_kg_per_capita.ln_gdp_per_capita"= "Livestock AB Consumption:GDP",
   "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"= "Livestock AB Consumption:GDP",
-  "ln_livestock_consumption_kg_per_pcu" = "Livestock AB Consumption (per PCU)",
-  "ln_livestock_pcu" = "Livestock Population (PCU)", 
+  "ln_livestock_consumption_kg_per_pcu" = "ln(Livestock AB Consumption [per PCU])",
+  "ln_livestock_pcu" = "ln(Livestock Population [PCU])", 
   
   # production
-  "ln_ab_export_per_capita" = "AB Exports (dollars per capita)", 
+  "ln_ab_export_per_capita" = "ln(AB Exports [dollars per capita])", 
   "ab_export_bin" = "AB Exported (yes/no)",
   
   # population movement
-  "ln_tourism_outbound_per_capita" = "Tourism - Outbound (per capita)", 
-  "ln_tourism_inbound_per_capita"  = "Tourism - Inbound (per capita)",
-  "ln_migrant_pop_per_capita" = "Migrant Population (per capita)" 
+  "ln_tourism_outbound_per_capita" = "ln(Tourism - Outbound [per capita])", 
+  "ln_tourism_inbound_per_capita"  = "ln(Tourism - Inbound [per capita])",
+  "ln_migrant_pop_per_capita" = "ln(Migrant Population [per capita])" 
 )

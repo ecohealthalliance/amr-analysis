@@ -73,33 +73,28 @@ mean_estimate <- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
 mean_estimate_no_zero <- mean_estimate %>% 
   enframe(value = "est") %>% 
   filter(est > 0) %>% 
-  summarize(est_mean = mean(est),
-            est_sd = sd(est),
-            est_high = mean(est) + sd(est),
-            est_low = mean(est) - sd(est))
+  summarize(amr_mean_est = mean(est))
 
 imap_dfr(amr_means, function(x, y){
   
+  # predict amr when x is doubled
   dbl_estimate <- amr_means %>%
     mutate(!!y := ifelse(str_detect(y, "ln_"), log(exp(x) * 2), x * 2)) %>%
     predict(mod_comb_3, newdata = ., summary = FALSE)
   
   dbl_estimate_no_zero <- dbl_estimate %>% 
-    enframe(value = "est") %>% 
-    filter(est > 0) %>% 
-    summarize(dbl_est_mean = mean(est),
-              dbl_est_sd = sd(est),
-              dbl_est_high = mean(est) + sd(est),
-              dbl_est_low = mean(est) - sd(est))
+    as_tibble() |> 
+    rename(amr_dbl_est = V1) |> 
+    filter(amr_dbl_est > 0) |> 
+    bind_cols(mean_estimate_no_zero) |> 
+    mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |> 
+    summarize(amr_mean_diff_when_doubled = mean(amr_est_diff), amd_std_diff_when_doubled = sd(amr_est_diff))
   
   mean_value <- ifelse(str_detect(y, "ln_"), exp( amr_means %>% pull(y)),  amr_means %>% pull(y))
   
-  tibble(var = y, mean_value = mean_value) %>% 
-    bind_cols(mean_estimate_no_zero, dbl_estimate_no_zero) %>% 
-    mutate( diff_mean = (dbl_est_mean - est_mean)/est_mean,
-            diff_high = (dbl_est_high - est_high)/est_high,
-            diff_low = (dbl_est_low - est_low)/est_low
-    )
+  tibble(var = y, mean_var_value = mean_value) %>% 
+    bind_cols(dbl_estimate_no_zero) %>% 
+    mutate_if(.predicate = is.numeric, ~signif(., digits = 2))
 }) %>% 
   knitr::kable()
 

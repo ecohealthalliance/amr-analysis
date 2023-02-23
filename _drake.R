@@ -165,15 +165,19 @@ plan <- drake_plan(
                   formula),
     transform = map(data_mice, formula)
   ),
-  # get marginal effects on all model iterations
-  marg_eff = target(
-    furrr::future_map(mod_fit, ~brms::marginal_effects(.)), 
-    transform = map(mod_fit, .id = FALSE)
-  ),
   # aggregate brm model
   mod_comb =  target(
     brms::combine_models(mlist = mod_fit, check_data = FALSE),
     transform = map(mod_fit, .id = FALSE)
+  ),
+  # get conditional effects on all model iterations
+  cond_eff_pois = target(
+    brms::conditional_effects(mod_comb, dpar="mu", surface = TRUE), 
+    transform = map(mod_comb, .id = FALSE)
+  ),
+  cond_eff_zi = target(
+    brms::conditional_effects(mod_comb, dpar="zi"), 
+    transform = map(mod_comb, .id = FALSE)
   ),
   # sample posterior y
   post_y = target(
@@ -236,12 +240,38 @@ plan <- drake_plan(
     get_consistent_predictors(coefs),
     transform = map(coefs, .id = FALSE)
   ),
-  # marginal effects plot
-  marg_eff_plot = target(
-    ggsave(plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_reshape),
-           filename = file_out(!!h(paste0("plots/marginal_effects_multi_", lab, ".png"))),
-           width = 10, height = 21),
-    transform = map(marg_eff, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  # conditional effects plots
+  cond_eff_pois_plot = target(
+    ggsave(plot_conditional_effects(cond_eff_pois, 
+                                    lookup_vars, 
+                                    consistent_preds |> filter(model == "pois"), 
+                                    data_reshape, 
+                                    variables = pois_vars |> head(-1)),
+           filename = file_out(!!h(paste0("plots/conditional_effects_pois_multi_", lab, ".png"))),
+           width = 10, height = 20),
+    transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_pois_plot_interaction = target({
+    if(lab == "v3.2_livestock_biomass_included") return(NULL);
+    ggsave(plot_conditional_effects(cond_eff_pois, 
+                                    lookup_vars, 
+                                    consistent_preds |> filter(model == "pois"), 
+                                    data_reshape, 
+                                    variables = pois_vars |> tail(1), 
+                                    ncol = 1),
+           filename = file_out(!!h(paste0("plots/conditional_effects_pois_interaction_", lab, ".png"))),
+           width = 6, height = 4)},
+    transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_zi_plot = target(
+    ggsave(plot_conditional_effects(cond_eff_zi, 
+                                    lookup_vars, 
+                                    consistent_preds |> filter(model == "zi"),
+                                    data_reshape, 
+                                    variables = zi_vars |> head(-1)),
+           filename = file_out(!!h(paste0("plots/conditional_effects_zi_multi_", lab, ".png"))),
+           width = 10, height = 7),
+    transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get model predictions
   predicts = target(
@@ -329,7 +359,7 @@ plan <- drake_plan(
 
 vis_drake_graph(plan, targets_only = TRUE)
 
-future::plan(multisession, workers = 6)
+# future::plan(multisession, workers = 6)
 
 drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
             cache_log_file = "drake_cache_log.csv")
