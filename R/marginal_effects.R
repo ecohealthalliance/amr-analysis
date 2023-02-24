@@ -48,7 +48,7 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
         labs(title = lookup_vars[lv], 
              y = var2, 
              x = var1, 
-             color = "AMR Events") +
+             color = "AMR Emergence Count") +
         theme_foundation(base_size = 12, base_family =  "sans") + 
         theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
               title = element_text(size = rel(1.1)), 

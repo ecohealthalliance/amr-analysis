@@ -242,36 +242,54 @@ plan <- drake_plan(
   ),
   # conditional effects plots
   cond_eff_pois_plot = target(
-    ggsave(plot_conditional_effects(cond_eff_pois, 
+    #ggsave(
+      plot_conditional_effects(cond_eff_pois, 
                                     lookup_vars, 
                                     consistent_preds |> filter(model == "pois"), 
                                     data_reshape, 
-                                    variables = pois_vars |> head(-1)),
-           filename = file_out(!!h(paste0("plots/conditional_effects_pois_multi_", lab, ".png"))),
-           width = 10, height = 20),
+                                    variables = pois_vars |> head(-1)
+                               ),
+           #filename = file_out(!!h(paste0("plots/conditional_effects_pois_multi_", lab, ".png"))),
+          # width = 10, height = 20),
     transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   cond_eff_pois_plot_interaction = target({
     if(lab == "v3.2_livestock_biomass_included") return(NULL);
-    ggsave(plot_conditional_effects(cond_eff_pois, 
+    #ggsave(
+      plot_conditional_effects(cond_eff_pois, 
                                     lookup_vars, 
                                     consistent_preds |> filter(model == "pois"), 
                                     data_reshape, 
                                     variables = pois_vars |> tail(1), 
-                                    ncol = 1),
-           filename = file_out(!!h(paste0("plots/conditional_effects_pois_interaction_", lab, ".png"))),
-           width = 6, height = 4)},
+                                    ncol = 1)#,
+           #filename = file_out(!!h(paste0("plots/conditional_effects_pois_interaction_", lab, ".png"))),
+           #width = 6, height = 4)
+      },
     transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   cond_eff_zi_plot = target(
-    ggsave(plot_conditional_effects(cond_eff_zi, 
+    #ggsave(
+      plot_conditional_effects(cond_eff_zi, 
                                     lookup_vars, 
                                     consistent_preds |> filter(model == "zi"),
                                     data_reshape, 
                                     variables = zi_vars |> head(-1)),
-           filename = file_out(!!h(paste0("plots/conditional_effects_zi_multi_", lab, ".png"))),
-           width = 10, height = 7),
+           #filename = file_out(!!h(paste0("plots/conditional_effects_zi_multi_", lab, ".png"))),
+           #width = 10, height = 7),
     transform = map(cond_eff_zi, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_plot_arranged = target(
+    ggsave(
+    plot_grid(cond_eff_pois_plot, plot_grid(cond_eff_pois_plot_interaction, 
+                                            NULL, 
+                                            cond_eff_zi_plot,
+                                            NULL,
+                                            ncol = 1, 
+                                            rel_heights = c(2, 0.5, 2, 0.5),
+                                            labels = c("B", "", "C")), ncol = 2, labels = c("A", "")),
+      filename = file_out(!!h(paste0("plots/conditional_effects", lab, ".png"))),
+      width = 12, height = 12, dpi = 500),
+    transform = map(cond_eff_pois_plot, cond_eff_pois_plot_interaction, cond_eff_zi_plot,lab = !!labs, .id = FALSE)
   ),
   # get model predictions
   predicts = target(
