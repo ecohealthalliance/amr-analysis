@@ -271,7 +271,7 @@ plan <- drake_plan(
                                     variables = zi_vars |> head(-1)),
            filename = file_out(!!h(paste0("plots/conditional_effects_zi_multi_", lab, ".png"))),
            width = 10, height = 7),
-    transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+    transform = map(cond_eff_zi, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   # get model predictions
   predicts = target(

@@ -17,7 +17,9 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
   
   me_plots <- map(unique(cond_effects_data$var), function(lv){
     dat <- filter(cond_effects_data, var == lv)
+    observed <- filter(data_reshape, var == lv)
     if(nrow(dat) == 0) return(NULL)
+    
     p <- ggplot(data = dat, aes(x = effect1__)) + 
       geom_line(aes(y = estimate__), color = "gray20", size = 1.5) +
       geom_ribbon(aes(ymin = lower__, ymax = upper__), alpha = 0.4) +
@@ -66,6 +68,9 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
       p <- p +
         geom_text(data = consistent_preds %>% filter(term == lv), aes(label = lab, x = Inf, y = Inf),
                   hjust = 2, vjust = 1.5, size = 14) 
+    }
+    if(length(variables) == 4){ #lazy way to check if we're formatting logistic plots
+      p <- p + scale_y_continuous(limits = c(0,1))
     }
     return(p)
     
