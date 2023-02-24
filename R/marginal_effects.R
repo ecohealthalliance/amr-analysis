@@ -42,7 +42,7 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
       p <-  ggplot() + 
         geom_contour(data = dat, aes(x = effect1__, y = effect2__, z = estimate__, color = ..level..)) +
         stat_contour(data = dat, aes(x = effect1__, y = effect2__, z = estimate__, color = ..level..),  bins = 30) + 
-        scale_color_viridis_c()   +
+        scale_color_viridis_c(option = "plasma")   +
         geom_rug(data = data_reshape |> filter(var == names(var1)), aes(x = x)) +
         geom_rug(data = data_reshape |> filter(var == names(var2)), aes(y = x)) +
         labs(title = lookup_vars[lv], 

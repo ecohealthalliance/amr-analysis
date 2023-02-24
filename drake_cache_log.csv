@@ -27,13 +27,13 @@ c85d88fc56f4e042,target,coef_tbl_7
 099f63582132984f,target,coefs_5
 aa3e4201c7f67f70,target,coefs_6
 251ce13818cf08c6,target,coefs_7
-e8f7836c0c43963c,target,cond_eff_pois
-a201adb27d3c8fd0,target,cond_eff_pois_2
-4156ccca99153ab6,target,cond_eff_pois_3
-e91b5055380c7b7d,target,cond_eff_pois_4
-d327136b5e95f96d,target,cond_eff_pois_5
-3a5fbf2cd92c59f9,target,cond_eff_pois_6
-bfbe2e53ef6c61c1,target,cond_eff_pois_7
+1f62773e3f0f633e,target,cond_eff_pois
+c37787c06782c771,target,cond_eff_pois_2
+2ddbc28528e9d1b2,target,cond_eff_pois_3
+45a5d88272fea898,target,cond_eff_pois_4
+38af643289c6c0cb,target,cond_eff_pois_5
+388e8021f7067f6a,target,cond_eff_pois_6
+2b1cccdffe9fba6d,target,cond_eff_pois_7
 cb9910276050f1ee,target,cond_eff_pois_plot
 8db5dd07129937d2,target,cond_eff_pois_plot_2
 b3b387d07165be42,target,cond_eff_pois_plot_3
@@ -231,20 +231,20 @@ c214178ed4ae23f4,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v
 eeb6be7ab2a7f152,target,file /home/emmamendelsohn/amr-analysis/doc/coef_values_v3_countries_in_range_gdp.csv
 830414bd104fa1f5,target,file /home/emmamendelsohn/amr-analysis/plots/gdp_by_impute_status.png
 8564c72fdb0150bf,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_multi_v1_complete_only.png
-38dda9800e7c71d1,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3_countries_in_range_gdp.png
-1729828141a1d1a4,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v1_complete_only.png
-1a4dd69288a02048,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v2_human_or_animal.png
-5049ad7840ec7b5d,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3.1_us_removed.png
+67b08700b1a64d91,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3_countries_in_range_gdp.png
+242e009ea661441c,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v1_complete_only.png
+ed05a8fcddb3dc7b,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v2_human_or_animal.png
+0b7728b982fbcd85,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3.1_us_removed.png
 3ea8d2dc9b9879ac,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3.2_livestock_biomass_included.png
-ab2bf4d4c5cbd634,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3.3_first_global_emergence.png
-d5fef3b86b8e653d,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v4_full_impute.png
-7ba65d88a3eb6fed,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v1_complete_only.png
-ae6063d92f7b15ed,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v2_human_or_animal.png
-9f31b4d69c67ee02,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.1_us_removed.png
-b3caa6e6a72de405,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.2_livestock_biomass_included.png
-0cf040d20e8076be,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.3_first_global_emergence.png
-068b8c2f0bd35deb,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3_countries_in_range_gdp.png
-c4365a95c1ccd123,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v4_full_impute.png
+fa823cbba1d8f07e,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v3.3_first_global_emergence.png
+52f61108967da8a7,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_interaction_v4_full_impute.png
+3ef8a0ee7eb39b4c,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v1_complete_only.png
+ac6fcfb677c91a4c,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v2_human_or_animal.png
+226d118c2e1da30e,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.1_us_removed.png
+4d0ddbfe22e8b303,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.2_livestock_biomass_included.png
+3f0a83010039149e,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3.3_first_global_emergence.png
+406dcb7f051e7a9a,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v3_countries_in_range_gdp.png
+7217f26ca81dab3a,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_pois_multi_v4_full_impute.png
 0fbe5d135aedefb4,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_zi_multi_v1_complete_only.png
 fbed35f555174937,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_zi_multi_v2_human_or_animal.png
 7d7e1bf584b9721a,target,file /home/emmamendelsohn/amr-analysis/plots/conditional_effects_zi_multi_v3.1_us_removed.png

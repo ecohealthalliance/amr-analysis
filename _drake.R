@@ -172,7 +172,7 @@ plan <- drake_plan(
   ),
   # get conditional effects on all model iterations
   cond_eff_pois = target(
-    brms::conditional_effects(mod_comb, dpar="mu", surface = TRUE), 
+    brms::conditional_effects(mod_comb, surface = TRUE), 
     transform = map(mod_comb, .id = FALSE)
   ),
   cond_eff_zi = target(
