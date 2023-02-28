@@ -7,6 +7,8 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
       mutate(var = y)
   })  
   
+  mod <- ifelse(length(variables) == 5, "zi", "pois") #lazy way to check if we're formatting logistic plots
+    
   if(!is.null(variables)) cond_effects_data <- cond_effects_data |> filter(var %in% variables)
   
   cond_effects_data <- cond_effects_data  %>%
@@ -21,8 +23,8 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
     if(nrow(dat) == 0) return(NULL)
     
     p <- ggplot(data = dat, aes(x = effect1__)) + 
+      geom_ribbon(aes(ymin = lower__, ymax = upper__), alpha = 0.4, fill = switch(mod, "zi" = "bisque3", "pois" = "cornflowerblue")) +
       geom_line(aes(y = estimate__), color = "gray20", size = 1.5) +
-      geom_ribbon(aes(ymin = lower__, ymax = upper__), alpha = 0.4) +
       geom_rug(data = filter(data_reshape, var == lv), mapping = aes(x = x)) +
       labs(title = lookup_vars[lv], y = "", x="", color = lookup_vars[unique(dat$var2)]) +
       theme_foundation(base_size = 12, base_family =  "sans") + 
@@ -69,8 +71,9 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
         geom_text(data = consistent_preds %>% filter(term == lv), aes(label = lab, x = Inf, y = Inf),
                   hjust = 2, vjust = 1.5, size = 14) 
     }
-    if(length(variables) == 4){ #lazy way to check if we're formatting logistic plots
-      p <- p + scale_y_continuous(limits = c(0,1))
+    if(mod == "zi"){ 
+      p <- p + 
+        scale_y_continuous(limits = c(0,1)) 
     }
     return(p)
     
