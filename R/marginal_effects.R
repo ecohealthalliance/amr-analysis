@@ -8,7 +8,7 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
   })  
   
   mod <- ifelse(length(variables) == 5, "zi", "pois") #lazy way to check if we're formatting logistic plots
-    
+  
   if(!is.null(variables)) cond_effects_data <- cond_effects_data |> filter(var %in% variables)
   
   cond_effects_data <- cond_effects_data  %>%
@@ -41,16 +41,16 @@ plot_conditional_effects <- function(cond_eff, lookup_vars, consistent_preds, da
       var1 <- lookup_vars[unique(dat$var1)]
       var2 <- lookup_vars[unique(dat$var2)]
       
-      p <-  ggplot() + 
-        geom_contour(data = dat, aes(x = effect1__, y = effect2__, z = estimate__, color = ..level..)) +
-        stat_contour(data = dat, aes(x = effect1__, y = effect2__, z = estimate__, color = ..level..),  bins = 30) + 
-        scale_color_viridis_c(option = "plasma")   +
+    p <- ggplot() + 
+        geom_tile(data = dat, aes(x = effect1__, y = effect2__, fill = estimate__)) + 
+        stat_contour(data = dat, aes(x = effect1__, y = effect2__, z = estimate__), color = "white", alpha = 0.8, bins = 30) + 
+        scale_fill_viridis_c(option = "plasma")   +
         geom_rug(data = data_reshape |> filter(var == names(var1)), aes(x = x)) +
         geom_rug(data = data_reshape |> filter(var == names(var2)), aes(y = x)) +
         labs(title = lookup_vars[lv], 
              y = var2, 
              x = var1, 
-             color = "AMR Emergence Count") +
+             fill = "AMR Emergence Count") +
         theme_foundation(base_size = 12, base_family =  "sans") + 
         theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
               title = element_text(size = rel(1.1)), 

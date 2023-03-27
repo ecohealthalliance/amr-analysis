@@ -172,7 +172,7 @@ plan <- drake_plan(
   ),
   # get conditional effects on all model iterations
   cond_eff_pois = target(
-    brms::conditional_effects(mod_comb, surface = TRUE), 
+    brms::conditional_effects(mod_comb, surface = TRUE), # set to raster when calling "plot()", otherwise it still shows up as contour
     transform = map(mod_comb, .id = FALSE)
   ),
   cond_eff_zi = target(
@@ -242,40 +242,31 @@ plan <- drake_plan(
   ),
   # conditional effects plots
   cond_eff_pois_plot = target(
-    #ggsave(
     plot_conditional_effects(cond_eff_pois, 
                              lookup_vars, 
                              consistent_preds |> filter(model == "pois"), 
                              data_reshape, 
                              variables = pois_vars |> head(-1)
     ),
-    #filename = file_out(!!h(paste0("plots/conditional_effects_pois_multi_", lab, ".png"))),
-    # width = 10, height = 20),
     transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   cond_eff_pois_plot_interaction = target({
     if(lab == "v3.2_livestock_biomass_included") return(NULL);
-    #ggsave(
     plot_conditional_effects(cond_eff_pois, 
                              lookup_vars, 
                              consistent_preds |> filter(model == "pois"), 
                              data_reshape, 
                              variables = pois_vars |> tail(1), 
-                             ncol = 1)#,
-    #filename = file_out(!!h(paste0("plots/conditional_effects_pois_interaction_", lab, ".png"))),
-    #width = 6, height = 4)
+                             ncol = 1)
   },
   transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   cond_eff_zi_plot = target(
-    #ggsave(
     plot_conditional_effects(cond_eff_zi, 
                              lookup_vars, 
                              consistent_preds |> filter(model == "zi"),
                              data_reshape, 
                              variables = zi_vars),
-    #filename = file_out(!!h(paste0("plots/conditional_effects_zi_multi_", lab, ".png"))),
-    #width = 10, height = 7),
     transform = map(cond_eff_zi, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
   ),
   cond_eff_plot_arranged = target(
