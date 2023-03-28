@@ -436,7 +436,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 ## 19 lp__                                                       1.00</code></pre>
 <p>Model coefficients</p>
 <pre class="r"><code>knitr::kable(coefs_3)</code></pre>
-<table>
+<table style="width:100%;">
 <colgroup>
 <col width="22%" />
 <col width="4%" />
@@ -453,7 +453,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <col width="2%" />
 <col width="2%" />
 <col width="2%" />
-<col width="16%" />
+<col width="15%" />
 <col width="2%" />
 <col width="4%" />
 <col width="2%" />
@@ -498,7 +498,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">12</td>
 <td align="right">11.93</td>
 <td align="right">12.07</td>
-<td align="left">Livestock AB Consumption [kg per capita)</td>
+<td align="left">Livestock AB Consumption (kg per cap.)</td>
 <td align="right">0.02</td>
 <td align="left">TRUE</td>
 <td align="left">0.02*</td>
@@ -519,7 +519,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">ln(GDP [dollars per capita])</td>
+<td align="left">ln(GDP [dollars per cap.])</td>
 <td align="right">7.13</td>
 <td align="left">TRUE</td>
 <td align="left">7.13*</td>
@@ -540,7 +540,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">10</td>
 <td align="right">9.93</td>
 <td align="right">10.07</td>
-<td align="left">ln(Migrant Population [per capita])</td>
+<td align="left">ln(Migrant Population [per cap.])</td>
 <td align="right">1.11</td>
 <td align="left">FALSE</td>
 <td align="left">1.11</td>
@@ -561,7 +561,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">9</td>
 <td align="right">8.93</td>
 <td align="right">9.07</td>
-<td align="left">ln(Tourism - Inbound [per capita])</td>
+<td align="left">ln(Tourism - Inbound [per cap.])</td>
 <td align="right">1.32</td>
 <td align="left">TRUE</td>
 <td align="left">1.32*</td>
@@ -582,7 +582,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">8</td>
 <td align="right">7.93</td>
 <td align="right">8.07</td>
-<td align="left">ln(AB Exports [dollars per capita])</td>
+<td align="left">ln(AB Exports [dollars per cap.])</td>
 <td align="right">0.90</td>
 <td align="left">TRUE</td>
 <td align="left">0.9*</td>
@@ -666,7 +666,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">ln(Publication Bias Index [per capita])</td>
+<td align="left">ln(Publication Bias Index [per cap.])</td>
 <td align="right">0.89</td>
 <td align="left">FALSE</td>
 <td align="left">0.89</td>
@@ -687,7 +687,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ln(ProMed Mentions [per capita])</td>
+<td align="left">ln(ProMed Mentions [per cap.])</td>
 <td align="right">1.17</td>
 <td align="left">FALSE</td>
 <td align="left">1.17</td>
@@ -729,7 +729,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">ln(Publication Bias Index [per capita])</td>
+<td align="left">ln(Publication Bias Index [per cap.])</td>
 <td align="right">0.84</td>
 <td align="left">FALSE</td>
 <td align="left">0.84</td>
@@ -750,7 +750,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ln(ProMed Mentions [per capita])</td>
+<td align="left">ln(ProMed Mentions [per cap.])</td>
 <td align="right">3.80</td>
 <td align="left">TRUE</td>
 <td align="left">3.8*</td>
@@ -771,7 +771,7 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">ln(GDP [dollars per capita])</td>
+<td align="left">ln(GDP [dollars per cap.])</td>
 <td align="right">0.18</td>
 <td align="left">TRUE</td>
 <td align="left">0.18*</td>
@@ -833,9 +833,12 @@ mean_estimate &lt;- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
 mean_estimate_no_zero &lt;- mean_estimate %&gt;% 
   enframe(value = &quot;est&quot;) %&gt;% 
   filter(est &gt; 0) %&gt;% 
-  summarize(amr_mean_est = mean(est))
-
-imap_dfr(amr_means, function(x, y){
+  summarize(amr_mean_est = mean(est))</code></pre>
+<pre><code>## Warning: Using one column matrices in `filter()` was deprecated in dplyr 1.1.0.
+## ℹ Please use one dimensional logical vectors instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code>imap_dfr(amr_means, function(x, y){
   
   # predict amr when x is doubled
   dbl_estimate &lt;- amr_means %&gt;%
@@ -858,7 +861,7 @@ imap_dfr(amr_means, function(x, y){
 }) %&gt;% 
   knitr::kable()</code></pre>
 <pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
-## Using compatibility `.name_repair`.
+## ℹ Using compatibility `.name_repair`.
 ## This warning is displayed once every 8 hours.
 ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
 <table>
@@ -962,20 +965,19 @@ predicted_versus_actual_diff_3 %&gt;%
 ## 1                     0.737</code></pre>
 <pre class="r"><code>predicted_versus_actual_diff_3 </code></pre>
 <pre><code>## # A tibble: 95 × 10
-##    iso3c v           med     lo     hi continent country   n_amr…¹  diff count…²
-##    &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  
-##  1 RUS   mean_pop 155.    82.0  266.   Europe    Russia          0 155.  Russia…
-##  2 SAU   mean_pop  95.4   47.8  186.   Asia      Saudi Ar…       0  95.4 Saudi …
-##  3 CAN   mean_pop  38.7   31.3   47.4  Americas  Canada         98 -59.3 Canada…
-##  4 AZE   mean_pop  48.9   17.5  183.   Asia      Azerbaij…       0  48.9 Azerba…
-##  5 GBR   mean_pop  67.9   50.4   83.2  Europe    United K…      22  45.9 United…
-##  6 USA   mean_pop 176.   149.   201.   Americas  United S…     132  43.5 United…
-##  7 TKM   mean_pop  41.9   13.8  182.   Asia      Turkmeni…       0  41.9 Turkme…
-##  8 NOR   mean_pop   5.16   3.05   9.33 Europe    Norway         39 -33.8 Norway…
-##  9 ARE   mean_pop  30.6   22.0   41.4  Asia      United A…       0  30.6 United…
-## 10 IRL   mean_pop   7.43   5.85   9.68 Europe    Ireland        38 -30.6 Irelan…
-## # … with 85 more rows, and abbreviated variable names ¹​n_amr_events,
-## #   ²​country_lab</code></pre>
+##    iso3c v           med     lo     hi continent country              n_amr_events  diff country_lab                   
+##    &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;                       &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;                         
+##  1 RUS   mean_pop 155.    82.0  266.   Europe    Russia                          0 155.  Russia (82 - 266)             
+##  2 SAU   mean_pop  95.4   47.8  186.   Asia      Saudi Arabia                    0  95.4 Saudi Arabia (48 - 186)       
+##  3 CAN   mean_pop  38.7   31.3   47.4  Americas  Canada                         98 -59.3 Canada (31 - 47)              
+##  4 AZE   mean_pop  48.9   17.5  183.   Asia      Azerbaijan                      0  48.9 Azerbaijan (17 - 183)         
+##  5 GBR   mean_pop  67.9   50.4   83.2  Europe    United Kingdom                 22  45.9 United Kingdom (50 - 83)      
+##  6 USA   mean_pop 176.   149.   201.   Americas  United States                 132  43.5 United States (149 - 201)     
+##  7 TKM   mean_pop  41.9   13.8  182.   Asia      Turkmenistan                    0  41.9 Turkmenistan (14 - 182)       
+##  8 NOR   mean_pop   5.16   3.05   9.33 Europe    Norway                         39 -33.8 Norway (3 - 9)                
+##  9 ARE   mean_pop  30.6   22.0   41.4  Asia      United Arab Emirates            0  30.6 United Arab Emirates (22 - 41)
+## 10 IRL   mean_pop   7.43   5.85   9.68 Europe    Ireland                        38 -30.6 Ireland (6 - 10)              
+## # … with 85 more rows</code></pre>
 <pre class="r"><code>predicted_versus_actual_diff_3 %&gt;% 
   select(-iso3c, -v, -country) %&gt;% 
   select(country_lab, continent, everything()) %&gt;% 
