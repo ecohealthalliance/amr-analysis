@@ -1,12 +1,12 @@
 get_predicted_versus_actual_diff <- function(predicts){
- 
-   diffs <- predicts %>%
+  
+  diffs <- predicts %>%
     filter(v == "mean_pop") %>%
     mutate(diff = med - n_amr_events) %>%
     mutate(country_lab = paste0(country, " (", round(lo, 0), " - ", round(hi,0), ")")) %>%
     arrange(-abs(diff))
-   
-   return(diffs)
+  
+  return(diffs)
   
 }
 
@@ -34,22 +34,23 @@ plot_slope <- function(predicted_versus_actual_diff){
     geom_line(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
     geom_point(data = diffs_reshape_top10, aes(x = key, y = value, group = country_lab)) +
     geom_text_repel(data = filter(diffs_reshape_top10, key == "Predicted", ), aes(label = country_lab, x = key, y = value),
-                             force=1, point.padding=unit(1,'lines'),
-                             hjust=0,
-                             direction='y',
-                             nudge_x=0.1,
-                             segment.size=0.2) +
-    scale_x_discrete(expand = c(0.1, 0,0 ,0.5))+
+                    force=1, point.padding=unit(1,'lines'),
+                    hjust=0,
+                    direction='y',
+                    nudge_x=0.1,
+                    segment.size=0.3) +
+    scale_x_discrete(expand = c(0.1, 0,0 ,3))+
     # scale_color_manual(values = c(`TRUE` = "hotpink",
     #                               `FALSE` = "blue")) +
     labs(x = "", y = "", title = "")  +
-    theme_foundation(base_size = 12, base_family =  "sans") + 
+    theme_foundation(base_size = 8, base_family =  "sans") + 
     theme(rect = element_rect(fill = "white", linetype = 0, colour = NA),
           title = element_text(size = rel(1), face = "bold"), 
           axis.text = element_text( size = rel(1)), 
           axis.ticks = element_blank(),
           axis.line = element_blank(), 
           legend.position ="none",
+          aspect.ratio = 0.5,
           panel.grid.major =  element_blank(), 
           panel.grid.minor = element_blank())
 }

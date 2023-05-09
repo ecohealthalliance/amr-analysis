@@ -24,6 +24,7 @@ suppressPackageStartupMessages({
   library(bayesplot)
   library(sjPlot)
   library(cowplot)
+  library(patchwork)
   library(ggthemes)
   library(rnaturalearth)
   library(rnaturalearthdata)
@@ -312,22 +313,14 @@ plan <- drake_plan(
   # combine slope and map into single figure
   ms_plot_left = target(
     ggsave(
-      plot_grid(
-        plot_map(map_data),
-        plot_diff_map(map_data),
-        ncol = 1,
-        rel_heights = c(0.65, 0.35),
-        labels = c("A", "B")),
+      (plot_map(map_data) / plot_diff_map(map_data)) + plot_annotation(tag_levels = 'A'),
       filename = file_out(!!h(paste0("plots/map_and_slope_left_", lab, ".png"))),
-      width = 12, height = 8, dpi = 500),
+      width = 7, height = 10, dpi = 500),
     transform = map(map_data, lab = !!labs, .id = FALSE)
   ),
   ms_plot_right = target(
     ggsave(
-      plot_grid(
-        plot_slope(predicted_versus_actual_diff),
-        ncol = 1,
-        labels = c("C")),
+        plot_slope(predicted_versus_actual_diff) + plot_annotation(title = 'C'),
       filename = file_out(!!h(paste0("plots/map_and_slope_right_", lab, ".png"))),
       width = 9, height = 8, dpi = 500),
     transform = map(predicted_versus_actual_diff, lab = !!labs, .id = FALSE)
