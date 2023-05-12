@@ -278,7 +278,7 @@ plan <- drake_plan(
                                               rel_heights = c(2, 3),
                                               labels = c("B", "C", "")), ncol = 2, labels = c("A", "")),
       filename = file_out(!!h(paste0("plots/conditional_effects_", lab, ".png"))),
-      bg = "white", width = 20, height = 15, dpi = 700),
+      bg = "white", width = 22, height = 15, dpi = 700),
     transform = map(cond_eff_pois_plot, cond_eff_pois_plot_interaction, cond_eff_zi_plot,lab = !!labs, .id = FALSE)
   ),
   # get model predictions
