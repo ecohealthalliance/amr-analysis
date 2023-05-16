@@ -379,14 +379,14 @@ loadd(mod_comb_3, coefs_3, data_mice_compl_3, zi_vars_3, pois_vars_3)</code></pr
 <p>Summarize database</p>
 <pre class="r"><code>loadd(data)
 sum(data$n_amr_events, na.rm = TRUE) # total events</code></pre>
-<pre><code>## [1] 1604</code></pre>
+<pre><code>## [1] 1611</code></pre>
 <pre class="r"><code>data %&gt;% 
   drop_na(n_amr_events) %&gt;% 
   count() # number of countries with events</code></pre>
 <pre><code>## # A tibble: 1 × 1
 ##       n
 ##   &lt;int&gt;
-## 1    59</code></pre>
+## 1    60</code></pre>
 <pre class="r"><code>data %&gt;% 
   arrange(-n_amr_events) %&gt;% 
   dplyr::select(iso3c, n_amr_events, n_amr_first_events) %&gt;% 
@@ -401,8 +401,8 @@ sum(data$n_amr_events, na.rm = TRUE) # total events</code></pre>
 ## 5 JPN             75                 46</code></pre>
 <p>Bayesian R-squared</p>
 <pre class="r"><code>bayes_R2(mod_comb_3, summary = TRUE)</code></pre>
-<pre><code>##     Estimate  Est.Error      Q2.5     Q97.5
-## R2 0.6343926 0.05142415 0.5407899 0.7292996</code></pre>
+<pre><code>##    Estimate  Est.Error      Q2.5     Q97.5
+## R2 0.696174 0.03316787 0.6175128 0.7460526</code></pre>
 <p>Conversion statistics (rhats)</p>
 <pre class="r"><code>loadd(mod_fit_data_mice_3_formula_3)
 
@@ -412,36 +412,35 @@ map(mod_fit_data_mice_3_formula_3, function(x){
     enframe()
 }) %&gt;% 
   reduce(left_join, by = c(&quot;name&quot;, &quot;value&quot;))</code></pre>
-<pre><code>## # A tibble: 20 × 2
+<pre><code>## # A tibble: 19 × 2
 ##    name                                                       value
 ##    &lt;chr&gt;                                                      &lt;dbl&gt;
-##  1 b_Intercept                                                 1.00
-##  2 b_zi_Intercept                                              1.00
-##  3 b_ln_livestock_consumption_kg_per_capita                    1.00
-##  4 b_ln_gdp_per_capita                                         1.00
-##  5 b_ln_migrant_pop_per_capita                                 1.00
-##  6 b_ln_tourism_inbound_per_capita                             1.00
-##  7 b_ln_ab_export_per_capita                                   1.00
-##  8 b_health_expend_perc                                        1.00
-##  9 b_human_consumption_ddd                                     1.00
-## 10 b_english_spoken                                            1.00
-## 11 b_ln_pubcrawl_per_capita                                    1.00
-## 12 b_ln_promed_mentions_per_capita                             1.00
-## 13 b_ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita  1.00
-## 14 b_zi_ln_pubcrawl_per_capita                                 1.00
-## 15 b_zi_ln_promed_mentions_per_capita                          1.00
-## 16 b_zi_ln_gdp_per_capita                                      1.00
-## 17 b_zi_ln_population                                          1.00
-## 18 b_zi_english_spoken                                         1.00
-## 19 lprior                                                      1.00
-## 20 lp__                                                        1.00</code></pre>
+##  1 b_Intercept                                                1.00 
+##  2 b_zi_Intercept                                             1.00 
+##  3 b_ln_livestock_consumption_kg_per_capita                   1.00 
+##  4 b_ln_gdp_per_capita                                        1.00 
+##  5 b_ln_migrant_pop_per_capita                                1.00 
+##  6 b_ln_tourism_inbound_per_capita                            1.00 
+##  7 b_ln_ab_export_per_capita                                  1.00 
+##  8 b_health_expend_perc                                       1.00 
+##  9 b_human_consumption_ddd                                    1.00 
+## 10 b_english_spoken                                           0.999
+## 11 b_ln_pubcrawl_per_capita                                   1.00 
+## 12 b_ln_promed_mentions_per_capita                            0.999
+## 13 b_ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita 1.00 
+## 14 b_zi_ln_pubcrawl_per_capita                                1.00 
+## 15 b_zi_ln_promed_mentions_per_capita                         1.00 
+## 16 b_zi_ln_gdp_per_capita                                     1.00 
+## 17 b_zi_ln_population                                         1.00 
+## 18 b_zi_english_spoken                                        1.00 
+## 19 lp__                                                       1.00</code></pre>
 <p>Model coefficients</p>
 <pre class="r"><code>knitr::kable(coefs_3)</code></pre>
-<table style="width:100%;">
+<table>
 <colgroup>
 <col width="22%" />
-<col width="4%" />
-<col width="4%" />
+<col width="3%" />
+<col width="3%" />
 <col width="3%" />
 <col width="4%" />
 <col width="4%" />
@@ -454,8 +453,8 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <col width="1%" />
 <col width="2%" />
 <col width="2%" />
-<col width="16%" />
-<col width="2%" />
+<col width="17%" />
+<col width="1%" />
 <col width="3%" />
 <col width="2%" />
 </colgroup>
@@ -485,138 +484,138 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <tbody>
 <tr class="odd">
 <td align="left">ln_livestock_consumption_kg_per_capita</td>
-<td align="right">0.0014594</td>
-<td align="right">0.0016535</td>
-<td align="right">0.0001592</td>
-<td align="right">0.0279177</td>
-<td align="right">0.0005678</td>
-<td align="right">0.0041474</td>
+<td align="right">0.0187658</td>
+<td align="right">0.0185176</td>
+<td align="right">0.0017288</td>
+<td align="right">0.5142235</td>
+<td align="right">0.0089866</td>
+<td align="right">0.0467867</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.00</td>
+<td align="left">0.02</td>
 <td align="left">neg</td>
 <td align="right">12</td>
 <td align="right">11.93</td>
 <td align="right">12.07</td>
-<td align="left">Livestock AB Consumption (kg per capita)</td>
-<td align="right">0.00</td>
+<td align="left">Livestock AB Consumption (log kg per cap)</td>
+<td align="right">0.02</td>
 <td align="left">TRUE</td>
-<td align="left">0*</td>
+<td align="left">0.02*</td>
 </tr>
 <tr class="even">
 <td align="left">ln_gdp_per_capita</td>
-<td align="right">30.8447179</td>
-<td align="right">21.6323034</td>
-<td align="right">7.2282294</td>
-<td align="right">96.2359134</td>
-<td align="right">18.1443177</td>
-<td align="right">48.8908398</td>
+<td align="right">7.1337849</td>
+<td align="right">4.2752662</td>
+<td align="right">1.7968609</td>
+<td align="right">21.7863646</td>
+<td align="right">4.5419622</td>
+<td align="right">10.5418402</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">30.84</td>
+<td align="left">7.13</td>
 <td align="left">pos</td>
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">GDP (dollars per capita)</td>
-<td align="right">30.84</td>
+<td align="left">GDP (log dollars per cap)</td>
+<td align="right">7.13</td>
 <td align="left">TRUE</td>
-<td align="left">30.84*</td>
+<td align="left">7.13*</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_migrant_pop_per_capita</td>
-<td align="right">0.9229608</td>
-<td align="right">0.1133865</td>
-<td align="right">0.7619547</td>
-<td align="right">1.0946524</td>
-<td align="right">0.8441717</td>
-<td align="right">0.9972987</td>
+<td align="right">1.1075421</td>
+<td align="right">0.1055348</td>
+<td align="right">0.9208307</td>
+<td align="right">1.3054100</td>
+<td align="right">1.0389253</td>
+<td align="right">1.1816034</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.92</td>
-<td align="left">neg</td>
+<td align="left">1.11</td>
+<td align="left">pos</td>
 <td align="right">10</td>
 <td align="right">9.93</td>
 <td align="right">10.07</td>
-<td align="left">Migrant Population (per capita)</td>
-<td align="right">0.92</td>
+<td align="left">Migrant Population (log per cap)</td>
+<td align="right">1.11</td>
 <td align="left">FALSE</td>
-<td align="left">0.92</td>
+<td align="left">1.11</td>
 </tr>
 <tr class="even">
 <td align="left">ln_tourism_inbound_per_capita</td>
-<td align="right">1.3981199</td>
-<td align="right">0.1357662</td>
-<td align="right">1.1708175</td>
-<td align="right">1.6098791</td>
-<td align="right">1.2995070</td>
-<td align="right">1.4839169</td>
+<td align="right">1.3236624</td>
+<td align="right">0.0910104</td>
+<td align="right">1.1627638</td>
+<td align="right">1.4996905</td>
+<td align="right">1.2646994</td>
+<td align="right">1.3879002</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">1.40</td>
+<td align="left">1.32</td>
 <td align="left">pos</td>
 <td align="right">9</td>
 <td align="right">8.93</td>
 <td align="right">9.07</td>
-<td align="left">Tourism - Inbound (per capita)</td>
-<td align="right">1.40</td>
+<td align="left">Tourism - Inbound (log per cap)</td>
+<td align="right">1.32</td>
 <td align="left">TRUE</td>
-<td align="left">1.4*</td>
+<td align="left">1.32*</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_ab_export_per_capita</td>
-<td align="right">0.8887606</td>
-<td align="right">0.0215889</td>
-<td align="right">0.8578053</td>
-<td align="right">0.9277670</td>
-<td align="right">0.8748227</td>
-<td align="right">0.9040293</td>
+<td align="right">0.9013148</td>
+<td align="right">0.0288619</td>
+<td align="right">0.8448863</td>
+<td align="right">0.9533722</td>
+<td align="right">0.8814059</td>
+<td align="right">0.9203771</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.89</td>
+<td align="left">0.90</td>
 <td align="left">neg</td>
 <td align="right">8</td>
 <td align="right">7.93</td>
 <td align="right">8.07</td>
-<td align="left">AB Exports (dollars per capita)</td>
-<td align="right">0.89</td>
+<td align="left">AB Exports (log dollars per cap)</td>
+<td align="right">0.90</td>
 <td align="left">TRUE</td>
-<td align="left">0.89*</td>
+<td align="left">0.9*</td>
 </tr>
 <tr class="even">
 <td align="left">health_expend_perc</td>
-<td align="right">0.8590735</td>
-<td align="right">0.0213698</td>
-<td align="right">0.8259865</td>
-<td align="right">0.8946770</td>
-<td align="right">0.8451207</td>
-<td align="right">0.8739618</td>
+<td align="right">0.9046901</td>
+<td align="right">0.0225968</td>
+<td align="right">0.8615627</td>
+<td align="right">0.9485818</td>
+<td align="right">0.8892321</td>
+<td align="right">0.9197300</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.86</td>
+<td align="left">0.90</td>
 <td align="left">neg</td>
 <td align="right">7</td>
 <td align="right">6.93</td>
 <td align="right">7.07</td>
 <td align="left">Health Expenditure (% GDP)</td>
-<td align="right">0.86</td>
+<td align="right">0.90</td>
 <td align="left">TRUE</td>
-<td align="left">0.86*</td>
+<td align="left">0.9*</td>
 </tr>
 <tr class="odd">
 <td align="left">human_consumption_ddd</td>
-<td align="right">1.0365163</td>
-<td align="right">0.0240606</td>
-<td align="right">1.0009342</td>
-<td align="right">1.0700313</td>
-<td align="right">1.0198694</td>
-<td align="right">1.0523691</td>
+<td align="right">1.0435106</td>
+<td align="right">0.0228125</td>
+<td align="right">1.0013041</td>
+<td align="right">1.0823224</td>
+<td align="right">1.0269310</td>
+<td align="right">1.0579342</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
@@ -632,138 +631,138 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 </tr>
 <tr class="even">
 <td align="left">english_spoken</td>
-<td align="right">0.7079179</td>
-<td align="right">0.1368261</td>
-<td align="right">0.5345856</td>
-<td align="right">0.9570953</td>
-<td align="right">0.6242149</td>
-<td align="right">0.8127014</td>
+<td align="right">1.0206910</td>
+<td align="right">0.1608277</td>
+<td align="right">0.7560586</td>
+<td align="right">1.4318744</td>
+<td align="right">0.9185656</td>
+<td align="right">1.1371425</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.71</td>
-<td align="left">neg</td>
+<td align="left">1.02</td>
+<td align="left">pos</td>
 <td align="right">5</td>
 <td align="right">4.93</td>
 <td align="right">5.07</td>
 <td align="left">English Spoken (yes/no)</td>
-<td align="right">0.71</td>
-<td align="left">TRUE</td>
-<td align="left">0.71*</td>
+<td align="right">1.02</td>
+<td align="left">FALSE</td>
+<td align="left">1.02</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_pubcrawl_per_capita</td>
-<td align="right">0.9099720</td>
-<td align="right">0.0657281</td>
-<td align="right">0.8095694</td>
-<td align="right">1.0213202</td>
-<td align="right">0.8664522</td>
-<td align="right">0.9551772</td>
+<td align="right">0.8918684</td>
+<td align="right">0.0759179</td>
+<td align="right">0.7477656</td>
+<td align="right">1.0525161</td>
+<td align="right">0.8427325</td>
+<td align="right">0.9452058</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">0.91</td>
+<td align="left">0.89</td>
 <td align="left">neg</td>
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">Publication Bias Index (per capita)</td>
-<td align="right">0.91</td>
+<td align="left">Publication Bias Index (log per cap)</td>
+<td align="right">0.89</td>
 <td align="left">FALSE</td>
-<td align="left">0.91</td>
+<td align="left">0.89</td>
 </tr>
 <tr class="even">
 <td align="left">ln_promed_mentions_per_capita</td>
-<td align="right">1.6929370</td>
-<td align="right">0.2609322</td>
-<td align="right">1.2380443</td>
-<td align="right">2.0962546</td>
-<td align="right">1.5046370</td>
-<td align="right">1.8585308</td>
+<td align="right">1.1651873</td>
+<td align="right">0.1907258</td>
+<td align="right">0.8843587</td>
+<td align="right">1.5108263</td>
+<td align="right">1.0328076</td>
+<td align="right">1.2894102</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">1.69</td>
+<td align="left">1.17</td>
 <td align="left">pos</td>
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ProMed Mentions (per capita)</td>
-<td align="right">1.69</td>
-<td align="left">TRUE</td>
-<td align="left">1.69*</td>
+<td align="left">ProMed Mentions (log per cap)</td>
+<td align="right">1.17</td>
+<td align="left">FALSE</td>
+<td align="left">1.17</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita</td>
-<td align="right">1.8596976</td>
-<td align="right">0.2616371</td>
-<td align="right">1.3970243</td>
-<td align="right">2.2931758</td>
-<td align="right">1.6805421</td>
-<td align="right">2.0335947</td>
+<td align="right">1.4363309</td>
+<td align="right">0.1678678</td>
+<td align="right">1.0483019</td>
+<td align="right">1.8068940</td>
+<td align="right">1.3149171</td>
+<td align="right">1.5430407</td>
 <td align="right">0</td>
 <td align="left">Conditional Model</td>
 <td align="left">***</td>
-<td align="left">1.86</td>
+<td align="left">1.44</td>
 <td align="left">pos</td>
 <td align="right">2</td>
 <td align="right">1.93</td>
 <td align="right">2.07</td>
-<td align="left">Livestock AB Consumption:GDP</td>
-<td align="right">1.86</td>
+<td align="left">Livestock AB Consumption &amp; GDP Interaction</td>
+<td align="right">1.44</td>
 <td align="left">TRUE</td>
-<td align="left">1.86*</td>
+<td align="left">1.44*</td>
 </tr>
 <tr class="even">
 <td align="left">ln_pubcrawl_per_capita</td>
-<td align="right">0.6274292</td>
-<td align="right">0.2435817</td>
-<td align="right">0.3181652</td>
-<td align="right">1.1564935</td>
-<td align="right">0.4778340</td>
-<td align="right">0.8140400</td>
+<td align="right">0.8413221</td>
+<td align="right">0.3006969</td>
+<td align="right">0.4016018</td>
+<td align="right">1.7666078</td>
+<td align="right">0.6581187</td>
+<td align="right">1.0740056</td>
 <td align="right">0</td>
 <td align="left">Zero-Inflated Model</td>
 <td align="left">***</td>
-<td align="left">0.63</td>
+<td align="left">0.84</td>
 <td align="left">neg</td>
 <td align="right">4</td>
 <td align="right">3.93</td>
 <td align="right">4.07</td>
-<td align="left">Publication Bias Index (per capita)</td>
-<td align="right">0.63</td>
+<td align="left">Publication Bias Index (log per cap)</td>
+<td align="right">0.84</td>
 <td align="left">FALSE</td>
-<td align="left">0.63</td>
+<td align="left">0.84</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_promed_mentions_per_capita</td>
-<td align="right">4.4144901</td>
-<td align="right">2.5859474</td>
-<td align="right">1.7518664</td>
-<td align="right">13.0557783</td>
-<td align="right">2.9476268</td>
-<td align="right">6.8194312</td>
+<td align="right">3.7987004</td>
+<td align="right">2.0867802</td>
+<td align="right">1.3008590</td>
+<td align="right">13.1404365</td>
+<td align="right">2.5959768</td>
+<td align="right">5.6612924</td>
 <td align="right">0</td>
 <td align="left">Zero-Inflated Model</td>
 <td align="left">***</td>
-<td align="left">4.41</td>
+<td align="left">3.80</td>
 <td align="left">pos</td>
 <td align="right">3</td>
 <td align="right">2.93</td>
 <td align="right">3.07</td>
-<td align="left">ProMed Mentions (per capita)</td>
-<td align="right">4.41</td>
+<td align="left">ProMed Mentions (log per cap)</td>
+<td align="right">3.80</td>
 <td align="left">TRUE</td>
-<td align="left">4.41*</td>
+<td align="left">3.8*</td>
 </tr>
 <tr class="even">
 <td align="left">ln_gdp_per_capita</td>
-<td align="right">0.1756922</td>
-<td align="right">0.1095434</td>
-<td align="right">0.0568040</td>
-<td align="right">0.4646416</td>
-<td align="right">0.1121187</td>
-<td align="right">0.2692360</td>
+<td align="right">0.1797821</td>
+<td align="right">0.0999600</td>
+<td align="right">0.0513047</td>
+<td align="right">0.5143129</td>
+<td align="right">0.1206909</td>
+<td align="right">0.2622489</td>
 <td align="right">0</td>
 <td align="left">Zero-Inflated Model</td>
 <td align="left">***</td>
@@ -772,61 +771,57 @@ map(mod_fit_data_mice_3_formula_3, function(x){
 <td align="right">11</td>
 <td align="right">10.93</td>
 <td align="right">11.07</td>
-<td align="left">GDP (dollars per capita)</td>
+<td align="left">GDP (log dollars per cap)</td>
 <td align="right">0.18</td>
 <td align="left">TRUE</td>
 <td align="left">0.18*</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_population</td>
-<td align="right">0.4706708</td>
-<td align="right">0.1157888</td>
-<td align="right">0.3068900</td>
-<td align="right">0.6851714</td>
-<td align="right">0.3960234</td>
-<td align="right">0.5528751</td>
+<td align="right">0.4282387</td>
+<td align="right">0.1118613</td>
+<td align="right">0.2434764</td>
+<td align="right">0.6946544</td>
+<td align="right">0.3564326</td>
+<td align="right">0.5084078</td>
 <td align="right">0</td>
 <td align="left">Zero-Inflated Model</td>
 <td align="left">***</td>
-<td align="left">0.47</td>
+<td align="left">0.43</td>
 <td align="left">neg</td>
 <td align="right">1</td>
 <td align="right">0.93</td>
 <td align="right">1.07</td>
-<td align="left">Population</td>
-<td align="right">0.47</td>
+<td align="left">Population (log)</td>
+<td align="right">0.43</td>
 <td align="left">TRUE</td>
-<td align="left">0.47*</td>
+<td align="left">0.43*</td>
 </tr>
 <tr class="even">
 <td align="left">english_spoken</td>
-<td align="right">1.4542677</td>
-<td align="right">1.0077555</td>
-<td align="right">0.4394866</td>
-<td align="right">4.8202833</td>
-<td align="right">0.8811271</td>
-<td align="right">2.3909995</td>
+<td align="right">1.3349282</td>
+<td align="right">0.8610739</td>
+<td align="right">0.3491791</td>
+<td align="right">5.2346973</td>
+<td align="right">0.8450362</td>
+<td align="right">2.1214047</td>
 <td align="right">0</td>
 <td align="left">Zero-Inflated Model</td>
 <td align="left">***</td>
-<td align="left">1.45</td>
+<td align="left">1.33</td>
 <td align="left">pos</td>
 <td align="right">5</td>
 <td align="right">4.93</td>
 <td align="right">5.07</td>
 <td align="left">English Spoken (yes/no)</td>
-<td align="right">1.45</td>
+<td align="right">1.33</td>
 <td align="left">FALSE</td>
-<td align="left">1.45</td>
+<td align="left">1.33</td>
 </tr>
 </tbody>
 </table>
 <p>get means and predict doubling for each vars</p>
-<pre class="r"><code># add interaction to data_mice_compl
-data_mice_compl_3 &lt;- data_mice_compl_3 %&gt;% 
-  mutate(&quot;ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita&quot; = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
-
-amr_means &lt;- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars_3))])) %&gt;%
+<pre class="r"><code>amr_means &lt;- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars_3[-11]))])) %&gt;%
   enframe() %&gt;%
   pivot_wider(names_from = name, values_from = value)
 
@@ -834,251 +829,157 @@ mean_estimate &lt;- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
 mean_estimate_no_zero &lt;- mean_estimate %&gt;% 
   enframe(value = &quot;est&quot;) %&gt;% 
   filter(est &gt; 0) %&gt;% 
-  summarize(est_mean = mean(est),
-            est_sd = sd(est),
-            est_high = mean(est) + sd(est),
-            est_low = mean(est) - sd(est))
-
-imap_dfr(amr_means, function(x, y){
+  summarize(amr_mean_est = mean(est))</code></pre>
+<pre><code>## Warning: Using one column matrices in `filter()` was deprecated in dplyr 1.1.0.
+## ℹ Please use one dimensional logical vectors instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<pre class="r"><code>imap_dfr(amr_means, function(x, y){
   
+  # predict amr when x is doubled (doubling livestock or GDP will also feed into the interaction)
   dbl_estimate &lt;- amr_means %&gt;%
     mutate(!!y := ifelse(str_detect(y, &quot;ln_&quot;), log(exp(x) * 2), x * 2)) %&gt;%
     predict(mod_comb_3, newdata = ., summary = FALSE)
   
   dbl_estimate_no_zero &lt;- dbl_estimate %&gt;% 
-    enframe(value = &quot;est&quot;) %&gt;% 
-    filter(est &gt; 0) %&gt;% 
-    summarize(dbl_est_mean = mean(est),
-              dbl_est_sd = sd(est),
-              dbl_est_high = mean(est) + sd(est),
-              dbl_est_low = mean(est) - sd(est))
+    as_tibble() |&gt; 
+    rename(amr_dbl_est = V1) |&gt; 
+    filter(amr_dbl_est &gt; 0) |&gt; 
+    bind_cols(mean_estimate_no_zero) |&gt; 
+    mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |&gt; 
+    summarize(amr_mean_perc_diff_when_doubled = scales::percent(mean(amr_est_diff)), amd_std_diff_when_doubled = scales::percent(sd(amr_est_diff)))
   
   mean_value &lt;- ifelse(str_detect(y, &quot;ln_&quot;), exp( amr_means %&gt;% pull(y)),  amr_means %&gt;% pull(y))
   
-  tibble(var = y, mean_value = mean_value) %&gt;% 
-    bind_cols(mean_estimate_no_zero, dbl_estimate_no_zero) %&gt;% 
-    mutate( diff_mean = (dbl_est_mean - est_mean)/est_mean,
-            diff_high = (dbl_est_high - est_high)/est_high,
-            diff_low = (dbl_est_low - est_low)/est_low
-    )
+  tibble(var = y, mean_var_value = mean_value) %&gt;% 
+    bind_cols(dbl_estimate_no_zero) %&gt;% 
+    mutate_if(.predicate = is.numeric, ~signif(., digits = 2))
 }) %&gt;% 
   knitr::kable()</code></pre>
+<pre><code>## Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair`
+## is omitted as of tibble 2.0.0.
+## ℹ Using compatibility `.name_repair`.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
 <table>
 <colgroup>
-<col width="30%" />
-<col width="6%" />
-<col width="4%" />
-<col width="4%" />
-<col width="4%" />
-<col width="4%" />
-<col width="6%" />
-<col width="5%" />
-<col width="6%" />
-<col width="6%" />
-<col width="5%" />
-<col width="5%" />
-<col width="5%" />
+<col width="34%" />
+<col width="13%" />
+<col width="28%" />
+<col width="23%" />
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">var</th>
-<th align="right">mean_value</th>
-<th align="right">est_mean</th>
-<th align="right">est_sd</th>
-<th align="right">est_high</th>
-<th align="right">est_low</th>
-<th align="right">dbl_est_mean</th>
-<th align="right">dbl_est_sd</th>
-<th align="right">dbl_est_high</th>
-<th align="right">dbl_est_low</th>
-<th align="right">diff_mean</th>
-<th align="right">diff_high</th>
-<th align="right">diff_low</th>
+<th align="right">mean_var_value</th>
+<th align="left">amr_mean_perc_diff_when_doubled</th>
+<th align="left">amd_std_diff_when_doubled</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td align="left">ln_pubcrawl_per_capita</td>
-<td align="right">1.590000e-05</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">11.279856</td>
-<td align="right">3.714432</td>
-<td align="right">14.994288</td>
-<td align="right">7.565424</td>
-<td align="right">-0.0636210</td>
-<td align="right">-0.0652000</td>
-<td align="right">-0.0604757</td>
+<td align="right">1.6e-05</td>
+<td align="left">-8%</td>
+<td align="left">36%</td>
 </tr>
 <tr class="even">
 <td align="left">ln_promed_mentions_per_capita</td>
-<td align="right">1.561000e-04</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">17.462760</td>
-<td align="right">6.068037</td>
-<td align="right">23.530798</td>
-<td align="right">11.394723</td>
-<td align="right">0.4496428</td>
-<td align="right">0.4669979</td>
-<td align="right">0.4150720</td>
+<td align="right">1.5e-04</td>
+<td align="left">13%</td>
+<td align="left">48%</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_gdp_per_capita</td>
-<td align="right">1.811616e+04</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">16.425278</td>
-<td align="right">5.389060</td>
-<td align="right">21.814338</td>
-<td align="right">11.036218</td>
-<td align="right">0.3635178</td>
-<td align="right">0.3599874</td>
-<td align="right">0.3705504</td>
+<td align="right">1.7e+04</td>
+<td align="left">20%</td>
+<td align="left">44%</td>
 </tr>
 <tr class="even">
 <td align="left">ln_population</td>
-<td align="right">4.473884e+06</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">24.097856</td>
-<td align="right">6.296335</td>
-<td align="right">30.394192</td>
-<td align="right">17.801521</td>
-<td align="right">1.0004445</td>
-<td align="right">0.8948875</td>
-<td align="right">1.2107104</td>
+<td align="right">4.6e+06</td>
+<td align="left">100%</td>
+<td align="left">61%</td>
 </tr>
 <tr class="odd">
 <td align="left">english_spoken</td>
-<td align="right">5.113636e-01</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">10.107855</td>
-<td align="right">3.477842</td>
-<td align="right">13.585697</td>
-<td align="right">6.630013</td>
-<td align="right">-0.1609128</td>
-<td align="right">-0.1530168</td>
-<td align="right">-0.1766412</td>
+<td align="right">5.1e-01</td>
+<td align="left">1%</td>
+<td align="left">37%</td>
 </tr>
 <tr class="even">
 <td align="left">ln_livestock_consumption_kg_per_capita</td>
-<td align="right">7.976400e-03</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">8.790197</td>
-<td align="right">3.314780</td>
-<td align="right">12.104978</td>
-<td align="right">5.475417</td>
-<td align="right">-0.2702960</td>
-<td align="right">-0.2453304</td>
-<td align="right">-0.3200266</td>
+<td align="right">8.4e-03</td>
+<td align="left">-26%</td>
+<td align="left">31%</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_migrant_pop_per_capita</td>
-<td align="right">8.137650e-02</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">11.324691</td>
-<td align="right">3.776115</td>
-<td align="right">15.100807</td>
-<td align="right">7.548576</td>
-<td align="right">-0.0598991</td>
-<td align="right">-0.0585593</td>
-<td align="right">-0.0625680</td>
+<td align="right">7.7e-02</td>
+<td align="left">7%</td>
+<td align="left">40%</td>
 </tr>
 <tr class="even">
 <td align="left">ln_tourism_inbound_per_capita</td>
-<td align="right">1.449098e+00</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">15.151079</td>
-<td align="right">4.785269</td>
-<td align="right">19.936348</td>
-<td align="right">10.365810</td>
-<td align="right">0.2577423</td>
-<td align="right">0.2429064</td>
-<td align="right">0.2872948</td>
+<td align="right">1.3e+00</td>
+<td align="left">22%</td>
+<td align="left">44%</td>
 </tr>
 <tr class="odd">
 <td align="left">ln_ab_export_per_capita</td>
-<td align="right">1.901370e-02</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">11.083311</td>
-<td align="right">3.767516</td>
-<td align="right">14.850827</td>
-<td align="right">7.315795</td>
-<td align="right">-0.0799369</td>
-<td align="right">-0.0741440</td>
-<td align="right">-0.0914763</td>
+<td align="right">1.5e-01</td>
+<td align="left">-7%</td>
+<td align="left">37%</td>
 </tr>
 <tr class="even">
 <td align="left">health_expend_perc</td>
-<td align="right">7.224769e+00</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">4.178396</td>
-<td align="right">2.150987</td>
-<td align="right">6.329383</td>
-<td align="right">2.027408</td>
-<td align="right">-0.6531373</td>
-<td align="right">-0.6054026</td>
-<td align="right">-0.7482230</td>
+<td align="right">6.9e+00</td>
+<td align="left">-48%</td>
+<td align="left">27%</td>
 </tr>
 <tr class="odd">
 <td align="left">human_consumption_ddd</td>
-<td align="right">7.530652e+00</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">16.006692</td>
-<td align="right">5.742497</td>
-<td align="right">21.749190</td>
-<td align="right">10.264195</td>
-<td align="right">0.3287696</td>
-<td align="right">0.3559258</td>
-<td align="right">0.2746755</td>
-</tr>
-<tr class="even">
-<td align="left">ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita</td>
-<td align="right">0.000000e+00</td>
-<td align="right">12.04625</td>
-<td align="right">3.993853</td>
-<td align="right">16.0401</td>
-<td align="right">8.052398</td>
-<td align="right">12.062483</td>
-<td align="right">4.018084</td>
-<td align="right">16.080568</td>
-<td align="right">8.044399</td>
-<td align="right">0.0013475</td>
-<td align="right">0.0025227</td>
-<td align="right">-0.0009934</td>
+<td align="right">7.3e+00</td>
+<td align="left">36%</td>
+<td align="left">50%</td>
 </tr>
 </tbody>
 </table>
+<pre class="r"><code># doubling livestock at low gdp
+
+gdp &lt;- quantile(data_mice_compl_3$ln_gdp_per_capita, 0.05)
+
+dbl_estimate &lt;- amr_means %&gt;%
+  mutate(ln_gdp_per_capita = gdp) |&gt; 
+  mutate(ln_livestock_consumption_kg_per_capita = log(exp(ln_livestock_consumption_kg_per_capita) * 2)) %&gt;%
+  predict(mod_comb_3, newdata = ., summary = FALSE)
+
+dbl_estimate_no_zero &lt;- dbl_estimate %&gt;% 
+  as_tibble() |&gt; 
+  rename(amr_dbl_est = V1) |&gt; 
+  filter(amr_dbl_est &gt; 0) |&gt; 
+  bind_cols(mean_estimate_no_zero) |&gt; 
+  mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |&gt; 
+  summarize(amr_mean_perc_diff_when_doubled = scales::percent(mean(amr_est_diff)), amd_std_diff_when_doubled = scales::percent(sd(amr_est_diff)))
+
+
+# when does relationship between livestock and amr become positive?
+coef_livestock &lt;- log(coefs_3$est[coefs_3$term == &quot;ln_livestock_consumption_kg_per_capita&quot;])
+coef_gdp &lt;- log(coefs_3$est[coefs_3$term == &quot;ln_gdp_per_capita&quot; &amp; coefs_3$wrap.facet == &quot;Conditional Model&quot;])
+coef_interaction &lt;- log(coefs_3$est[coefs_3$term == &quot;ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita&quot;])
+
+
+# livestock OR = b1x1 + b3x1x2
+# where b1 = coef_livestock; x1 = livestock; b3 = coef_interaction; x2 = gdp
+# x1 = 1
+# when gdp = 0, OR = b1
+# when gdp = 1, OR = b1 + b3
+# when gdp = 2, OR = b1 + 2 * b3
+# what value of x2 (gdp) corresponds to OR of 0?
+# x2 = (0-b1)/b3
+pos_point &lt;- (0 - coef_livestock)/coef_interaction
+exp(pos_point)</code></pre>
+<pre><code>## [1] 45631.85</code></pre>
 <p>Differences between predicted versus actual</p>
 <pre class="r"><code>loadd(predicted_versus_actual_diff_3)
 
@@ -1087,16 +988,29 @@ predicted_versus_actual_diff_3 %&gt;%
 <pre><code>## # A tibble: 1 × 1
 ##   percent_predicted_greater
 ##                       &lt;dbl&gt;
-## 1                     0.773</code></pre>
-<pre class="r"><code>predicted_versus_actual_diff_3 %&gt;% View
-
-predicted_versus_actual_diff_3 %&gt;% 
+## 1                     0.737</code></pre>
+<pre class="r"><code>predicted_versus_actual_diff_3 </code></pre>
+<pre><code>## # A tibble: 95 × 10
+##    iso3c v           med     lo     hi continent country            n_amr…¹  diff count…²
+##    &lt;chr&gt; &lt;chr&gt;     &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;                &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;  
+##  1 RUS   mean_pop 155.    82.0  266.   Europe    Russia                   0 155.  Russia…
+##  2 SAU   mean_pop  95.4   47.8  186.   Asia      Saudi Arabia             0  95.4 Saudi …
+##  3 CAN   mean_pop  38.7   31.3   47.4  Americas  Canada                  98 -59.3 Canada…
+##  4 AZE   mean_pop  48.9   17.5  183.   Asia      Azerbaijan               0  48.9 Azerba…
+##  5 GBR   mean_pop  67.9   50.4   83.2  Europe    United Kingdom          22  45.9 United…
+##  6 USA   mean_pop 176.   149.   201.   Americas  United States          132  43.5 United…
+##  7 TKM   mean_pop  41.9   13.8  182.   Asia      Turkmenistan             0  41.9 Turkme…
+##  8 NOR   mean_pop   5.16   3.05   9.33 Europe    Norway                  39 -33.8 Norway…
+##  9 ARE   mean_pop  30.6   22.0   41.4  Asia      United Arab Emira…       0  30.6 United…
+## 10 IRL   mean_pop   7.43   5.85   9.68 Europe    Ireland                 38 -30.6 Irelan…
+## # … with 85 more rows, and abbreviated variable names ¹​n_amr_events, ²​country_lab</code></pre>
+<pre class="r"><code>predicted_versus_actual_diff_3 %&gt;% 
   select(-iso3c, -v, -country) %&gt;% 
   select(country_lab, continent, everything()) %&gt;% 
   knitr::kable()</code></pre>
 <table>
 <colgroup>
-<col width="32%" />
+<col width="31%" />
 <col width="9%" />
 <col width="11%" />
 <col width="11%" />
@@ -1117,796 +1031,859 @@ predicted_versus_actual_diff_3 %&gt;%
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Russia (106 - 369)</td>
+<td align="left">Russia (82 - 266)</td>
 <td align="left">Europe</td>
-<td align="right">198.8177142</td>
-<td align="right">106.2794063</td>
-<td align="right">369.1446945</td>
+<td align="right">154.6550592</td>
+<td align="right">82.0126061</td>
+<td align="right">265.9778400</td>
 <td align="right">0</td>
-<td align="right">198.8177142</td>
+<td align="right">154.6550592</td>
 </tr>
 <tr class="even">
-<td align="left">Saudi Arabia (92 - 401)</td>
+<td align="left">Saudi Arabia (48 - 186)</td>
 <td align="left">Asia</td>
-<td align="right">194.8473400</td>
-<td align="right">92.2260178</td>
-<td align="right">401.4221830</td>
+<td align="right">95.4081367</td>
+<td align="right">47.7734267</td>
+<td align="right">186.1606093</td>
 <td align="right">0</td>
-<td align="right">194.8473400</td>
+<td align="right">95.4081367</td>
 </tr>
 <tr class="odd">
-<td align="left">Canada (38 - 57)</td>
+<td align="left">Canada (31 - 47)</td>
 <td align="left">Americas</td>
-<td align="right">46.6372545</td>
-<td align="right">37.7883103</td>
-<td align="right">57.4279790</td>
+<td align="right">38.7044970</td>
+<td align="right">31.2649102</td>
+<td align="right">47.3751302</td>
 <td align="right">98</td>
-<td align="right">-51.3627455</td>
+<td align="right">-59.2955030</td>
 </tr>
 <tr class="even">
-<td align="left">Turkmenistan (18 - 108)</td>
+<td align="left">Azerbaijan (17 - 183)</td>
 <td align="left">Asia</td>
-<td align="right">49.3023268</td>
-<td align="right">18.2848066</td>
-<td align="right">107.5667525</td>
+<td align="right">48.9402508</td>
+<td align="right">17.4949330</td>
+<td align="right">183.2065719</td>
 <td align="right">0</td>
-<td align="right">49.3023268</td>
+<td align="right">48.9402508</td>
 </tr>
 <tr class="odd">
-<td align="left">Equatorial Guinea (9 - 134)</td>
-<td align="left">Africa</td>
-<td align="right">41.7725900</td>
-<td align="right">9.3414955</td>
-<td align="right">134.1538124</td>
-<td align="right">0</td>
-<td align="right">41.7725900</td>
-</tr>
-<tr class="even">
-<td align="left">Kazakhstan (23 - 66)</td>
-<td align="left">Asia</td>
-<td align="right">40.7668423</td>
-<td align="right">23.0207580</td>
-<td align="right">65.5548399</td>
-<td align="right">0</td>
-<td align="right">40.7668423</td>
-</tr>
-<tr class="odd">
-<td align="left">United Kingdom (47 - 75)</td>
+<td align="left">United Kingdom (50 - 83)</td>
 <td align="left">Europe</td>
-<td align="right">60.1505810</td>
-<td align="right">47.0476123</td>
-<td align="right">74.7360941</td>
+<td align="right">67.8666290</td>
+<td align="right">50.3975574</td>
+<td align="right">83.2410056</td>
 <td align="right">22</td>
-<td align="right">38.1505810</td>
+<td align="right">45.8666290</td>
 </tr>
 <tr class="even">
-<td align="left">Germany (45 - 71)</td>
-<td align="left">Europe</td>
-<td align="right">58.2930451</td>
-<td align="right">45.0190199</td>
-<td align="right">71.2430177</td>
-<td align="right">21</td>
-<td align="right">37.2930451</td>
-</tr>
-<tr class="odd">
-<td align="left">Japan (28 - 52)</td>
-<td align="left">Asia</td>
-<td align="right">38.3349930</td>
-<td align="right">27.5002450</td>
-<td align="right">51.7990030</td>
-<td align="right">75</td>
-<td align="right">-36.6650070</td>
-</tr>
-<tr class="even">
-<td align="left">Botswana (12 - 77)</td>
-<td align="left">Africa</td>
-<td align="right">36.0178588</td>
-<td align="right">12.0824542</td>
-<td align="right">77.4477672</td>
-<td align="right">0</td>
-<td align="right">36.0178588</td>
-</tr>
-<tr class="odd">
-<td align="left">Australia (32 - 58)</td>
-<td align="left">Oceania</td>
-<td align="right">42.9281952</td>
-<td align="right">32.1015539</td>
-<td align="right">57.7215185</td>
-<td align="right">9</td>
-<td align="right">33.9281952</td>
-</tr>
-<tr class="even">
-<td align="left">United States (142 - 195)</td>
+<td align="left">United States (149 - 201)</td>
 <td align="left">Americas</td>
-<td align="right">165.6479635</td>
-<td align="right">141.6640233</td>
-<td align="right">194.5633468</td>
+<td align="right">175.5155882</td>
+<td align="right">148.8890727</td>
+<td align="right">201.1953677</td>
 <td align="right">132</td>
-<td align="right">33.6479635</td>
+<td align="right">43.5155882</td>
 </tr>
 <tr class="odd">
-<td align="left">Norway (3 - 11)</td>
+<td align="left">Turkmenistan (14 - 182)</td>
+<td align="left">Asia</td>
+<td align="right">41.9437281</td>
+<td align="right">13.8211161</td>
+<td align="right">181.5375037</td>
+<td align="right">0</td>
+<td align="right">41.9437281</td>
+</tr>
+<tr class="even">
+<td align="left">Norway (3 - 9)</td>
 <td align="left">Europe</td>
-<td align="right">5.6600740</td>
-<td align="right">3.4057817</td>
-<td align="right">11.1648916</td>
+<td align="right">5.1624557</td>
+<td align="right">3.0478018</td>
+<td align="right">9.3325095</td>
 <td align="right">39</td>
-<td align="right">-33.3399260</td>
-</tr>
-<tr class="even">
-<td align="left">Gabon (13 - 55)</td>
-<td align="left">Africa</td>
-<td align="right">29.7995572</td>
-<td align="right">13.1645201</td>
-<td align="right">55.2352128</td>
-<td align="right">0</td>
-<td align="right">29.7995572</td>
+<td align="right">-33.8375443</td>
 </tr>
 <tr class="odd">
-<td align="left">United Arab Emirates (22 - 40)</td>
+<td align="left">United Arab Emirates (22 - 41)</td>
 <td align="left">Asia</td>
-<td align="right">29.7924349</td>
-<td align="right">21.9832270</td>
-<td align="right">39.5008170</td>
+<td align="right">30.6067680</td>
+<td align="right">22.0419224</td>
+<td align="right">41.4454764</td>
 <td align="right">0</td>
-<td align="right">29.7924349</td>
+<td align="right">30.6067680</td>
 </tr>
 <tr class="even">
-<td align="left">Ireland (8 - 23)</td>
+<td align="left">Ireland (6 - 10)</td>
 <td align="left">Europe</td>
-<td align="right">12.7122328</td>
-<td align="right">8.1757413</td>
-<td align="right">22.7277391</td>
+<td align="right">7.4304129</td>
+<td align="right">5.8495711</td>
+<td align="right">9.6750345</td>
 <td align="right">38</td>
-<td align="right">-25.2877672</td>
+<td align="right">-30.5695871</td>
 </tr>
 <tr class="odd">
-<td align="left">Poland (27 - 51)</td>
-<td align="left">Europe</td>
-<td align="right">38.7318506</td>
-<td align="right">26.8775226</td>
-<td align="right">50.7101259</td>
-<td align="right">14</td>
-<td align="right">24.7318506</td>
+<td align="left">Japan (33 - 59)</td>
+<td align="left">Asia</td>
+<td align="right">45.0314301</td>
+<td align="right">33.3380344</td>
+<td align="right">59.4341738</td>
+<td align="right">75</td>
+<td align="right">-29.9685699</td>
 </tr>
 <tr class="even">
-<td align="left">Bahrain (13 - 41)</td>
-<td align="left">Asia</td>
-<td align="right">24.0223422</td>
-<td align="right">12.9000014</td>
-<td align="right">40.6885896</td>
-<td align="right">0</td>
-<td align="right">24.0223422</td>
-</tr>
-<tr class="odd">
-<td align="left">Qatar (12 - 33)</td>
-<td align="left">Asia</td>
-<td align="right">21.4691633</td>
-<td align="right">12.2139398</td>
-<td align="right">33.3313362</td>
-<td align="right">0</td>
-<td align="right">21.4691633</td>
-</tr>
-<tr class="even">
-<td align="left">Mexico (21 - 44)</td>
-<td align="left">Americas</td>
-<td align="right">31.5574904</td>
-<td align="right">21.4289523</td>
-<td align="right">44.0157426</td>
-<td align="right">11</td>
-<td align="right">20.5574904</td>
-</tr>
-<tr class="odd">
-<td align="left">France (66 - 103)</td>
+<td align="left">France (78 - 116)</td>
 <td align="left">Europe</td>
-<td align="right">86.4542906</td>
-<td align="right">65.6356043</td>
-<td align="right">102.9410463</td>
+<td align="right">96.7638656</td>
+<td align="right">78.1950845</td>
+<td align="right">115.7826965</td>
 <td align="right">67</td>
-<td align="right">19.4542906</td>
+<td align="right">29.7638656</td>
+</tr>
+<tr class="odd">
+<td align="left">Kazakhstan (21 - 40)</td>
+<td align="left">Asia</td>
+<td align="right">29.1599062</td>
+<td align="right">20.8804188</td>
+<td align="right">39.8441470</td>
+<td align="right">0</td>
+<td align="right">29.1599062</td>
 </tr>
 <tr class="even">
-<td align="left">Bahamas (4 - 49)</td>
+<td align="left">Germany (36 - 62)</td>
+<td align="left">Europe</td>
+<td align="right">48.5755073</td>
+<td align="right">36.4484925</td>
+<td align="right">62.3969530</td>
+<td align="right">21</td>
+<td align="right">27.5755073</td>
+</tr>
+<tr class="odd">
+<td align="left">Mexico (28 - 52)</td>
 <td align="left">Americas</td>
-<td align="right">17.4951742</td>
-<td align="right">4.4362524</td>
-<td align="right">49.0490136</td>
-<td align="right">0</td>
-<td align="right">17.4951742</td>
-</tr>
-<tr class="odd">
-<td align="left">Greece (14 - 26)</td>
-<td align="left">Europe</td>
-<td align="right">18.5702323</td>
-<td align="right">13.9277237</td>
-<td align="right">25.7292353</td>
-<td align="right">36</td>
-<td align="right">-17.4297677</td>
+<td align="right">37.5702948</td>
+<td align="right">28.4621969</td>
+<td align="right">51.9866556</td>
+<td align="right">11</td>
+<td align="right">26.5702948</td>
 </tr>
 <tr class="even">
-<td align="left">Slovakia (9 - 26)</td>
-<td align="left">Europe</td>
-<td align="right">16.9470130</td>
-<td align="right">9.2144239</td>
-<td align="right">26.2780351</td>
-<td align="right">0</td>
-<td align="right">16.9470130</td>
-</tr>
-<tr class="odd">
-<td align="left">Argentina (4 - 14)</td>
-<td align="left">Americas</td>
-<td align="right">8.2171426</td>
-<td align="right">4.4595470</td>
-<td align="right">13.6982938</td>
-<td align="right">25</td>
-<td align="right">-16.7828574</td>
-</tr>
-<tr class="even">
-<td align="left">Latvia (8 - 26)</td>
-<td align="left">Europe</td>
-<td align="right">15.7766727</td>
-<td align="right">7.7395028</td>
-<td align="right">26.2261105</td>
-<td align="right">0</td>
-<td align="right">15.7766727</td>
-</tr>
-<tr class="odd">
-<td align="left">Lebanon (10 - 29)</td>
-<td align="left">Asia</td>
-<td align="right">18.6521399</td>
-<td align="right">10.2237069</td>
-<td align="right">29.3475982</td>
-<td align="right">34</td>
-<td align="right">-15.3478601</td>
-</tr>
-<tr class="even">
-<td align="left">Kuwait (14 - 35)</td>
-<td align="left">Asia</td>
-<td align="right">22.3891160</td>
-<td align="right">13.6234290</td>
-<td align="right">34.9140894</td>
-<td align="right">8</td>
-<td align="right">14.3891160</td>
-</tr>
-<tr class="odd">
-<td align="left">Singapore (10 - 25)</td>
-<td align="left">Asia</td>
-<td align="right">15.4891022</td>
-<td align="right">9.5196937</td>
-<td align="right">25.2614745</td>
-<td align="right">2</td>
-<td align="right">13.4891022</td>
-</tr>
-<tr class="even">
-<td align="left">Brazil (30 - 100)</td>
-<td align="left">Americas</td>
-<td align="right">62.4441209</td>
-<td align="right">29.6541736</td>
-<td align="right">99.6273483</td>
-<td align="right">49</td>
-<td align="right">13.4441209</td>
-</tr>
-<tr class="odd">
-<td align="left">Romania (10 - 17)</td>
-<td align="left">Europe</td>
-<td align="right">13.1238202</td>
-<td align="right">9.7711685</td>
-<td align="right">17.1052617</td>
-<td align="right">0</td>
-<td align="right">13.1238202</td>
-</tr>
-<tr class="even">
-<td align="left">Spain (37 - 62)</td>
-<td align="left">Europe</td>
-<td align="right">49.5242526</td>
-<td align="right">36.6216500</td>
-<td align="right">62.2316795</td>
-<td align="right">62</td>
-<td align="right">-12.4757474</td>
-</tr>
-<tr class="odd">
-<td align="left">Lithuania (6 - 19)</td>
-<td align="left">Europe</td>
-<td align="right">12.1065743</td>
-<td align="right">6.3023066</td>
-<td align="right">19.4147019</td>
-<td align="right">0</td>
-<td align="right">12.1065743</td>
-</tr>
-<tr class="even">
-<td align="left">South Korea (26 - 45)</td>
-<td align="left">Asia</td>
-<td align="right">33.9995109</td>
-<td align="right">25.8132566</td>
-<td align="right">45.4026965</td>
-<td align="right">46</td>
-<td align="right">-12.0004891</td>
-</tr>
-<tr class="odd">
-<td align="left">Israel (9 - 17)</td>
-<td align="left">Asia</td>
-<td align="right">11.9448501</td>
-<td align="right">8.8493205</td>
-<td align="right">17.0013050</td>
-<td align="right">0</td>
-<td align="right">11.9448501</td>
-</tr>
-<tr class="even">
-<td align="left">Italy (38 - 60)</td>
-<td align="left">Europe</td>
-<td align="right">47.2949314</td>
-<td align="right">38.1164397</td>
-<td align="right">59.6075799</td>
-<td align="right">59</td>
-<td align="right">-11.7050686</td>
-</tr>
-<tr class="odd">
-<td align="left">Thailand (4 - 29)</td>
-<td align="left">Asia</td>
-<td align="right">11.2310487</td>
-<td align="right">3.6808118</td>
-<td align="right">28.6858193</td>
-<td align="right">0</td>
-<td align="right">11.2310487</td>
-</tr>
-<tr class="even">
-<td align="left">Dominica (1 - 52)</td>
-<td align="left">Americas</td>
-<td align="right">10.9595879</td>
-<td align="right">1.3512715</td>
-<td align="right">52.0961171</td>
-<td align="right">0</td>
-<td align="right">10.9595879</td>
-</tr>
-<tr class="odd">
-<td align="left">St. Lucia (3 - 35)</td>
-<td align="left">Americas</td>
-<td align="right">10.6871554</td>
-<td align="right">2.5462408</td>
-<td align="right">35.3685082</td>
-<td align="right">0</td>
-<td align="right">10.6871554</td>
-</tr>
-<tr class="even">
-<td align="left">Colombia (3 - 8)</td>
-<td align="left">Americas</td>
-<td align="right">5.1929625</td>
-<td align="right">2.8914829</td>
-<td align="right">8.0054820</td>
-<td align="right">15</td>
-<td align="right">-9.8070375</td>
-</tr>
-<tr class="odd">
-<td align="left">Mauritius (3 - 22)</td>
-<td align="left">Africa</td>
-<td align="right">9.3542050</td>
-<td align="right">3.1462780</td>
-<td align="right">22.3908185</td>
-<td align="right">0</td>
-<td align="right">9.3542050</td>
-</tr>
-<tr class="even">
-<td align="left">Turkey (36 - 94)</td>
-<td align="left">Asia</td>
-<td align="right">58.1640536</td>
-<td align="right">36.0272907</td>
-<td align="right">94.0790261</td>
-<td align="right">49</td>
-<td align="right">9.1640536</td>
-</tr>
-<tr class="odd">
-<td align="left">Croatia (7 - 16)</td>
-<td align="left">Europe</td>
-<td align="right">11.2616917</td>
-<td align="right">7.1540459</td>
-<td align="right">16.0892010</td>
-<td align="right">20</td>
-<td align="right">-8.7383083</td>
-</tr>
-<tr class="even">
-<td align="left">Bulgaria (5 - 15)</td>
-<td align="left">Europe</td>
-<td align="right">9.3059174</td>
-<td align="right">4.9831894</td>
-<td align="right">15.1335818</td>
-<td align="right">18</td>
-<td align="right">-8.6940826</td>
-</tr>
-<tr class="odd">
-<td align="left">Sweden (8 - 19)</td>
-<td align="left">Europe</td>
-<td align="right">11.3984080</td>
-<td align="right">8.0025967</td>
-<td align="right">18.9532827</td>
-<td align="right">20</td>
-<td align="right">-8.6015920</td>
-</tr>
-<tr class="even">
-<td align="left">Peru (5 - 12)</td>
-<td align="left">Americas</td>
-<td align="right">8.5546279</td>
-<td align="right">4.7058194</td>
-<td align="right">12.4891683</td>
-<td align="right">0</td>
-<td align="right">8.5546279</td>
-</tr>
-<tr class="odd">
-<td align="left">China (106 - 152)</td>
-<td align="left">Asia</td>
-<td align="right">128.4153803</td>
-<td align="right">105.5449284</td>
-<td align="right">151.5853815</td>
-<td align="right">120</td>
-<td align="right">8.4153803</td>
-</tr>
-<tr class="even">
-<td align="left">Seychelles (1 - 30)</td>
-<td align="left">Africa</td>
-<td align="right">7.9248995</td>
-<td align="right">1.4259656</td>
-<td align="right">29.7655716</td>
-<td align="right">0</td>
-<td align="right">7.9248995</td>
-</tr>
-<tr class="odd">
-<td align="left">Brunei (4 - 15)</td>
-<td align="left">Asia</td>
-<td align="right">7.8099915</td>
-<td align="right">3.6814131</td>
-<td align="right">15.0808442</td>
-<td align="right">0</td>
-<td align="right">7.8099915</td>
-</tr>
-<tr class="even">
-<td align="left">Barbados (2 - 20)</td>
-<td align="left">Americas</td>
-<td align="right">7.6509447</td>
-<td align="right">2.3498800</td>
-<td align="right">20.2954136</td>
-<td align="right">0</td>
-<td align="right">7.6509447</td>
-</tr>
-<tr class="odd">
-<td align="left">New Zealand (6 - 11)</td>
+<td align="left">Australia (25 - 46)</td>
 <td align="left">Oceania</td>
-<td align="right">8.3625142</td>
-<td align="right">5.8710930</td>
-<td align="right">11.3209077</td>
-<td align="right">16</td>
-<td align="right">-7.6374858</td>
-</tr>
-<tr class="even">
-<td align="left">Costa Rica (5 - 12)</td>
-<td align="left">Americas</td>
-<td align="right">7.6084346</td>
-<td align="right">4.6396080</td>
-<td align="right">11.6640768</td>
-<td align="right">0</td>
-<td align="right">7.6084346</td>
-</tr>
-<tr class="odd">
-<td align="left">Estonia (4 - 10)</td>
-<td align="left">Europe</td>
-<td align="right">6.8117799</td>
-<td align="right">3.9928793</td>
-<td align="right">9.9606140</td>
-<td align="right">0</td>
-<td align="right">6.8117799</td>
-</tr>
-<tr class="even">
-<td align="left">Oman (4 - 12)</td>
-<td align="left">Asia</td>
-<td align="right">6.5514568</td>
-<td align="right">4.0774433</td>
-<td align="right">11.6726187</td>
-<td align="right">0</td>
-<td align="right">6.5514568</td>
-</tr>
-<tr class="odd">
-<td align="left">Uruguay (2 - 4)</td>
-<td align="left">Americas</td>
-<td align="right">2.9628311</td>
-<td align="right">1.8371530</td>
-<td align="right">3.9730807</td>
+<td align="right">34.2670726</td>
+<td align="right">24.5447595</td>
+<td align="right">45.6402584</td>
 <td align="right">9</td>
-<td align="right">-6.0371689</td>
-</tr>
-<tr class="even">
-<td align="left">Belgium (7 - 12)</td>
-<td align="left">Europe</td>
-<td align="right">9.5387434</td>
-<td align="right">7.4052433</td>
-<td align="right">12.0029537</td>
-<td align="right">15</td>
-<td align="right">-5.4612566</td>
+<td align="right">25.2670726</td>
 </tr>
 <tr class="odd">
-<td align="left">Grenada (1 - 18)</td>
-<td align="left">Americas</td>
-<td align="right">5.4529554</td>
-<td align="right">1.3142494</td>
-<td align="right">17.8843460</td>
-<td align="right">0</td>
-<td align="right">5.4529554</td>
-</tr>
-<tr class="even">
-<td align="left">Montenegro (2 - 11)</td>
-<td align="left">Europe</td>
-<td align="right">5.4474068</td>
-<td align="right">2.4218028</td>
-<td align="right">10.5100399</td>
-<td align="right">0</td>
-<td align="right">5.4474068</td>
-</tr>
-<tr class="odd">
-<td align="left">Switzerland (3 - 10)</td>
-<td align="left">Europe</td>
-<td align="right">5.2912885</td>
-<td align="right">3.0362980</td>
-<td align="right">10.1821651</td>
-<td align="right">0</td>
-<td align="right">5.2912885</td>
-</tr>
-<tr class="even">
-<td align="left">Hungary (3 - 10)</td>
-<td align="left">Europe</td>
-<td align="right">5.1214498</td>
-<td align="right">2.5916571</td>
-<td align="right">9.7723708</td>
-<td align="right">0</td>
-<td align="right">5.1214498</td>
-</tr>
-<tr class="odd">
-<td align="left">Antigua &amp; Barbuda (2 - 14)</td>
-<td align="left">Americas</td>
-<td align="right">5.0765262</td>
-<td align="right">1.5212978</td>
-<td align="right">13.9441559</td>
-<td align="right">0</td>
-<td align="right">5.0765262</td>
-</tr>
-<tr class="even">
-<td align="left">Dominican Republic (2 - 8)</td>
-<td align="left">Americas</td>
-<td align="right">5.0441185</td>
-<td align="right">2.2980473</td>
-<td align="right">8.1404610</td>
-<td align="right">0</td>
-<td align="right">5.0441185</td>
-</tr>
-<tr class="odd">
-<td align="left">Iceland (1 - 9)</td>
-<td align="left">Europe</td>
-<td align="right">4.0887331</td>
-<td align="right">1.0395985</td>
-<td align="right">8.7040354</td>
-<td align="right">0</td>
-<td align="right">4.0887331</td>
-</tr>
-<tr class="even">
-<td align="left">St. Vincent &amp; Grenadines (1 - 13)</td>
-<td align="left">Americas</td>
-<td align="right">3.8844422</td>
-<td align="right">0.9128542</td>
-<td align="right">12.5865689</td>
-<td align="right">0</td>
-<td align="right">3.8844422</td>
-</tr>
-<tr class="odd">
-<td align="left">Maldives (1 - 8)</td>
+<td align="left">Thailand (12 - 48)</td>
 <td align="left">Asia</td>
-<td align="right">3.3086352</td>
-<td align="right">1.4576446</td>
-<td align="right">7.5662290</td>
+<td align="right">22.2861994</td>
+<td align="right">12.3865541</td>
+<td align="right">48.4178127</td>
 <td align="right">0</td>
-<td align="right">3.3086352</td>
+<td align="right">22.2861994</td>
+</tr>
+<tr class="even">
+<td align="left">Poland (26 - 42)</td>
+<td align="left">Europe</td>
+<td align="right">33.4897231</td>
+<td align="right">25.5611767</td>
+<td align="right">41.8468930</td>
+<td align="right">14</td>
+<td align="right">19.4897231</td>
+</tr>
+<tr class="odd">
+<td align="left">Lebanon (10 - 26)</td>
+<td align="left">Asia</td>
+<td align="right">15.0079351</td>
+<td align="right">10.2483317</td>
+<td align="right">25.5840682</td>
+<td align="right">34</td>
+<td align="right">-18.9920649</td>
+</tr>
+<tr class="even">
+<td align="left">Turkey (45 - 96)</td>
+<td align="left">Asia</td>
+<td align="right">66.5005000</td>
+<td align="right">44.6040352</td>
+<td align="right">96.2837308</td>
+<td align="right">49</td>
+<td align="right">17.5005000</td>
+</tr>
+<tr class="odd">
+<td align="left">Libya (8 - 36)</td>
+<td align="left">Africa</td>
+<td align="right">17.2422345</td>
+<td align="right">8.3377277</td>
+<td align="right">36.0030231</td>
+<td align="right">0</td>
+<td align="right">17.2422345</td>
+</tr>
+<tr class="even">
+<td align="left">Gabon (7 - 41)</td>
+<td align="left">Africa</td>
+<td align="right">16.1823310</td>
+<td align="right">6.5146214</td>
+<td align="right">40.9292942</td>
+<td align="right">0</td>
+<td align="right">16.1823310</td>
+</tr>
+<tr class="odd">
+<td align="left">Malaysia (13 - 30)</td>
+<td align="left">Asia</td>
+<td align="right">19.9486380</td>
+<td align="right">12.8105687</td>
+<td align="right">30.3302010</td>
+<td align="right">5</td>
+<td align="right">14.9486380</td>
+</tr>
+<tr class="even">
+<td align="left">Singapore (9 - 26)</td>
+<td align="left">Asia</td>
+<td align="right">15.8270504</td>
+<td align="right">8.8085120</td>
+<td align="right">25.9832851</td>
+<td align="right">2</td>
+<td align="right">13.8270504</td>
+</tr>
+<tr class="odd">
+<td align="left">Iran (12 - 31)</td>
+<td align="left">Asia</td>
+<td align="right">19.6678952</td>
+<td align="right">11.9145773</td>
+<td align="right">31.3450809</td>
+<td align="right">33</td>
+<td align="right">-13.3321048</td>
+</tr>
+<tr class="even">
+<td align="left">Qatar (9 - 19)</td>
+<td align="left">Asia</td>
+<td align="right">13.0506113</td>
+<td align="right">8.9658179</td>
+<td align="right">18.8917910</td>
+<td align="right">0</td>
+<td align="right">13.0506113</td>
+</tr>
+<tr class="odd">
+<td align="left">Greece (18 - 29)</td>
+<td align="left">Europe</td>
+<td align="right">23.0238268</td>
+<td align="right">18.0535082</td>
+<td align="right">28.9525817</td>
+<td align="right">36</td>
+<td align="right">-12.9761732</td>
+</tr>
+<tr class="even">
+<td align="left">Slovakia (8 - 19)</td>
+<td align="left">Europe</td>
+<td align="right">12.7150750</td>
+<td align="right">8.0370357</td>
+<td align="right">19.0738831</td>
+<td align="right">0</td>
+<td align="right">12.7150750</td>
+</tr>
+<tr class="odd">
+<td align="left">South Korea (24 - 45)</td>
+<td align="left">Asia</td>
+<td align="right">34.2336058</td>
+<td align="right">23.9281459</td>
+<td align="right">45.2367844</td>
+<td align="right">46</td>
+<td align="right">-11.7663942</td>
+</tr>
+<tr class="even">
+<td align="left">Argentina (10 - 19)</td>
+<td align="left">Americas</td>
+<td align="right">13.7428331</td>
+<td align="right">9.8059349</td>
+<td align="right">19.1542776</td>
+<td align="right">25</td>
+<td align="right">-11.2571669</td>
+</tr>
+<tr class="odd">
+<td align="left">Bulgaria (3 - 11)</td>
+<td align="left">Europe</td>
+<td align="right">6.8050858</td>
+<td align="right">3.2200554</td>
+<td align="right">11.1935545</td>
+<td align="right">18</td>
+<td align="right">-11.1949142</td>
+</tr>
+<tr class="even">
+<td align="left">Israel (8 - 15)</td>
+<td align="left">Asia</td>
+<td align="right">11.1143913</td>
+<td align="right">7.5633153</td>
+<td align="right">14.7153600</td>
+<td align="right">0</td>
+<td align="right">11.1143913</td>
+</tr>
+<tr class="odd">
+<td align="left">Romania (7 - 15)</td>
+<td align="left">Europe</td>
+<td align="right">10.2504267</td>
+<td align="right">7.0730547</td>
+<td align="right">14.7157503</td>
+<td align="right">0</td>
+<td align="right">10.2504267</td>
+</tr>
+<tr class="even">
+<td align="left">Bahamas (3 - 41)</td>
+<td align="left">Americas</td>
+<td align="right">10.0772661</td>
+<td align="right">2.8817774</td>
+<td align="right">41.0738899</td>
+<td align="right">0</td>
+<td align="right">10.0772661</td>
+</tr>
+<tr class="odd">
+<td align="left">Spain (42 - 63)</td>
+<td align="left">Europe</td>
+<td align="right">52.0133367</td>
+<td align="right">41.6028332</td>
+<td align="right">63.3065513</td>
+<td align="right">62</td>
+<td align="right">-9.9866633</td>
+</tr>
+<tr class="even">
+<td align="left">New Zealand (5 - 9)</td>
+<td align="left">Oceania</td>
+<td align="right">6.5540775</td>
+<td align="right">4.7470418</td>
+<td align="right">9.3949842</td>
+<td align="right">16</td>
+<td align="right">-9.4459225</td>
+</tr>
+<tr class="odd">
+<td align="left">Latvia (5 - 19)</td>
+<td align="left">Europe</td>
+<td align="right">9.0320825</td>
+<td align="right">4.5473112</td>
+<td align="right">18.8838613</td>
+<td align="right">0</td>
+<td align="right">9.0320825</td>
+</tr>
+<tr class="even">
+<td align="left">Croatia (8 - 16)</td>
+<td align="left">Europe</td>
+<td align="right">11.1574189</td>
+<td align="right">8.2843872</td>
+<td align="right">15.5710044</td>
+<td align="right">20</td>
+<td align="right">-8.8425811</td>
+</tr>
+<tr class="odd">
+<td align="left">Kuwait (11 - 26)</td>
+<td align="left">Asia</td>
+<td align="right">16.7502473</td>
+<td align="right">10.8730682</td>
+<td align="right">25.6505663</td>
+<td align="right">8</td>
+<td align="right">8.7502473</td>
+</tr>
+<tr class="even">
+<td align="left">Hungary (5 - 14)</td>
+<td align="left">Europe</td>
+<td align="right">8.6620561</td>
+<td align="right">5.3775889</td>
+<td align="right">14.3563908</td>
+<td align="right">0</td>
+<td align="right">8.6620561</td>
+</tr>
+<tr class="odd">
+<td align="left">Bahrain (6 - 11)</td>
+<td align="left">Asia</td>
+<td align="right">8.3934225</td>
+<td align="right">6.3009050</td>
+<td align="right">11.1139861</td>
+<td align="right">0</td>
+<td align="right">8.3934225</td>
+</tr>
+<tr class="even">
+<td align="left">Oman (5 - 12)</td>
+<td align="left">Asia</td>
+<td align="right">8.1649190</td>
+<td align="right">4.7031719</td>
+<td align="right">12.0311600</td>
+<td align="right">0</td>
+<td align="right">8.1649190</td>
+</tr>
+<tr class="odd">
+<td align="left">Brazil (33 - 96)</td>
+<td align="left">Americas</td>
+<td align="right">57.1392557</td>
+<td align="right">32.9984470</td>
+<td align="right">96.1573617</td>
+<td align="right">49</td>
+<td align="right">8.1392557</td>
+</tr>
+<tr class="even">
+<td align="left">South Africa (12 - 26)</td>
+<td align="left">Africa</td>
+<td align="right">17.9453402</td>
+<td align="right">11.8947551</td>
+<td align="right">25.8329151</td>
+<td align="right">26</td>
+<td align="right">-8.0546598</td>
+</tr>
+<tr class="odd">
+<td align="left">Lithuania (4 - 16)</td>
+<td align="left">Europe</td>
+<td align="right">8.0504150</td>
+<td align="right">4.1622539</td>
+<td align="right">15.6560617</td>
+<td align="right">0</td>
+<td align="right">8.0504150</td>
+</tr>
+<tr class="even">
+<td align="left">Colombia (5 - 10)</td>
+<td align="left">Americas</td>
+<td align="right">6.9539794</td>
+<td align="right">5.0079565</td>
+<td align="right">10.1772288</td>
+<td align="right">15</td>
+<td align="right">-8.0460206</td>
+</tr>
+<tr class="odd">
+<td align="left">Serbia (4 - 13)</td>
+<td align="left">Europe</td>
+<td align="right">7.0486802</td>
+<td align="right">3.8544801</td>
+<td align="right">13.3196615</td>
+<td align="right">15</td>
+<td align="right">-7.9513198</td>
+</tr>
+<tr class="even">
+<td align="left">Costa Rica (5 - 15)</td>
+<td align="left">Americas</td>
+<td align="right">7.8721074</td>
+<td align="right">5.1248155</td>
+<td align="right">14.5161670</td>
+<td align="right">0</td>
+<td align="right">7.8721074</td>
+</tr>
+<tr class="odd">
+<td align="left">Uruguay (1 - 3)</td>
+<td align="left">Americas</td>
+<td align="right">1.8722486</td>
+<td align="right">1.3644647</td>
+<td align="right">2.6062336</td>
+<td align="right">9</td>
+<td align="right">-7.1277514</td>
+</tr>
+<tr class="even">
+<td align="left">Italy (43 - 64)</td>
+<td align="left">Europe</td>
+<td align="right">52.0849471</td>
+<td align="right">42.5510758</td>
+<td align="right">63.7082049</td>
+<td align="right">59</td>
+<td align="right">-6.9150529</td>
+</tr>
+<tr class="odd">
+<td align="left">Peru (4 - 10)</td>
+<td align="left">Americas</td>
+<td align="right">6.4444435</td>
+<td align="right">4.3593973</td>
+<td align="right">9.7011839</td>
+<td align="right">0</td>
+<td align="right">6.4444435</td>
+</tr>
+<tr class="even">
+<td align="left">Netherlands (11 - 19)</td>
+<td align="left">Europe</td>
+<td align="right">14.2814568</td>
+<td align="right">10.9241922</td>
+<td align="right">19.2155173</td>
+<td align="right">8</td>
+<td align="right">6.2814568</td>
+</tr>
+<tr class="odd">
+<td align="left">China (105 - 145)</td>
+<td align="left">Asia</td>
+<td align="right">125.4318742</td>
+<td align="right">105.3782011</td>
+<td align="right">144.9547710</td>
+<td align="right">120</td>
+<td align="right">5.4318742</td>
+</tr>
+<tr class="even">
+<td align="left">Equatorial Guinea (2 - 18)</td>
+<td align="left">Africa</td>
+<td align="right">5.4239992</td>
+<td align="right">1.9186894</td>
+<td align="right">17.9357276</td>
+<td align="right">0</td>
+<td align="right">5.4239992</td>
+</tr>
+<tr class="odd">
+<td align="left">Finland (6 - 12)</td>
+<td align="left">Europe</td>
+<td align="right">7.9687452</td>
+<td align="right">5.6229573</td>
+<td align="right">11.9739216</td>
+<td align="right">13</td>
+<td align="right">-5.0312548</td>
+</tr>
+<tr class="even">
+<td align="left">Dominican Republic (3 - 9)</td>
+<td align="left">Americas</td>
+<td align="right">4.9960870</td>
+<td align="right">2.8331881</td>
+<td align="right">8.9984364</td>
+<td align="right">0</td>
+<td align="right">4.9960870</td>
+</tr>
+<tr class="odd">
+<td align="left">Switzerland (3 - 8)</td>
+<td align="left">Europe</td>
+<td align="right">4.7818111</td>
+<td align="right">2.7650047</td>
+<td align="right">7.5146737</td>
+<td align="right">0</td>
+<td align="right">4.7818111</td>
+</tr>
+<tr class="even">
+<td align="left">Belgium (8 - 12)</td>
+<td align="left">Europe</td>
+<td align="right">10.3099437</td>
+<td align="right">8.2994944</td>
+<td align="right">12.2491052</td>
+<td align="right">15</td>
+<td align="right">-4.6900563</td>
+</tr>
+<tr class="odd">
+<td align="left">Sweden (10 - 25)</td>
+<td align="left">Europe</td>
+<td align="right">15.3306555</td>
+<td align="right">10.2059360</td>
+<td align="right">24.5284906</td>
+<td align="right">20</td>
+<td align="right">-4.6693445</td>
+</tr>
+<tr class="even">
+<td align="left">Estonia (3 - 8)</td>
+<td align="left">Europe</td>
+<td align="right">4.4599083</td>
+<td align="right">2.7752110</td>
+<td align="right">8.0488465</td>
+<td align="right">0</td>
+<td align="right">4.4599083</td>
+</tr>
+<tr class="odd">
+<td align="left">Maldives (2 - 20)</td>
+<td align="left">Asia</td>
+<td align="right">4.4208366</td>
+<td align="right">1.6564037</td>
+<td align="right">19.6587936</td>
+<td align="right">0</td>
+<td align="right">4.4208366</td>
+</tr>
+<tr class="even">
+<td align="left">Belarus (2 - 7)</td>
+<td align="left">Europe</td>
+<td align="right">4.2959939</td>
+<td align="right">2.4516011</td>
+<td align="right">7.3865641</td>
+<td align="right">0</td>
+<td align="right">4.2959939</td>
+</tr>
+<tr class="odd">
+<td align="left">Slovenia (4 - 11)</td>
+<td align="left">Europe</td>
+<td align="right">6.9771807</td>
+<td align="right">4.4200735</td>
+<td align="right">10.7478119</td>
+<td align="right">3</td>
+<td align="right">3.9771807</td>
+</tr>
+<tr class="even">
+<td align="left">Botswana (2 - 7)</td>
+<td align="left">Africa</td>
+<td align="right">3.8599451</td>
+<td align="right">2.0207615</td>
+<td align="right">7.0819535</td>
+<td align="right">0</td>
+<td align="right">3.8599451</td>
+</tr>
+<tr class="odd">
+<td align="left">Denmark (5 - 10)</td>
+<td align="left">Europe</td>
+<td align="right">7.2355763</td>
+<td align="right">5.3257361</td>
+<td align="right">9.6017615</td>
+<td align="right">11</td>
+<td align="right">-3.7644237</td>
+</tr>
+<tr class="even">
+<td align="left">Chile (6 - 10)</td>
+<td align="left">Americas</td>
+<td align="right">7.7570381</td>
+<td align="right">5.8566528</td>
+<td align="right">10.4968171</td>
+<td align="right">4</td>
+<td align="right">3.7570381</td>
+</tr>
+<tr class="odd">
+<td align="left">Ecuador (2 - 5)</td>
+<td align="left">Americas</td>
+<td align="right">3.3264897</td>
+<td align="right">2.0527475</td>
+<td align="right">5.4795824</td>
+<td align="right">0</td>
+<td align="right">3.3264897</td>
+</tr>
+<tr class="even">
+<td align="left">Mauritius (1 - 9)</td>
+<td align="left">Africa</td>
+<td align="right">3.2149285</td>
+<td align="right">1.3104648</td>
+<td align="right">9.3399184</td>
+<td align="right">0</td>
+<td align="right">3.2149285</td>
+</tr>
+<tr class="odd">
+<td align="left">Cuba (2 - 16)</td>
+<td align="left">Americas</td>
+<td align="right">5.9261087</td>
+<td align="right">2.3043501</td>
+<td align="right">15.8506457</td>
+<td align="right">9</td>
+<td align="right">-3.0738913</td>
+</tr>
+<tr class="even">
+<td align="left">Brunei (2 - 4)</td>
+<td align="left">Asia</td>
+<td align="right">2.8198211</td>
+<td align="right">1.9037751</td>
+<td align="right">4.2615954</td>
+<td align="right">0</td>
+<td align="right">2.8198211</td>
+</tr>
+<tr class="odd">
+<td align="left">Venezuela (6 - 15)</td>
+<td align="left">Americas</td>
+<td align="right">9.6752859</td>
+<td align="right">6.2746328</td>
+<td align="right">15.1516006</td>
+<td align="right">7</td>
+<td align="right">2.6752859</td>
+</tr>
+<tr class="even">
+<td align="left">Panama (1 - 4)</td>
+<td align="left">Americas</td>
+<td align="right">2.6305852</td>
+<td align="right">1.3913497</td>
+<td align="right">4.3656899</td>
+<td align="right">0</td>
+<td align="right">2.6305852</td>
+</tr>
+<tr class="odd">
+<td align="left">Czechia (11 - 20)</td>
+<td align="left">Europe</td>
+<td align="right">15.3856174</td>
+<td align="right">11.4983147</td>
+<td align="right">19.5817771</td>
+<td align="right">18</td>
+<td align="right">-2.6143826</td>
 </tr>
 <tr class="even">
 <td align="left">Portugal (9 - 13)</td>
 <td align="left">Europe</td>
-<td align="right">11.1329629</td>
-<td align="right">8.8914284</td>
-<td align="right">13.3471402</td>
+<td align="right">10.5328449</td>
+<td align="right">8.7788860</td>
+<td align="right">13.2351545</td>
 <td align="right">8</td>
-<td align="right">3.1329629</td>
-</tr>
-<tr class="odd">
-<td align="left">Finland (7 - 15)</td>
-<td align="left">Europe</td>
-<td align="right">9.9798193</td>
-<td align="right">6.9639648</td>
-<td align="right">15.0399728</td>
-<td align="right">13</td>
-<td align="right">-3.0201807</td>
-</tr>
-<tr class="even">
-<td align="left">Suriname (1 - 5)</td>
-<td align="left">Americas</td>
-<td align="right">2.9243638</td>
-<td align="right">1.3227481</td>
-<td align="right">5.3214008</td>
-<td align="right">0</td>
-<td align="right">2.9243638</td>
+<td align="right">2.5328449</td>
 </tr>
 <tr class="odd">
 <td align="left">Luxembourg (1 - 5)</td>
 <td align="left">Europe</td>
-<td align="right">2.5753220</td>
-<td align="right">1.2244270</td>
-<td align="right">4.9532878</td>
+<td align="right">2.5172176</td>
+<td align="right">1.0500362</td>
+<td align="right">5.1050703</td>
 <td align="right">0</td>
-<td align="right">2.5753220</td>
+<td align="right">2.5172176</td>
 </tr>
 <tr class="even">
-<td align="left">Andorra (1 - 5)</td>
-<td align="left">Europe</td>
-<td align="right">2.4183311</td>
-<td align="right">0.8774888</td>
-<td align="right">4.7873919</td>
+<td align="left">Grenada (1 - 12)</td>
+<td align="left">Americas</td>
+<td align="right">2.1079267</td>
+<td align="right">0.5902981</td>
+<td align="right">12.3220152</td>
 <td align="right">0</td>
-<td align="right">2.4183311</td>
+<td align="right">2.1079267</td>
 </tr>
 <tr class="odd">
-<td align="left">Austria (6 - 12)</td>
-<td align="left">Europe</td>
-<td align="right">8.3807300</td>
-<td align="right">6.2155509</td>
-<td align="right">12.2311435</td>
-<td align="right">6</td>
-<td align="right">2.3807300</td>
-</tr>
-<tr class="even">
-<td align="left">Panama (2 - 4)</td>
+<td align="left">Trinidad &amp; Tobago (2 - 6)</td>
 <td align="left">Americas</td>
-<td align="right">2.3049220</td>
-<td align="right">1.5228498</td>
-<td align="right">3.7790301</td>
-<td align="right">0</td>
-<td align="right">2.3049220</td>
-</tr>
-<tr class="odd">
-<td align="left">Ecuador (1 - 5)</td>
-<td align="left">Americas</td>
-<td align="right">2.1764398</td>
-<td align="right">0.8034921</td>
-<td align="right">4.7750704</td>
-<td align="right">0</td>
-<td align="right">2.1764398</td>
-</tr>
-<tr class="even">
-<td align="left">Chile (4 - 9)</td>
-<td align="left">Americas</td>
-<td align="right">6.0914769</td>
-<td align="right">4.0151496</td>
-<td align="right">8.8832711</td>
-<td align="right">4</td>
-<td align="right">2.0914769</td>
-</tr>
-<tr class="odd">
-<td align="left">Belarus (1 - 4)</td>
-<td align="left">Europe</td>
-<td align="right">1.8970090</td>
-<td align="right">0.6898921</td>
-<td align="right">4.1425056</td>
-<td align="right">0</td>
-<td align="right">1.8970090</td>
-</tr>
-<tr class="even">
-<td align="left">Malaysia (3 - 12)</td>
-<td align="left">Asia</td>
-<td align="right">6.8282645</td>
-<td align="right">3.1664280</td>
-<td align="right">12.2013973</td>
+<td align="right">3.2546035</td>
+<td align="right">1.9048127</td>
+<td align="right">5.6485960</td>
 <td align="right">5</td>
-<td align="right">1.8282645</td>
-</tr>
-<tr class="odd">
-<td align="left">Slovenia (3 - 6)</td>
-<td align="left">Europe</td>
-<td align="right">4.5821376</td>
-<td align="right">3.1488918</td>
-<td align="right">6.1368042</td>
-<td align="right">3</td>
-<td align="right">1.5821376</td>
+<td align="right">-1.7453965</td>
 </tr>
 <tr class="even">
-<td align="left">Czechia (11 - 22)</td>
-<td align="left">Europe</td>
-<td align="right">16.4500271</td>
-<td align="right">11.2210347</td>
-<td align="right">22.4473179</td>
-<td align="right">18</td>
-<td align="right">-1.5499729</td>
-</tr>
-<tr class="odd">
-<td align="left">Netherlands (6 - 15)</td>
-<td align="left">Europe</td>
-<td align="right">9.4747807</td>
-<td align="right">5.9286030</td>
-<td align="right">14.8518547</td>
-<td align="right">8</td>
-<td align="right">1.4747807</td>
-</tr>
-<tr class="even">
-<td align="left">Trinidad &amp; Tobago (2 - 5)</td>
+<td align="left">St. Lucia (1 - 5)</td>
 <td align="left">Americas</td>
-<td align="right">3.5453280</td>
-<td align="right">2.1592170</td>
-<td align="right">4.9968942</td>
-<td align="right">5</td>
-<td align="right">-1.4546720</td>
+<td align="right">1.5591451</td>
+<td align="right">0.6057254</td>
+<td align="right">5.2846008</td>
+<td align="right">0</td>
+<td align="right">1.5591451</td>
 </tr>
 <tr class="odd">
+<td align="left">Montenegro (1 - 4)</td>
+<td align="left">Europe</td>
+<td align="right">1.5020209</td>
+<td align="right">0.8100793</td>
+<td align="right">4.1248277</td>
+<td align="right">0</td>
+<td align="right">1.5020209</td>
+</tr>
+<tr class="even">
 <td align="left">Malta (1 - 3)</td>
 <td align="left">Europe</td>
-<td align="right">1.4454410</td>
-<td align="right">0.7380197</td>
-<td align="right">2.7436432</td>
+<td align="right">1.4216893</td>
+<td align="right">0.7360167</td>
+<td align="right">3.0287795</td>
 <td align="right">0</td>
-<td align="right">1.4454410</td>
-</tr>
-<tr class="even">
-<td align="left">San Marino (0 - 3)</td>
-<td align="left">Europe</td>
-<td align="right">0.9261463</td>
-<td align="right">0.2007214</td>
-<td align="right">3.1115626</td>
-<td align="right">0</td>
-<td align="right">0.9261463</td>
+<td align="right">1.4216893</td>
 </tr>
 <tr class="odd">
-<td align="left">Denmark (7 - 18)</td>
+<td align="left">Iceland (1 - 3)</td>
 <td align="left">Europe</td>
-<td align="right">11.8947563</td>
-<td align="right">7.2952744</td>
-<td align="right">18.0718404</td>
-<td align="right">11</td>
-<td align="right">0.8947563</td>
+<td align="right">1.2877988</td>
+<td align="right">0.5846023</td>
+<td align="right">2.6277095</td>
+<td align="right">0</td>
+<td align="right">1.2877988</td>
 </tr>
 <tr class="even">
-<td align="left">Cyprus (0 - 1)</td>
+<td align="left">Belize (1 - 3)</td>
+<td align="left">Americas</td>
+<td align="right">1.2531868</td>
+<td align="right">0.6297426</td>
+<td align="right">3.2665795</td>
+<td align="right">0</td>
+<td align="right">1.2531868</td>
+</tr>
+<tr class="odd">
+<td align="left">San Marino (0 - 6)</td>
+<td align="left">Europe</td>
+<td align="right">1.0648403</td>
+<td align="right">0.2313620</td>
+<td align="right">6.3866642</td>
+<td align="right">0</td>
+<td align="right">1.0648403</td>
+</tr>
+<tr class="even">
+<td align="left">Cyprus (1 - 1)</td>
 <td align="left">Asia</td>
-<td align="right">0.7359939</td>
-<td align="right">0.3885853</td>
-<td align="right">1.2254595</td>
+<td align="right">1.0440741</td>
+<td align="right">0.7297772</td>
+<td align="right">1.4748817</td>
 <td align="right">0</td>
-<td align="right">0.7359939</td>
+<td align="right">1.0440741</td>
 </tr>
 <tr class="odd">
-<td align="left">St. Kitts &amp; Nevis (0 - 2)</td>
-<td align="left">Americas</td>
-<td align="right">0.7352065</td>
-<td align="right">0.2831163</td>
-<td align="right">1.6590698</td>
-<td align="right">0</td>
-<td align="right">0.7352065</td>
+<td align="left">Austria (5 - 9)</td>
+<td align="left">Europe</td>
+<td align="right">6.9287395</td>
+<td align="right">5.1376143</td>
+<td align="right">9.1985586</td>
+<td align="right">6</td>
+<td align="right">0.9287395</td>
 </tr>
 <tr class="even">
-<td align="left">Palau (0 - 1)</td>
+<td align="left">Suriname (0 - 2)</td>
+<td align="left">Americas</td>
+<td align="right">0.8922421</td>
+<td align="right">0.4274273</td>
+<td align="right">1.6685153</td>
+<td align="right">0</td>
+<td align="right">0.8922421</td>
+</tr>
+<tr class="odd">
+<td align="left">Barbados (0 - 2)</td>
+<td align="left">Americas</td>
+<td align="right">0.7856272</td>
+<td align="right">0.4518088</td>
+<td align="right">1.6132191</td>
+<td align="right">0</td>
+<td align="right">0.7856272</td>
+</tr>
+<tr class="even">
+<td align="left">Antigua &amp; Barbuda (0 - 1)</td>
+<td align="left">Americas</td>
+<td align="right">0.6276038</td>
+<td align="right">0.3290215</td>
+<td align="right">1.4690217</td>
+<td align="right">0</td>
+<td align="right">0.6276038</td>
+</tr>
+<tr class="odd">
+<td align="left">Andorra (0 - 1)</td>
+<td align="left">Europe</td>
+<td align="right">0.6170222</td>
+<td align="right">0.3772817</td>
+<td align="right">1.1076392</td>
+<td align="right">0</td>
+<td align="right">0.6170222</td>
+</tr>
+<tr class="even">
+<td align="left">Seychelles (0 - 1)</td>
+<td align="left">Africa</td>
+<td align="right">0.4286383</td>
+<td align="right">0.1611593</td>
+<td align="right">1.4061060</td>
+<td align="right">0</td>
+<td align="right">0.4286383</td>
+</tr>
+<tr class="odd">
+<td align="left">St. Vincent &amp; Grenadines (0 - 1)</td>
+<td align="left">Americas</td>
+<td align="right">0.4028342</td>
+<td align="right">0.1658641</td>
+<td align="right">1.1663910</td>
+<td align="right">0</td>
+<td align="right">0.4028342</td>
+</tr>
+<tr class="even">
+<td align="left">Dominica (0 - 2)</td>
+<td align="left">Americas</td>
+<td align="right">0.3860814</td>
+<td align="right">0.1192766</td>
+<td align="right">1.6589289</td>
+<td align="right">0</td>
+<td align="right">0.3860814</td>
+</tr>
+<tr class="odd">
+<td align="left">Palau (0 - 2)</td>
 <td align="left">Oceania</td>
-<td align="right">0.2687043</td>
-<td align="right">0.0889218</td>
-<td align="right">0.7351043</td>
+<td align="right">0.3610840</td>
+<td align="right">0.0963184</td>
+<td align="right">1.6280324</td>
 <td align="right">0</td>
-<td align="right">0.2687043</td>
-</tr>
-<tr class="odd">
-<td align="left">Cuba (4 - 19)</td>
-<td align="left">Americas</td>
-<td align="right">9.2663065</td>
-<td align="right">3.5443669</td>
-<td align="right">19.3366803</td>
-<td align="right">9</td>
-<td align="right">0.2663065</td>
+<td align="right">0.3610840</td>
 </tr>
 <tr class="even">
+<td align="left">St. Kitts &amp; Nevis (0 - 1)</td>
+<td align="left">Americas</td>
+<td align="right">0.3046414</td>
+<td align="right">0.1497139</td>
+<td align="right">0.7037743</td>
+<td align="right">0</td>
+<td align="right">0.3046414</td>
+</tr>
+<tr class="odd">
 <td align="left">Nauru (0 - 0)</td>
 <td align="left">Oceania</td>
-<td align="right">0.1377915</td>
-<td align="right">0.0378022</td>
-<td align="right">0.4508433</td>
+<td align="right">0.0352386</td>
+<td align="right">0.0156111</td>
+<td align="right">0.0988285</td>
 <td align="right">0</td>
-<td align="right">0.1377915</td>
+<td align="right">0.0352386</td>
 </tr>
 </tbody>
 </table>

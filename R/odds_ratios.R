@@ -1,5 +1,5 @@
 get_coefficients <- function(mod_comb){
-  sjPlot::get_model_data(mod_comb, type = "est") %>% #by default, stanreg-models are printed with two intervals: the "inner" interval, which defaults to the 50%-CI; and the "outer" interval, which defaults to the 89%-C
+  sjPlot::get_model_data(mod_comb, type = "est", ci.lvl = 0.95) %>% #by default, stanreg-models are printed with two intervals: the "inner" interval, which defaults to the 50%-CI; and the "outer" interval, which defaults to the 89%-C
     distinct() %>%
     mutate(term_clean = as.character(term)) %>%
     mutate(term_clean = lookup_vars[term_clean]) %>%
@@ -13,8 +13,9 @@ get_consistent_predictors <- function(coefs){
   coefs %>%
     filter(predictor) %>%
     mutate(lab = "*") %>%
-    select(term, lab) %>% 
-    mutate_all(~str_replace(., "\\.", ":"))
+    select(term, lab, model = wrap.facet) %>% 
+    mutate( term = str_replace(term, "\\.", ":")) |>
+    mutate(model = case_when(model=="Conditional Model" ~ "pois", model=="Zero-Inflated Model" ~ "zi"))
 } 
 
 plot_coefficients <- function(coefs, fancy_lab){
@@ -52,6 +53,12 @@ plot_coefficients <- function(coefs, fancy_lab){
 
 export_coefficient_table <- function(coefs){
   coefs %>% 
-    select(term_clean, lab, conf.low, conf.high) %>% 
-    mutate_at(vars("conf.low", "conf.high"), ~signif(., 2))
+    mutate(wrap.facet = factor(wrap.facet, levels = c( "Conditional Model", "Zero-Inflated Model"), 
+                               labels = c("Conditional (Poisson)", "Zero-Inflated (Logistic)"),
+                                 ordered = TRUE)) |> 
+    mutate_at(vars("estimate", "conf.low", "conf.high"), ~signif(., 2)) |> 
+    mutate(Estimate = paste0(estimate , " (", conf.low, "-", conf.high, ")", ifelse(predictor, "*", "")))  |> 
+    arrange(wrap.facet, -estimate) |> 
+    select(Model = wrap.facet, Predictor = term_clean, Estimate, group, predictor) 
+    
 }

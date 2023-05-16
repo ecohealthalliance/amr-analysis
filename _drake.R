@@ -24,6 +24,7 @@ suppressPackageStartupMessages({
   library(bayesplot)
   library(sjPlot)
   library(cowplot)
+  library(patchwork)
   library(ggthemes)
   library(rnaturalearth)
   library(rnaturalearthdata)
@@ -165,15 +166,19 @@ plan <- drake_plan(
                   formula),
     transform = map(data_mice, formula)
   ),
-  # get marginal effects on all model iterations
-  marg_eff = target(
-    furrr::future_map(mod_fit, ~brms::marginal_effects(.)), 
-    transform = map(mod_fit, .id = FALSE)
-  ),
   # aggregate brm model
   mod_comb =  target(
     brms::combine_models(mlist = mod_fit, check_data = FALSE),
     transform = map(mod_fit, .id = FALSE)
+  ),
+  # get conditional effects on all model iterations
+  cond_eff_pois = target(
+    brms::conditional_effects(mod_comb, surface = TRUE), # set to raster when calling "plot()", otherwise it still shows up as contour
+    transform = map(mod_comb, .id = FALSE)
+  ),
+  cond_eff_zi = target(
+    brms::conditional_effects(mod_comb, dpar="zi"), 
+    transform = map(mod_comb, .id = FALSE)
   ),
   # sample posterior y
   post_y = target(
@@ -220,8 +225,8 @@ plan <- drake_plan(
   ),
   # export model coefficients for reporting
   coef_tbl = target(
-    write_csv(export_coefficient_table(coefs),
-              file = file_out(!!h(paste0("doc/coef_values_", lab, ".csv")))),
+    xlsx::write.xlsx(export_coefficient_table(coefs),
+                     file = file_out(!!h(paste0("doc/coef_values_", lab, ".xlsx")))),
     transform = map(coefs, lab = !!labs, .id = FALSE)
   ),
   # coefficient dot plot
@@ -236,12 +241,45 @@ plan <- drake_plan(
     get_consistent_predictors(coefs),
     transform = map(coefs, .id = FALSE)
   ),
-  # marginal effects plot
-  marg_eff_plot = target(
-    ggsave(plot_marginal_effects(marg_eff, lookup_vars, consistent_preds, data_reshape),
-           filename = file_out(!!h(paste0("plots/marginal_effects_multi_", lab, ".png"))),
-           width = 10, height = 21),
-    transform = map(marg_eff, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  # conditional effects plots
+  cond_eff_pois_plot = target(
+    plot_conditional_effects(cond_eff_pois, 
+                             lookup_vars, 
+                             consistent_preds |> filter(model == "pois"), 
+                             data_reshape, 
+                             variables = pois_vars |> head(-1)
+    ),
+    transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_pois_plot_interaction = target({
+    if(lab == "v3.2_livestock_biomass_included") return(NULL);
+    plot_conditional_effects(cond_eff_pois, 
+                             lookup_vars, 
+                             consistent_preds |> filter(model == "pois"), 
+                             data_reshape, 
+                             variables = pois_vars |> tail(1), 
+                             ncol = 1)
+  },
+  transform = map(cond_eff_pois, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_zi_plot = target(
+    plot_conditional_effects(cond_eff_zi, 
+                             lookup_vars, 
+                             consistent_preds |> filter(model == "zi"),
+                             data_reshape, 
+                             variables = zi_vars),
+    transform = map(cond_eff_zi, consistent_preds, data_reshape, lab = !!labs, .id = FALSE)
+  ),
+  cond_eff_plot_arranged = target(
+    ggsave(
+      plot_grid(cond_eff_pois_plot, plot_grid(cond_eff_pois_plot_interaction, 
+                                              cond_eff_zi_plot,
+                                              ncol = 1, 
+                                              rel_heights = c(2, 3),
+                                              labels = c("B", "C", "")), ncol = 2, labels = c("A", "")),
+      filename = file_out(!!h(paste0("plots/conditional_effects_", lab, ".png"))),
+      bg = "white", width = 22, height = 15, dpi = 700),
+    transform = map(cond_eff_pois_plot, cond_eff_pois_plot_interaction, cond_eff_zi_plot,lab = !!labs, .id = FALSE)
   ),
   # get model predictions
   predicts = target(
@@ -275,22 +313,14 @@ plan <- drake_plan(
   # combine slope and map into single figure
   ms_plot_left = target(
     ggsave(
-      plot_grid(
-        plot_map(map_data),
-        plot_diff_map(map_data),
-        ncol = 1,
-        rel_heights = c(0.65, 0.35),
-        labels = c("A", "B")),
+      (plot_map(map_data) / plot_diff_map(map_data)) + plot_annotation(tag_levels = 'A'),
       filename = file_out(!!h(paste0("plots/map_and_slope_left_", lab, ".png"))),
-      width = 12, height = 8, dpi = 500),
+      width = 7, height = 10, dpi = 500),
     transform = map(map_data, lab = !!labs, .id = FALSE)
   ),
   ms_plot_right = target(
     ggsave(
-      plot_grid(
-        plot_slope(predicted_versus_actual_diff),
-        ncol = 1,
-        labels = c("C")),
+        plot_slope(predicted_versus_actual_diff) + plot_annotation(title = 'C'),
       filename = file_out(!!h(paste0("plots/map_and_slope_right_", lab, ".png"))),
       width = 9, height = 8, dpi = 500),
     transform = map(predicted_versus_actual_diff, lab = !!labs, .id = FALSE)
@@ -329,7 +359,7 @@ plan <- drake_plan(
 
 vis_drake_graph(plan, targets_only = TRUE)
 
-future::plan(multisession, workers = floor(parallel::detectCores()/4))
+# future::plan(multisession, workers = 6)
 
 drake::make(plan, lock_envir = FALSE, # lock_envir=F needed for Stan
             cache_log_file = "drake_cache_log.csv")

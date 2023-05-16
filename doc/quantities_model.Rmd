@@ -61,11 +61,7 @@ knitr::kable(coefs_3)
 
 get means and predict doubling for each vars
 ```{r}
-# add interaction to data_mice_compl
-data_mice_compl_3 <- data_mice_compl_3 %>% 
-  mutate("ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita" = ln_livestock_consumption_kg_per_capita * ln_gdp_per_capita)
-
-amr_means <- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars_3))])) %>%
+amr_means <- colMeans(as.matrix(data_mice_compl_3[,unique(c(zi_vars_3, pois_vars_3[-11]))])) %>%
   enframe() %>%
   pivot_wider(names_from = name, values_from = value)
 
@@ -73,37 +69,65 @@ mean_estimate <- predict(mod_comb_3, newdata = amr_means, summary = FALSE)
 mean_estimate_no_zero <- mean_estimate %>% 
   enframe(value = "est") %>% 
   filter(est > 0) %>% 
-  summarize(est_mean = mean(est),
-            est_sd = sd(est),
-            est_high = mean(est) + sd(est),
-            est_low = mean(est) - sd(est))
+  summarize(amr_mean_est = mean(est))
 
 imap_dfr(amr_means, function(x, y){
   
+  # predict amr when x is doubled (doubling livestock or GDP will also feed into the interaction)
   dbl_estimate <- amr_means %>%
     mutate(!!y := ifelse(str_detect(y, "ln_"), log(exp(x) * 2), x * 2)) %>%
     predict(mod_comb_3, newdata = ., summary = FALSE)
   
   dbl_estimate_no_zero <- dbl_estimate %>% 
-    enframe(value = "est") %>% 
-    filter(est > 0) %>% 
-    summarize(dbl_est_mean = mean(est),
-              dbl_est_sd = sd(est),
-              dbl_est_high = mean(est) + sd(est),
-              dbl_est_low = mean(est) - sd(est))
+    as_tibble() |> 
+    rename(amr_dbl_est = V1) |> 
+    filter(amr_dbl_est > 0) |> 
+    bind_cols(mean_estimate_no_zero) |> 
+    mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |> 
+    summarize(amr_mean_perc_diff_when_doubled = scales::percent(mean(amr_est_diff)), amd_std_diff_when_doubled = scales::percent(sd(amr_est_diff)))
   
   mean_value <- ifelse(str_detect(y, "ln_"), exp( amr_means %>% pull(y)),  amr_means %>% pull(y))
   
-  tibble(var = y, mean_value = mean_value) %>% 
-    bind_cols(mean_estimate_no_zero, dbl_estimate_no_zero) %>% 
-    mutate( diff_mean = (dbl_est_mean - est_mean)/est_mean,
-            diff_high = (dbl_est_high - est_high)/est_high,
-            diff_low = (dbl_est_low - est_low)/est_low
-    )
+  tibble(var = y, mean_var_value = mean_value) %>% 
+    bind_cols(dbl_estimate_no_zero) %>% 
+    mutate_if(.predicate = is.numeric, ~signif(., digits = 2))
 }) %>% 
   knitr::kable()
 
+# doubling livestock at low gdp
 
+gdp <- quantile(data_mice_compl_3$ln_gdp_per_capita, 0.05)
+
+dbl_estimate <- amr_means %>%
+  mutate(ln_gdp_per_capita = gdp) |> 
+  mutate(ln_livestock_consumption_kg_per_capita = log(exp(ln_livestock_consumption_kg_per_capita) * 2)) %>%
+  predict(mod_comb_3, newdata = ., summary = FALSE)
+
+dbl_estimate_no_zero <- dbl_estimate %>% 
+  as_tibble() |> 
+  rename(amr_dbl_est = V1) |> 
+  filter(amr_dbl_est > 0) |> 
+  bind_cols(mean_estimate_no_zero) |> 
+  mutate(amr_est_diff = (amr_dbl_est - amr_mean_est)/amr_mean_est) |> 
+  summarize(amr_mean_perc_diff_when_doubled = scales::percent(mean(amr_est_diff)), amd_std_diff_when_doubled = scales::percent(sd(amr_est_diff)))
+
+
+# when does relationship between livestock and amr become positive?
+coef_livestock <- log(coefs_3$est[coefs_3$term == "ln_livestock_consumption_kg_per_capita"])
+coef_gdp <- log(coefs_3$est[coefs_3$term == "ln_gdp_per_capita" & coefs_3$wrap.facet == "Conditional Model"])
+coef_interaction <- log(coefs_3$est[coefs_3$term == "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"])
+
+
+# livestock OR = b1x1 + b3x1x2
+# where b1 = coef_livestock; x1 = livestock; b3 = coef_interaction; x2 = gdp
+# x1 = 1
+# when gdp = 0, OR = b1
+# when gdp = 1, OR = b1 + b3
+# when gdp = 2, OR = b1 + 2 * b3
+# what value of x2 (gdp) corresponds to OR of 0?
+# x2 = (0-b1)/b3
+pos_point <- (0 - coef_livestock)/coef_interaction
+exp(pos_point)
 ```
 
 Differences between predicted versus actual
@@ -113,7 +137,7 @@ loadd(predicted_versus_actual_diff_3)
 predicted_versus_actual_diff_3 %>% 
   summarize(percent_predicted_greater = length(diff[diff > 0])/n())
 
-predicted_versus_actual_diff_3 %>% View
+predicted_versus_actual_diff_3 
 
 predicted_versus_actual_diff_3 %>% 
   select(-iso3c, -v, -country) %>% 
