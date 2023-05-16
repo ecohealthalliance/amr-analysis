@@ -13,7 +13,7 @@ lookup_vars <- c(
   "health_expend_perc" = "Health Expenditure (% GDP)", 
   
   # consumption vars
-  "human_consumption_ddd" = "Human AB Consumption (DDD)", 
+  "human_consumption_ddd" = "Human AB Consumption (DDD per capita)", 
   "ln_livestock_consumption_kg_per_capita" = "Livestock AB Consumption (log kg per cap)",
   "ln_livestock_consumption_kg_per_capita.ln_gdp_per_capita"= "Livestock AB Consumption & GDP Interaction",
   "ln_livestock_consumption_kg_per_capita:ln_gdp_per_capita"= "Livestock AB Consumption & GDP Interaction",
