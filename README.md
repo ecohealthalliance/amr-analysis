@@ -27,7 +27,7 @@ This project was run with R version 4.2.1 (2022-06-23). This project uses the {r
 
 ## Code
 -	`00-init-data.R` compiles global data for the analysis. Outputs from this script are saved in `data/`, so it is not necessary to run this script to run the analysis in `_drake.R`.
-    - AMR emergence data is from [DOI 10.5281/zenodo.3964895](https://zenodo.org/record/3964895)
+    - AMR emergence data is from [DOI 10.5281/zenodo.4924992](https://zenodo.org/record/4924992)
     - Data on potential correlates of AMR emergence come from multiple sources, documented within comments.
 - `00-get-promed-data.R` generates an index of ProMED publications by country (to be used as an indicator for reporting bias within the study). Outputs from this script are saved in `data/`, so it is not necessary to run this script to run the analysis `_drake.R`.
 - `_drake.R` uses the [drake](https://github.com/ropensci/drake) package to run the analysis from the data compiled in above scripts. It uses [static branching](https://books.ropensci.org/drake/static.html) to evaluate multiple scenarios to test model robustness. Running the full script will trigger the drake plan to run (alternatively, sourcing `Makefile` within this repo will trigger a run). Individual targets within the plan can be loaded into environment using `drake::loadd(target_name)`
